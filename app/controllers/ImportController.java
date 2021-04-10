@@ -17,25 +17,22 @@ public class ImportController extends Controller {
     private String[] parseLine(String line, int length) {
         String[] components = new String[length];
         int i = 0;
-        while (!line.isBlank()) {
-            if (line.startsWith("\"")) {
-                int endPos = line.indexOf("\"", 1);
+        int pos = 0;
+        while (pos < line.length()) {
+            if ("\"".equals(line.substring(pos, pos + 1))) {
+                int endPos = line.indexOf("\"", pos + 1);
                 if (endPos == -1) {
                     endPos = line.length();
                 }
-
-                components[i++] = line.substring(1, endPos);
-                line = line.substring(Math.min(endPos + 1, line.length()));
+                components[i++] = line.substring(pos + 1, endPos);
+                pos = Math.min(endPos + 2, line.length());
             } else {
-                int endPos = line.indexOf(",");
+                int endPos = line.indexOf(",", pos + 1);
                 if (endPos == -1) {
                     endPos = line.length();
                 }
-                components[i++] = line.substring(0, endPos);
-                line = line.substring(Math.min(endPos, line.length()));
-            }
-            if (line.startsWith(",")) {
-                line = line.substring(1);
+                components[i++] = line.substring(pos, endPos);
+                pos = Math.min(endPos + 1, line.length());
             }
         }
         if (i < length) {
