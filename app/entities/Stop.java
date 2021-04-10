@@ -1,6 +1,6 @@
 package entities;
 
-import java.util.List;
+import java.util.Map;
 
 public class Stop {
     private final String id;
@@ -10,13 +10,13 @@ public class Stop {
     private final String type;
     private final String parentId;
 
-    public Stop(List<String> data) {
-        this.id = data.get(0);
-        this.name = data.get(1);
-        this.lat = data.get(2).isBlank() ? null : Double.parseDouble(data.get(2));
-        this.lng = data.get(3).isBlank() ? null : Double.parseDouble(data.get(3));
-        this.type = data.get(4).isBlank() ? null : data.get(4);
-        this.parentId = data.get(5).isBlank() ? null : data.get(5);
+    public Stop(Map<String, String> data) {
+        this.id = data.get("stop_id");
+        this.name = data.get("stop_name");
+        this.lat = data.get("stop_lat").isBlank() ? null : Double.parseDouble(data.get("stop_lat"));
+        this.lng = data.get("stop_lon").isBlank() ? null : Double.parseDouble(data.get("stop_lon"));
+        this.type = data.get("location_type").isBlank() ? null : data.get("location_type");
+        this.parentId = data.get("parent_station").isBlank() ? null : data.get("parent_station");
     }
 
     public String getId() {

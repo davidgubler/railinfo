@@ -1,18 +1,22 @@
 package controllers;
 
+import entities.ServiceCalendar;
 import entities.Stop;
+import entities.StopTime;
+import entities.Trip;
 import play.mvc.*;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ImportController extends Controller {
 
-    private List<String> parseLine(String line) {
-        List<String> components = new LinkedList<>();
+    private String[] parseLine(String line, int length) {
+        String[] components = new String[length];
+        int i = 0;
         while (!line.isBlank()) {
             if (line.startsWith("\"")) {
                 int endPos = line.indexOf("\"", 1);
@@ -20,26 +24,49 @@ public class ImportController extends Controller {
                     endPos = line.length();
                 }
 
-                components.add(line.substring(1, endPos));
+                components[i++] = line.substring(1, endPos);
                 line = line.substring(Math.min(endPos + 1, line.length()));
             } else {
                 int endPos = line.indexOf(",");
                 if (endPos == -1) {
                     endPos = line.length();
                 }
-                components.add(line.substring(0, endPos));
+                components[i++] = line.substring(0, endPos);
                 line = line.substring(Math.min(endPos, line.length()));
             }
             if (line.startsWith(",")) {
                 line = line.substring(1);
             }
         }
+        if (i < length) {
+            components = Arrays.copyOf(components, i);
+        }
         return components;
     }
 
-    public Result flubber() throws IOException {
-        List<Stop> stops = new LinkedList<>();
+    private <T> List<T> parseFile(InputStream is, Function<Map<String, String>, T> creator) throws IOException {
+        List<T> list = new LinkedList<>();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String[] header = parseLine(reader.readLine(), 100);
+        Map<String, String> dataMap = new HashMap<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] data = parseLine(line, header.length);
+            for (int i = 0; i < header.length; i++) {
+                dataMap.put(header[i], data[i]);
+            }
+            list.add(creator.apply(dataMap));
+        }
+        return list;
+    }
 
+    private List<Stop> stops = new LinkedList<>();
+    private List<Trip> trips = new LinkedList<>();
+    private List<ServiceCalendar> serviceCalendars = new LinkedList<>();
+    private List<StopTime> stopTimes = new LinkedList<>();
+
+    public Result flubber() throws IOException {
+        long start = System.currentTimeMillis();
         File timetableZip = new File("/home/david/Downloads/gtfs_fp2021_2021-04-07_09-10.zip");
         ZipInputStream zipIn = new ZipInputStream(new FileInputStream(timetableZip));
 
@@ -53,18 +80,18 @@ public class ImportController extends Controller {
 
             InputStreamReader zipInReader = new InputStreamReader(zipIn);
             BufferedReader reader = new BufferedReader(zipInReader);
-            String line;
+
             if ("stops.txt".equals(entry.getName())) {
-                reader.readLine(); // ignore first line
-                while((line = reader.readLine())!= null){
-                    try {
-                        stops.add(new Stop(parseLine(line)));
-                    } catch ( Exception e ) {
-                        System.out.println("could not parse line: " + line);
-                    }
-                }
+                stops = parseFile(zipIn, dataMap -> new Stop(dataMap));
+            } else if ("trips.txt".equals(entry.getName())) {
+                trips = parseFile(zipIn, dataMap -> new Trip(dataMap));
+            } else if ("calendar.txt".equals(entry.getName())) {
+                serviceCalendars = parseFile(zipIn, dataMap -> new ServiceCalendar(dataMap));
+            } else if ("stop_times.txt".equals(entry.getName())) {
+                stopTimes = parseFile(zipIn, dataMap -> new StopTime(dataMap));
             } else {
-                while((line = reader.readLine())!= null) {
+                String line;
+                while ((line = reader.readLine()) != null) {
                     // just skip it
                 }
             }
@@ -75,7 +102,10 @@ public class ImportController extends Controller {
         zipIn.close();
 
         System.out.println("found " + stops.size() + " stops");
-
+        System.out.println("found " + trips.size() + " trips");
+        System.out.println("found " + serviceCalendars.size() + " serviceCalendars");
+        System.out.println("found " + stopTimes.size() + " stopTimes");
+        System.out.println("time taken: " + (System.currentTimeMillis() - start) + " ms");
         return ok();
     }
 }

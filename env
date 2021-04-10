@@ -1,1 +1,1 @@
-export JAVA_OPTS=-Xmx8G
+export JAVA_OPTS=-Xmx16G
