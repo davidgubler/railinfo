@@ -1,23 +1,39 @@
 package entities;
 
-import org.joda.time.format.DateTimeFormat;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
 
-import java.text.DateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Map;
 
+@Entity(value = "serviceCalendars", noClassnameStored = true)
 public class ServiceCalendar {
+    @Id
+    private ObjectId _id;
+
+    @Indexed
     private final String serviceId;
-    private final boolean monday;
-    private final boolean tuesday;
-    private final boolean wednesday;
-    private final boolean thursday;
-    private final boolean friday;
-    private final boolean saturday;
-    private final boolean sunday;
+
+    private final Boolean monday;
+
+    private final Boolean tuesday;
+
+    private final Boolean wednesday;
+
+    private final Boolean thursday;
+
+    private final Boolean friday;
+
+    private final Boolean saturday;
+
+    private final Boolean sunday;
+
     private final java.time.LocalDate start;
+
     private final java.time.LocalDate end;
 
     public ServiceCalendar(Map<String, String> data) {
@@ -71,5 +87,35 @@ public class ServiceCalendar {
 
     public LocalDate getEnd() {
         return end;
+    }
+
+    public boolean isActiveToday() {
+        LocalDate now = LocalDate.now();
+        if (now.isBefore(start) || now.isAfter(end)) {
+            return false;
+        }
+        DayOfWeek dow = now.getDayOfWeek();
+        if (dow == DayOfWeek.MONDAY && getMonday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.TUESDAY && getTuesday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.WEDNESDAY && getWednesday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.THURSDAY && getThursday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.FRIDAY && getFriday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.SATURDAY && getSaturday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.SUNDAY && getSunday()) {
+            return true;
+        }
+        return false;
     }
 }

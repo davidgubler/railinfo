@@ -10,3 +10,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 
 GET     /load                       controllers.ImportController.flubber()
+GET     /effretikon                 controllers.ImportController.effretikon()
