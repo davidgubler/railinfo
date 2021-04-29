@@ -5,16 +5,14 @@ import entities.ServiceCalendar;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
-import models.ServiceCalendarsModel;
-import models.StopTimesModel;
-import models.StopsModel;
-import models.TripsModel;
+import models.*;
 import play.mvc.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -33,6 +31,9 @@ public class ImportController extends Controller {
 
     @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
+
+    @Inject
+    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
     private String[] parseLine(String line, int length) {
         String[] components = new String[length];
@@ -61,8 +62,7 @@ public class ImportController extends Controller {
         return components;
     }
 
-    private <T> List<T> parseFile(InputStream is, Function<Map<String, String>, T> creator) throws IOException {
-        List<T> list = new LinkedList<>();
+    private <T> int parseFile(InputStream is, Function<Map<String, String>, T> creator) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String[] header = parseLine(reader.readLine(), 100);
         if (header[0].startsWith(UTF8_BOM)) {
@@ -71,15 +71,17 @@ public class ImportController extends Controller {
         }
         Map<String, String> dataMap = new HashMap<>();
         String line;
+        int c = 0;
         while ((line = reader.readLine()) != null) {
             String[] data = parseLine(line, header.length);
             for (int i = 0; i < header.length; i++) {
                 dataMap.put(header[i], data[i]);
             }
             dataMap.put(header[0], data[0]);
-            list.add(creator.apply(dataMap));
+            creator.apply(dataMap);
+            c++;
         }
-        return list;
+        return c;
     }
 
     private List<Stop> stops = new LinkedList<>();
@@ -94,6 +96,8 @@ public class ImportController extends Controller {
 
         ZipEntry entry = zipIn.getNextEntry();
 
+        int stops = 0, trips = 0, stopTimes = 0, serviceCalendars = 0, serviceCalendarExceptions = 0;
+
         while (entry != null) {
             if (entry.isDirectory()) {
                 continue;
@@ -104,17 +108,20 @@ public class ImportController extends Controller {
             BufferedReader reader = new BufferedReader(zipInReader);
 
             if ("stops.txt".equals(entry.getName())) {
-                stopsModel.drop();
-                stops = parseFile(zipIn, dataMap -> stopsModel.create(dataMap));
+                //stopsModel.drop();
+                //stops = parseFile(zipIn, dataMap -> stopsModel.create(dataMap));
             } else if ("trips.txt".equals(entry.getName())) {
-                tripsModel.drop();
-                trips = parseFile(zipIn, dataMap -> tripsModel.create(dataMap));
+                //tripsModel.drop();
+                //trips = parseFile(zipIn, dataMap -> tripsModel.create(dataMap));
+            } else if ("stop_times.txt".equals(entry.getName())) {
+                //stopTimesModel.drop();
+                //stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
             } else if ("calendar.txt".equals(entry.getName())) {
                 serviceCalendarsModel.drop();
                 serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(dataMap));
-            } else if ("stop_times.txt".equals(entry.getName())) {
-                stopTimesModel.drop();
-                stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
+            } else if ("calendar_dates.txt".equals(entry.getName())) {
+                serviceCalendarExceptionsModel.drop();
+                serviceCalendarExceptions = parseFile(zipIn, dataMap -> serviceCalendarExceptionsModel.create(dataMap));
             } else {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -127,41 +134,42 @@ public class ImportController extends Controller {
         }
         zipIn.close();
 
-        System.out.println("found " + stops.size() + " stops");
-        System.out.println("found " + trips.size() + " trips");
-        System.out.println("found " + serviceCalendars.size() + " serviceCalendars");
-        System.out.println("found " + stopTimes.size() + " stopTimes");
+        System.out.println("found " + stops + " stops");
+        System.out.println("found " + trips + " trips");
+        System.out.println("found " + stopTimes + " stopTimes");
+        System.out.println("found " + serviceCalendars + " serviceCalendars");
+        System.out.println("found " + serviceCalendarExceptions + " serviceCalendarExceptions");
         System.out.println("time taken: " + (System.currentTimeMillis() - start) + " ms");
         return ok();
     }
 
     public Result effretikon()  {
-        String id = null;
-        for (Stop stop : stops) {
-            if ("Effretikon".equals(stop.getName())) {
-                id = stop.getStopId().split(":")[0];
-                break;
+
+        Stop effretikon = stopsModel.getByName("Effretikon");
+        String id = effretikon.getStopId().split(":")[0];
+        System.out.println("Effretikon has ID " + id);
+
+        List<StopTime> stopTimes = stopTimesModel.getByStop(effretikon);
+        System.out.println("found " + stopTimes.size() + " stop times");
+
+        List<Trip> trips = new LinkedList<>();
+
+        for (StopTime stopTime : stopTimes) {
+            Trip trip = tripsModel.getByTripId(stopTime.getTripId());
+            if (trip != null) {
+                trips.add(trip);
             }
         }
 
-        System.out.println("Effretikon has ID " + id);
+        System.out.println("found " + trips.size() + " trips");
 
-        String finalId = id;
-        List<StopTime> stopTimesEffretikon = stopTimes.stream().filter(st -> st.getStopId().startsWith(finalId + ":")).collect(Collectors.toList());
-        Set<String> tripIdsEffretikon = stopTimesEffretikon.stream().map(StopTime::getTripId).collect(Collectors.toSet());
-        System.out.println("found " + tripIdsEffretikon.size() + " trip ids");
+        trips = trips.stream().filter(t -> t.isActiveToday()).collect(Collectors.toList());
+        Collections.sort(trips);
 
-        List<Trip> tripsEffretikon = trips.stream().filter(trip -> tripIdsEffretikon.contains(trip.getTripId())).collect(Collectors.toList());
-        System.out.println("found " + tripsEffretikon.size() + " trips");
-
-        Map<String, ServiceCalendar> calendarLookup = serviceCalendars.stream().collect(Collectors.toMap(ServiceCalendar::getServiceId, Function.identity()));
-        List<Trip> tripsEffretikonActive = tripsEffretikon.stream().filter(t -> calendarLookup.get(t.getServiceId()).isActiveToday()).collect(Collectors.toList());
-        System.out.println("found " + tripsEffretikonActive.size() + " trips for today");
-
-        for (Trip trip : tripsEffretikonActive) {
-            System.out.println(trip.getTripShortName() + " : " + trip.getTripHeadsign());
+        System.out.println("found " + trips.size() + " trips for today");
+        for (Trip trip : trips) {
+            System.out.println(trip.getTripId() + " : " + trip.getTripShortName() + " : " + trip.getTripHeadsign() + " : " + trip.getServiceId());
         }
-
         return ok();
     }
 }

@@ -11,19 +11,23 @@ public class Stop {
     private ObjectId _id;
 
     @Indexed(options = @IndexOptions(unique = true))
-    private final String stopId;
+    private String stopId;
 
     @Indexed
-    private final String name;
+    private String name;
 
-    private final Double lat;
+    private Double lat;
 
-    private final Double lng;
+    private Double lng;
 
-    private final String type;
+    private String type;
 
     @Indexed
-    private final String parentId;
+    private String parentId;
+
+    public Stop() {
+        // dummy constructor for Morphia
+    }
 
     public Stop(Map<String, String> data) {
         this.stopId = data.get("stop_id");

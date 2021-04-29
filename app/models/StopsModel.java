@@ -8,4 +8,6 @@ public interface StopsModel {
     void drop();
 
     Stop create(Map<String, String> data);
+
+    Stop getByName(String name);
 }

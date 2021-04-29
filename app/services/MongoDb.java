@@ -7,10 +7,7 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
-import entities.ServiceCalendar;
-import entities.Stop;
-import entities.StopTime;
-import entities.Trip;
+import entities.*;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -44,10 +41,11 @@ public class MongoDb {
         db = this.mongoClient.getDatabase(database);
 
         morphia = new Morphia();
-        morphia.map(ServiceCalendar.class);
         morphia.map(Stop.class);
         morphia.map(StopTime.class);
         morphia.map(Trip.class);
+        morphia.map(ServiceCalendar.class);
+        morphia.map(ServiceCalendarException.class);
 
         ds = morphia.createDatastore(mongoClient, database);
         ds.ensureIndexes();

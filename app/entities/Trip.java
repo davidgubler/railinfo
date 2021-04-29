@@ -1,33 +1,49 @@
 package entities;
 
+import com.google.inject.Inject;
+import models.ServiceCalendarExceptionsModel;
+import models.ServiceCalendarsModel;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.IndexOptions;
-import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.*;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity(value = "trips", noClassnameStored = true)
-public class Trip {
+public class Trip implements Comparable<Trip> {
     @Id
     private ObjectId _id;
 
     @Indexed(options = @IndexOptions(unique = true))
-    private final String tripId;
+    private String tripId;
 
     @Indexed
-    private final String routeId;
+    private String routeId;
 
     @Indexed
-    private final String serviceId;
+    private String serviceId;
 
-    private final String tripHeadsign;
+    private String tripHeadsign;
 
     @Indexed
-    private final String tripShortName;
+    private String tripShortName;
 
-    private final String directionId;
+    private String directionId;
+
+    @Transient
+    @Inject
+    private ServiceCalendarsModel serviceCalendarsModel;
+
+    @Transient
+    @Inject
+    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
+
+    public Trip() {
+        // dummy constructor for morphia
+    }
 
     public Trip(Map<String, String> data) {
         this.routeId = data.get("route_id");
@@ -62,8 +78,49 @@ public class Trip {
         return directionId;
     }
 
-
     public String toString() {
         return tripId;
+    }
+
+    public boolean isActiveToday() {
+        LocalDate now = LocalDate.now();
+        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(serviceId);
+        List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> now.equals(s.getDate())).collect(Collectors.toList());
+        if (todaysExceptions.size() == 1) {
+            return todaysExceptions.get(0).getActive();
+        }
+
+        ServiceCalendar cal = serviceCalendarsModel.getByServiceId(serviceId);
+        if (now.isBefore(cal.getStart()) || now.isAfter(cal.getEnd())) {
+            return false;
+        }
+        DayOfWeek dow = now.getDayOfWeek();
+        if (dow == DayOfWeek.MONDAY && cal.getMonday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.TUESDAY && cal.getTuesday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.WEDNESDAY && cal.getWednesday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.THURSDAY && cal.getThursday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.FRIDAY && cal.getFriday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.SATURDAY && cal.getSaturday()) {
+            return true;
+        }
+        if (dow == DayOfWeek.SUNDAY && cal.getSunday()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int compareTo(Trip trip) {
+        return tripShortName.compareTo(trip.getTripShortName());
     }
 }

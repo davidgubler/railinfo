@@ -9,25 +9,29 @@ import org.mongodb.morphia.annotations.Indexed;
 import java.util.Map;
 
 @Entity(value = "stopTimes", noClassnameStored = true)
-public class StopTime {
+public class StopTime implements Comparable<StopTime> {
     @Id
     private ObjectId _id;
 
     @Indexed
-    private final String tripId;
+    private String tripId;
 
-    private final String arrival;
+    private String arrival;
 
-    private final String departure;
+    private String departure;
 
     @Indexed
-    private final String stopId;
+    private String stopId;
 
-    private final String stopSequence;
+    private String stopSequence;
 
-    private final String pickupType;
+    private String pickupType;
 
-    private final String dropoffType;
+    private String dropoffType;
+
+    public StopTime() {
+        // dummy constructor for morphia
+    }
 
     public StopTime(Map<String, String> data) {
         this.tripId = data.get("trip_id");
@@ -45,5 +49,14 @@ public class StopTime {
 
     public String getStopId() {
         return stopId;
+    }
+
+    public String getStopSequence() {
+        return stopSequence;
+    }
+
+    @Override
+    public int compareTo(StopTime stopTime) {
+        return tripId.compareTo(stopTime.getTripId());
     }
 }

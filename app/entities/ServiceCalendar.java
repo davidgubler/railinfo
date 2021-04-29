@@ -16,25 +16,29 @@ public class ServiceCalendar {
     private ObjectId _id;
 
     @Indexed
-    private final String serviceId;
+    private String serviceId;
 
-    private final Boolean monday;
+    private Boolean monday;
 
-    private final Boolean tuesday;
+    private Boolean tuesday;
 
-    private final Boolean wednesday;
+    private Boolean wednesday;
 
-    private final Boolean thursday;
+    private Boolean thursday;
 
-    private final Boolean friday;
+    private Boolean friday;
 
-    private final Boolean saturday;
+    private Boolean saturday;
 
-    private final Boolean sunday;
+    private Boolean sunday;
 
-    private final java.time.LocalDate start;
+    private java.time.LocalDate start;
 
-    private final java.time.LocalDate end;
+    private java.time.LocalDate end;
+
+    public ServiceCalendar() {
+        // dummy constructor for morphia
+    }
 
     public ServiceCalendar(Map<String, String> data) {
         this.serviceId = data.get("service_id");
@@ -87,35 +91,5 @@ public class ServiceCalendar {
 
     public LocalDate getEnd() {
         return end;
-    }
-
-    public boolean isActiveToday() {
-        LocalDate now = LocalDate.now();
-        if (now.isBefore(start) || now.isAfter(end)) {
-            return false;
-        }
-        DayOfWeek dow = now.getDayOfWeek();
-        if (dow == DayOfWeek.MONDAY && getMonday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.TUESDAY && getTuesday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.WEDNESDAY && getWednesday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.THURSDAY && getThursday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.FRIDAY && getFriday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.SATURDAY && getSaturday()) {
-            return true;
-        }
-        if (dow == DayOfWeek.SUNDAY && getSunday()) {
-            return true;
-        }
-        return false;
     }
 }
