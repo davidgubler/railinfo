@@ -2,14 +2,16 @@ package services;
 
 import akka.actor.ActorSystem;
 import com.google.inject.Inject;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import entities.*;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 
 import java.util.Arrays;
 
@@ -18,7 +20,6 @@ public class MongoDb {
 
     private final MongoClient mongoClient;
     private final MongoDatabase db;
-    private final Morphia morphia;
     private final Datastore ds;
 
     @Inject
@@ -28,26 +29,22 @@ public class MongoDb {
         String hostname = "localhost";
         String username = null;
         String password = null;
-        String database = "railinfo-ch";
-        MongoClientOptions options = MongoClientOptions.builder().connectTimeout(TIMEOUT_CONNECT).sslEnabled(tls).build();
+        String database = "railinfo-ch2";
+        MongoClientSettings.Builder settings = MongoClientSettings.builder();
         if (username != null && password != null) {
             MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
-            new ServerAddress(hostname);
-            mongoClient = new MongoClient(new ServerAddress(hostname), Arrays.asList(credential), options);
-        } else {
-            mongoClient = new MongoClient(hostname, options);
+            settings.credential(credential);
         }
-
-        db = this.mongoClient.getDatabase(database);
-
-        morphia = new Morphia();
-        morphia.map(Stop.class);
-        morphia.map(StopTime.class);
-        morphia.map(Trip.class);
-        morphia.map(ServiceCalendar.class);
-        morphia.map(ServiceCalendarException.class);
-
-        ds = morphia.createDatastore(mongoClient, database);
+        settings.applyToSslSettings(builder -> builder.enabled(true));
+        settings.applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(hostname, 27017))));
+        mongoClient = MongoClients.create(settings.build());
+        db = mongoClient.getDatabase(database);
+        ds = Morphia.createDatastore(mongoClient, database);
+        ds.getMapper().map(Stop.class);
+        ds.getMapper().map(StopTime.class);
+        ds.getMapper().map(Trip.class);
+        ds.getMapper().map(ServiceCalendar.class);
+        ds.getMapper().map(ServiceCalendarException.class);
         ds.ensureIndexes();
         ds.ensureCaps();
 

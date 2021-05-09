@@ -2,9 +2,11 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import dev.morphia.query.experimental.filters.Filters;
+import entities.ServiceCalendarException;
 import entities.Stop;
 import models.StopsModel;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.HashSet;
@@ -19,10 +21,6 @@ public class MongoDbStopsModel implements StopsModel {
     @Inject
     private MongoDb mongoDb;
 
-    private Query<Stop> query() {
-        return mongoDb.getDs().createQuery(Stop.class);
-    }
-
     public void drop() {
         mongoDb.get().getCollection("stops").drop();
     }
@@ -35,7 +33,7 @@ public class MongoDbStopsModel implements StopsModel {
 
     public Set<Stop> getByName(String name) {
         Set<Stop> stops = new HashSet<>();
-        stops.addAll(query().field("name").equal(name).asList());
+        stops.addAll(mongoDb.getDs().find(Stop.class).filter(Filters.eq("name", name)).iterator().toList());
         System.out.println("===1=== " + stops);
         return stops;
     }

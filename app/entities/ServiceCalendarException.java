@@ -1,15 +1,15 @@
 package entities;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Indexed;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-@Entity(value = "serviceCalendarExceptions", noClassnameStored = true)
+@Entity(value = "serviceCalendarExceptions")
 public class ServiceCalendarException {
     @Id
     private ObjectId _id;

@@ -1,16 +1,16 @@
 package entities;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Indexed;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Indexed;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-@Entity(value = "serviceCalendars", noClassnameStored = true)
+@Entity(value = "serviceCalendars")
 public class ServiceCalendar {
     @Id
     private ObjectId _id;

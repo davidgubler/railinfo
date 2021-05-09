@@ -6,7 +6,7 @@ import models.ServiceCalendarExceptionsModel;
 import models.ServiceCalendarsModel;
 import models.StopTimesModel;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Entity(value = "trips", noClassnameStored = true)
+@Entity(value = "trips")
 public class Trip implements Comparable<Trip> {
     @Id
     private ObjectId _id;

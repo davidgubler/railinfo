@@ -2,11 +2,14 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import dev.morphia.query.FindOptions;
+import dev.morphia.query.Sort;
+import dev.morphia.query.experimental.filters.Filters;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
 import models.StopTimesModel;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.Collection;
@@ -21,10 +24,6 @@ public class MongoDbStopTimesModel implements StopTimesModel {
 
     @Inject
     private MongoDb mongoDb;
-
-    private Query<StopTime> query() {
-        return mongoDb.getDs().createQuery(StopTime.class);
-    }
 
     @Override
     public void drop() {
@@ -41,11 +40,11 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     @Override
     public List<StopTime> getByStops(Collection<Stop> stops) {
         List<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toList());
-        return query().field("stopId").in(stopIds).asList();
+        return mongoDb.getDs().find(StopTime.class).filter(Filters.in("stopId", stopIds)).iterator().toList();
     }
 
     @Override
     public List<StopTime> getByTrip(Trip trip) {
-        return query().field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
+        return mongoDb.getDs().find(StopTime.class).filter(Filters.eq("tripId", trip.getTripId())).iterator(new FindOptions().sort(Sort.ascending("stopSequence"))).toList();
     }
 }

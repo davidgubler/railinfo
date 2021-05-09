@@ -1,11 +1,11 @@
 package entities;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.util.Map;
 
-@Entity(value = "stops", noClassnameStored = true)
+@Entity(value = "stops")
 public class Stop {
     @Id
     private ObjectId _id;

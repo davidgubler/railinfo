@@ -62,25 +62,32 @@ public class ImportController extends Controller {
         return components;
     }
 
-    private <T> int parseFile(InputStream is, Function<Map<String, String>, T> creator) throws IOException {
+    private <T> int parseFile(InputStream is, Function<List<Map<String, String>>, List<T>> creator) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String[] header = parseLine(reader.readLine(), 100);
         if (header[0].startsWith(UTF8_BOM)) {
             // nobody likes a byte order mark
             header[0] = header[0].substring(1);
         }
-        Map<String, String> dataMap = new HashMap<>();
+        int batchSize = 1;
+        List<Map<String, String>> dataMapBatch = new ArrayList<>(batchSize);
         String line;
         int c = 0;
         while ((line = reader.readLine()) != null) {
+            Map<String, String> dataMap = new HashMap<>();
             String[] data = parseLine(line, header.length);
             for (int i = 0; i < header.length; i++) {
                 dataMap.put(header[i], data[i]);
             }
             dataMap.put(header[0], data[0]);
-            creator.apply(dataMap);
+            dataMapBatch.add(dataMap);
+            if (dataMapBatch.size() == batchSize) {
+                creator.apply(dataMapBatch);
+                dataMapBatch.clear();
+            }
             c++;
         }
+        creator.apply(dataMapBatch);
         return c;
     }
 
@@ -89,7 +96,7 @@ public class ImportController extends Controller {
     private List<ServiceCalendar> serviceCalendars = new LinkedList<>();
     private List<StopTime> stopTimes = new LinkedList<>();
 
-    public Result flubber() throws IOException {
+    public Result load() throws IOException {
         long start = System.currentTimeMillis();
         File timetableZip = new File("/home/david/Downloads/gtfs_fp2021_2021-04-07_09-10.zip");
         ZipInputStream zipIn = new ZipInputStream(new FileInputStream(timetableZip));
