@@ -55,6 +55,10 @@ public class StopTime implements Comparable<StopTime> {
         return stopSequence;
     }
 
+    public String getDeparture() {
+        return departure;
+    }
+
     @Override
     public int compareTo(StopTime stopTime) {
         return tripId.compareTo(stopTime.getTripId());

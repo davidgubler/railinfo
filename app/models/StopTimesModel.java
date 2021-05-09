@@ -2,7 +2,9 @@ package models;
 
 import entities.Stop;
 import entities.StopTime;
+import entities.Trip;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -11,5 +13,7 @@ public interface StopTimesModel {
 
     StopTime create(Map<String, String> data);
 
-    List<StopTime> getByStop(Stop stop);
+    List<StopTime> getByStops(Collection<Stop> stops);
+
+    List<StopTime> getByTrip(Trip trip);
 }

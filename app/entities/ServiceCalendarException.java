@@ -17,7 +17,7 @@ public class ServiceCalendarException {
     @Indexed
     private String serviceId;
 
-    private LocalDate date;
+    private String date;
 
     private boolean active;
 
@@ -27,8 +27,8 @@ public class ServiceCalendarException {
 
     public ServiceCalendarException(Map<String, String> data) {
         this.serviceId = data.get("service_id");
-        this.date = LocalDate.parse(data.get("date"), DateTimeFormatter.BASIC_ISO_DATE);
-        this.active = "1".equals("exception_type"); // 1 = service is available, 2 = service is not available
+        this.date = LocalDate.parse(data.get("date"), DateTimeFormatter.BASIC_ISO_DATE).format(DateTimeFormatter.ISO_DATE);
+        this.active = "1".equals(data.get("exception_type")); // 1 = service is available, 2 = service is not available
     }
 
     public String getServiceId() {
@@ -36,7 +36,7 @@ public class ServiceCalendarException {
     }
 
     public LocalDate getDate() {
-        return date;
+        return LocalDate.parse(date, DateTimeFormatter.ISO_DATE);
     }
 
     public boolean getActive() {

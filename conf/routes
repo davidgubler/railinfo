@@ -10,4 +10,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 
 GET     /load                       controllers.ImportController.flubber()
-GET     /effretikon                 controllers.ImportController.effretikon()
+GET     /timetable/:stop            controllers.TimetableController.stop(stop: String)

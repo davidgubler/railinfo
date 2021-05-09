@@ -117,8 +117,8 @@ public class ImportController extends Controller {
                 //stopTimesModel.drop();
                 //stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
             } else if ("calendar.txt".equals(entry.getName())) {
-                serviceCalendarsModel.drop();
-                serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(dataMap));
+                //serviceCalendarsModel.drop();
+                ///serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(dataMap));
             } else if ("calendar_dates.txt".equals(entry.getName())) {
                 serviceCalendarExceptionsModel.drop();
                 serviceCalendarExceptions = parseFile(zipIn, dataMap -> serviceCalendarExceptionsModel.create(dataMap));
@@ -140,36 +140,6 @@ public class ImportController extends Controller {
         System.out.println("found " + serviceCalendars + " serviceCalendars");
         System.out.println("found " + serviceCalendarExceptions + " serviceCalendarExceptions");
         System.out.println("time taken: " + (System.currentTimeMillis() - start) + " ms");
-        return ok();
-    }
-
-    public Result effretikon()  {
-
-        Stop effretikon = stopsModel.getByName("Effretikon");
-        String id = effretikon.getStopId().split(":")[0];
-        System.out.println("Effretikon has ID " + id);
-
-        List<StopTime> stopTimes = stopTimesModel.getByStop(effretikon);
-        System.out.println("found " + stopTimes.size() + " stop times");
-
-        List<Trip> trips = new LinkedList<>();
-
-        for (StopTime stopTime : stopTimes) {
-            Trip trip = tripsModel.getByTripId(stopTime.getTripId());
-            if (trip != null) {
-                trips.add(trip);
-            }
-        }
-
-        System.out.println("found " + trips.size() + " trips");
-
-        trips = trips.stream().filter(t -> t.isActiveToday()).collect(Collectors.toList());
-        Collections.sort(trips);
-
-        System.out.println("found " + trips.size() + " trips for today");
-        for (Trip trip : trips) {
-            System.out.println(trip.getTripId() + " : " + trip.getTripShortName() + " : " + trip.getTripHeadsign() + " : " + trip.getServiceId());
-        }
         return ok();
     }
 }

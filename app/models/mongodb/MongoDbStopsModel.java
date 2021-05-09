@@ -7,7 +7,9 @@ import models.StopsModel;
 import org.mongodb.morphia.query.Query;
 import services.MongoDb;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MongoDbStopsModel implements StopsModel {
 
@@ -31,7 +33,10 @@ public class MongoDbStopsModel implements StopsModel {
         return stop;
     }
 
-    public Stop getByName(String name) {
-        return query().field("name").equal(name).get();
+    public Set<Stop> getByName(String name) {
+        Set<Stop> stops = new HashSet<>();
+        stops.addAll(query().field("name").equal(name).asList());
+        System.out.println("===1=== " + stops);
+        return stops;
     }
 }
