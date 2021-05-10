@@ -2,14 +2,19 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.mongodb.WriteConcern;
+import dev.morphia.InsertOptions;
+import entities.ServiceCalendar;
 import entities.Stop;
 import models.StopsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MongoDbStopsModel implements StopsModel {
 
@@ -31,6 +36,13 @@ public class MongoDbStopsModel implements StopsModel {
         Stop stop = new Stop(data);
         mongoDb.getDs().save(stop);
         return stop;
+    }
+
+    @Override
+    public List<Stop> create(List<Map<String, String>> dataBatch) {
+        List<Stop> serviceCalendarExceptions = dataBatch.stream().map(data -> new Stop(data)).collect(Collectors.toList());
+        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        return serviceCalendarExceptions;
     }
 
     public Set<Stop> getByName(String name) {

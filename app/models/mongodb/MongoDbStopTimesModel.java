@@ -2,6 +2,8 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.mongodb.WriteConcern;
+import dev.morphia.InsertOptions;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
@@ -36,6 +38,13 @@ public class MongoDbStopTimesModel implements StopTimesModel {
         StopTime stopTime = new StopTime(data);
         mongoDb.getDs().save(stopTime);
         return stopTime;
+    }
+
+    @Override
+    public List<StopTime> create(List<Map<String, String>> dataBatch) {
+        List<StopTime> serviceCalendarExceptions = dataBatch.stream().map(data -> new StopTime(data)).collect(Collectors.toList());
+        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        return serviceCalendarExceptions;
     }
 
     @Override

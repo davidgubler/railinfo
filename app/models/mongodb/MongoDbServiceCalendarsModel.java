@@ -2,13 +2,17 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.mongodb.WriteConcern;
+import dev.morphia.InsertOptions;
 import entities.ServiceCalendar;
-import entities.Stop;
+import entities.ServiceCalendarException;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
 
@@ -32,6 +36,13 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
         ServiceCalendar serviceCalendar = new ServiceCalendar(data);
         mongoDb.getDs().save(serviceCalendar);
         return serviceCalendar;
+    }
+
+    @Override
+    public List<ServiceCalendar> create(List<Map<String, String>> dataBatch) {
+        List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendar(data)).collect(Collectors.toList());
+        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        return serviceCalendarExceptions;
     }
 
     @Override

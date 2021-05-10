@@ -13,6 +13,8 @@ public interface StopTimesModel {
 
     StopTime create(Map<String, String> data);
 
+    List<StopTime> create(List<Map<String, String>> dataBatch);
+
     List<StopTime> getByStops(Collection<Stop> stops);
 
     List<StopTime> getByTrip(Trip trip);

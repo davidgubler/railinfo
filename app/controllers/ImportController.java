@@ -62,25 +62,32 @@ public class ImportController extends Controller {
         return components;
     }
 
-    private <T> int parseFile(InputStream is, Function<Map<String, String>, T> creator) throws IOException {
+    private <T> int parseFile(InputStream is, Function<List<Map<String, String>>, List<T>> creator) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String[] header = parseLine(reader.readLine(), 100);
         if (header[0].startsWith(UTF8_BOM)) {
             // nobody likes a byte order mark
             header[0] = header[0].substring(1);
         }
-        Map<String, String> dataMap = new HashMap<>();
+        int batchSize = 10;
+        List<Map<String, String>> dataMapBatch = new ArrayList<>(batchSize);
         String line;
         int c = 0;
         while ((line = reader.readLine()) != null) {
+            Map<String, String> dataMap = new HashMap<>();
             String[] data = parseLine(line, header.length);
             for (int i = 0; i < header.length; i++) {
                 dataMap.put(header[i], data[i]);
             }
             dataMap.put(header[0], data[0]);
-            creator.apply(dataMap);
+            dataMapBatch.add(dataMap);
+            if (dataMapBatch.size() == batchSize) {
+                creator.apply(dataMapBatch);
+                dataMapBatch.clear();
+            }
             c++;
         }
+        creator.apply(dataMapBatch);
         return c;
     }
 
@@ -108,17 +115,17 @@ public class ImportController extends Controller {
             BufferedReader reader = new BufferedReader(zipInReader);
 
             if ("stops.txt".equals(entry.getName())) {
-                //stopsModel.drop();
-                //stops = parseFile(zipIn, dataMap -> stopsModel.create(dataMap));
+                stopsModel.drop();
+                stops = parseFile(zipIn, dataMap -> stopsModel.create(dataMap));
             } else if ("trips.txt".equals(entry.getName())) {
-                //tripsModel.drop();
-                //trips = parseFile(zipIn, dataMap -> tripsModel.create(dataMap));
+                tripsModel.drop();
+                trips = parseFile(zipIn, dataMap -> tripsModel.create(dataMap));
             } else if ("stop_times.txt".equals(entry.getName())) {
-                //stopTimesModel.drop();
-                //stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
+                stopTimesModel.drop();
+                stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
             } else if ("calendar.txt".equals(entry.getName())) {
-                //serviceCalendarsModel.drop();
-                ///serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(dataMap));
+                serviceCalendarsModel.drop();
+                serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(dataMap));
             } else if ("calendar_dates.txt".equals(entry.getName())) {
                 serviceCalendarExceptionsModel.drop();
                 serviceCalendarExceptions = parseFile(zipIn, dataMap -> serviceCalendarExceptionsModel.create(dataMap));
