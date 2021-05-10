@@ -1,7 +1,7 @@
 package entities;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.util.Map;
 

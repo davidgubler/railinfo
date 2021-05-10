@@ -6,7 +6,7 @@ import models.ServiceCalendarExceptionsModel;
 import models.ServiceCalendarsModel;
 import models.StopTimesModel;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.*;
+import dev.morphia.annotations.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

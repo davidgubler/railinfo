@@ -5,7 +5,7 @@ import com.google.inject.Injector;
 import entities.ServiceCalendar;
 import entities.Stop;
 import models.ServiceCalendarsModel;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.Map;

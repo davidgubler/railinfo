@@ -6,7 +6,7 @@ import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
 import models.StopTimesModel;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.Collection;

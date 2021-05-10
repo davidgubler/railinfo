@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.ServiceCalendarException;
 import models.ServiceCalendarExceptionsModel;
-import org.mongodb.morphia.query.Query;
+import dev.morphia.query.Query;
 import services.MongoDb;
 
 import java.util.List;
