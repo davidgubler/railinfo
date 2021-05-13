@@ -3,6 +3,7 @@ package entities.trans;
 import entities.StopTime;
 import entities.Trip;
 
+import java.util.Collections;
 import java.util.List;
 
 public class Departure implements Comparable<Departure> {
@@ -25,6 +26,13 @@ public class Departure implements Comparable<Departure> {
 
     public List<StopTime> getStopTimes() {
         return stopTimes;
+    }
+
+    public List<StopTime> getIntermediateStopTimes() {
+        if (stopTimes.size() <= 1) {
+            return Collections.emptyList();
+        }
+        return stopTimes.subList(1, stopTimes.size() - 1);
     }
 
     @Override

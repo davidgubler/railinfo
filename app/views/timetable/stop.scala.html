@@ -9,7 +9,7 @@
         <tr>
             <td>@departure.getDepartureTime()</td>
             <td>
-                @for(stopTime <- departure.getStopTimes) {
+                @for(stopTime <- departure.getIntermediateStopTimes) {
                     @stopTime.getStop.getName
                 }
             </td>

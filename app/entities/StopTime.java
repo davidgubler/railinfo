@@ -23,7 +23,7 @@ public class StopTime implements Comparable<StopTime> {
     @Indexed
     private String stopId;
 
-    private String stopSequence;
+    private Integer stopSequence;
 
     private String pickupType;
 
@@ -42,7 +42,7 @@ public class StopTime implements Comparable<StopTime> {
         this.arrival = data.get("arrival_time");
         this.departure = data.get("departure_time");
         this.stopId = data.get("stop_id");
-        this.stopSequence = data.get("stop_sequence");
+        this.stopSequence = Integer.parseInt(data.get("stop_sequence"));
         this.pickupType = data.get("pickup_type");
         this.dropoffType = data.get("drop_off_type");
     }
@@ -59,7 +59,7 @@ public class StopTime implements Comparable<StopTime> {
         return stopsModel.getById(stopId);
     }
 
-    public String getStopSequence() {
+    public Integer getStopSequence() {
         return stopSequence;
     }
 
@@ -70,5 +70,10 @@ public class StopTime implements Comparable<StopTime> {
     @Override
     public int compareTo(StopTime stopTime) {
         return tripId.compareTo(stopTime.getTripId());
+    }
+
+    @Override
+    public String toString() {
+        return getStopId() + " " + getDeparture();
     }
 }

@@ -33,7 +33,7 @@ public class TimetableController extends Controller {
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
 
-    public Result stop(String stopStr)  {
+    public Result departures(String stopStr)  {
         Set<Stop> stops = stopsModel.getByName(stopStr);
 
         List<StopTime> stopTimes = stopTimesModel.getByStops(stops);
@@ -53,6 +53,10 @@ public class TimetableController extends Controller {
         List<Departure> departures = new LinkedList<>();
         for (Trip trip : trips) {
             Departure departure = trip.getDeparture(stops);
+            if (departure.getStopTimes().size() <= 1) {
+                // train ends here
+                continue;
+            }
             departures.add(departure);
         }
         Collections.sort(departures);
