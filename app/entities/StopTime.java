@@ -2,7 +2,6 @@ package entities;
 
 import com.google.inject.Inject;
 import dev.morphia.annotations.*;
-import models.StopTimesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
 

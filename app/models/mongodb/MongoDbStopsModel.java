@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
+import dev.morphia.query.UpdateOperations;
 import entities.Stop;
 import models.StopsModel;
 import dev.morphia.query.Query;
@@ -26,6 +27,11 @@ public class MongoDbStopsModel implements StopsModel {
     private Query<Stop> query() {
         return mongoDb.getDs().createQuery(Stop.class);
     }
+
+    private UpdateOperations<Stop> ops() {
+        return mongoDb.getDs().createUpdateOperations(Stop.class);
+    }
+
 
     public void drop() {
         mongoDb.get().getCollection("stops").drop();
@@ -55,6 +61,14 @@ public class MongoDbStopsModel implements StopsModel {
     public Set<Stop> getByName(String name) {
         Set<Stop> stops = new HashSet<>();
         stops.addAll(query().field("name").equal(name).asList());
+        stops.stream().forEach(s -> injector.injectMembers(s));
         return stops;
+    }
+
+    @Override
+    public void updateImportance(Set<Stop> stops, Integer importance) {
+        Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
+        UpdateOperations<Stop> ops = ops().set("importance", importance);
+        mongoDb.getDs().update(query().field("stopId").in(stopIds), ops);
     }
 }

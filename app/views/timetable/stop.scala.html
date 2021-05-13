@@ -5,15 +5,23 @@
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/timetable.css")'>
 } {
     <table>
+        <tr>
+            <th></th>
+            <th></th>
+            <th>To</th>
+            <th>Track</th>
+        </tr>
     @for(departure <- departures) {
         <tr>
+            <td></td>
             <td>@departure.getDepartureTime()</td>
             <td>
-                @for(stopTime <- departure.getIntermediateStopTimes) {
-                    @stopTime.getStop.getName
+                @for(stopTime <- departure.getImportantIntermediateStopTimes(4)) {
+                <span class="stop">@stopTime.getStop.getName</span>
                 }
+                @departure.getDestination.getStop.getName
             </td>
-            <td>@departure.getHeadsign()</td>
+            <td>@departure.getTrack</td>
         </tr>
     }
     </table>

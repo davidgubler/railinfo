@@ -1,0 +1,29 @@
+body {
+    background-color: #1a258f;
+    color: #ffffff;
+    font-weight: bold;
+    margin: 0px;
+}
+
+html {
+    padding: 0px;
+}
+
+span.stop {
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    font-size: 16px;
+}
+
+td {
+    font-size: 20px;
+    border-top: 2px solid #ffffff;
+}

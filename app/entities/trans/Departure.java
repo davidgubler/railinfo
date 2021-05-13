@@ -1,10 +1,10 @@
 package entities.trans;
 
+import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Departure implements Comparable<Departure> {
     private Trip trip;
@@ -33,6 +33,38 @@ public class Departure implements Comparable<Departure> {
             return Collections.emptyList();
         }
         return stopTimes.subList(1, stopTimes.size() - 1);
+    }
+
+    public List<StopTime> getImportantIntermediateStopTimes(int count) {
+        List<StopTime> intermediate = new LinkedList<>(getIntermediateStopTimes());
+        if (intermediate.size() <= count) {
+            return intermediate;
+        }
+
+        List<StopTime> byImportance = getIntermediateStopTimes();
+        Collections.sort(byImportance, Comparator.comparingInt((StopTime a) -> a.getStop().getImportance()).reversed().thenComparing(StopTime::getDeparture));
+        byImportance = byImportance.subList(0, count);
+
+        Iterator<StopTime> it = intermediate.iterator();
+        while (it.hasNext()) {
+            StopTime stopTime = it.next();
+            if (!byImportance.contains(stopTime)) {
+                it.remove();
+            }
+        }
+        return intermediate;
+    }
+
+    public StopTime getDestination() {
+        return stopTimes.get(stopTimes.size() -1 );
+    }
+
+    public String getTrack() {
+        String[] stopIdSplit = stopTimes.get(0).getStopId().split(":");
+        if (stopIdSplit.length == 3) {
+            return stopIdSplit[2];
+        }
+        return null;
     }
 
     @Override

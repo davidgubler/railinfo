@@ -1,6 +1,5 @@
 package models;
 
-import entities.ServiceCalendar;
 import entities.Stop;
 
 import java.util.List;
@@ -17,4 +16,6 @@ public interface StopsModel {
     Stop getById(String stopId);
 
     Set<Stop> getByName(String name);
+
+    void updateImportance(Set<Stop> stops, Integer importance);
 }

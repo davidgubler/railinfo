@@ -1,9 +1,13 @@
 package entities;
 
+import com.google.inject.Inject;
+import models.StopTimesModel;
+import models.StopsModel;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.*;
 
 import java.util.Map;
+import java.util.Set;
 
 @Entity(value = "stops", noClassnameStored = true)
 public class Stop {
@@ -22,8 +26,18 @@ public class Stop {
 
     private String type;
 
+    private Integer importance = null;
+
     @Indexed
     private String parentId;
+
+    @Transient
+    @Inject
+    private StopsModel stopsModel;
+
+    @Transient
+    @Inject
+    private StopTimesModel stopTimesModel;
 
     public Stop() {
         // dummy constructor for Morphia
@@ -64,6 +78,15 @@ public class Stop {
 
     public String getParentId() {
         return parentId;
+    }
+
+    public Integer getImportance() {
+        if (importance == null) {
+            Set<Stop> stops = stopsModel.getByName(this.getName());
+            importance = stopTimesModel.getByStops(stops).size();
+            stopsModel.updateImportance(stops, importance);
+        }
+        return importance;
     }
 
     public String toString() {
