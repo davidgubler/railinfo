@@ -94,9 +94,7 @@ public class Trip implements Comparable<Trip> {
         LocalDate now = LocalDate.now();
         List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(serviceId);
         List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> now.equals(s.getDate())).collect(Collectors.toList());
-        System.out.println("service id: " + serviceId + " has exceptions for today: " + todaysExceptions.size());
         if (todaysExceptions.size() == 1) {
-            System.out.println("service is active? " + todaysExceptions.get(0).getActive());
             return todaysExceptions.get(0).getActive();
         }
 

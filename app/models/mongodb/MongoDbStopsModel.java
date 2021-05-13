@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
-import entities.ServiceCalendar;
 import entities.Stop;
 import models.StopsModel;
 import dev.morphia.query.Query;
@@ -48,7 +47,6 @@ public class MongoDbStopsModel implements StopsModel {
     public Set<Stop> getByName(String name) {
         Set<Stop> stops = new HashSet<>();
         stops.addAll(query().field("name").equal(name).asList());
-        System.out.println("===1=== " + stops);
         return stops;
     }
 }

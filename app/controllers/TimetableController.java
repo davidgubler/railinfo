@@ -37,7 +37,6 @@ public class TimetableController extends Controller {
         Set<Stop> stops = stopsModel.getByName(stopStr);
 
         List<StopTime> stopTimes = stopTimesModel.getByStops(stops);
-        System.out.println("found " + stopTimes.size() + " stop times");
 
         List<Trip> trips = new LinkedList<>();
 
@@ -48,22 +47,16 @@ public class TimetableController extends Controller {
             }
         }
 
-        System.out.println("found " + trips.size() + " trips");
-
         trips = trips.stream().filter(t -> t.isActiveToday()).collect(Collectors.toList());
         Collections.sort(trips);
 
-        System.out.println("found " + trips.size() + " trips for today");
         List<Departure> departures = new LinkedList<>();
         for (Trip trip : trips) {
             Departure departure = trip.getDeparture(stops);
             departures.add(departure);
         }
         Collections.sort(departures);
-        for (Departure departure : departures) {
-            System.out.println(departure.getDepartureTime() + "   " + departure.getHeadsign());
-        }
 
-        return ok();
+        return ok(views.html.timetable.stop.render(departures));
     }
 }

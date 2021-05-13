@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
 import entities.ServiceCalendar;
-import entities.ServiceCalendarException;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;

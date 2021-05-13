@@ -1,0 +1,12 @@
+@(	departures: List[entities.trans.Departure]
+)
+
+@template(title = "Timetable") {
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/timetable.css")'>
+} {
+    <table>
+    @for(departure <- departures) {
+        <tr><td>@departure.getDepartureTime()</td><td>@departure.getHeadsign()</td></tr>
+    }
+    </table>
+}
