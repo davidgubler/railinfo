@@ -1,10 +1,10 @@
 package entities;
 
+import com.google.inject.Inject;
+import dev.morphia.annotations.*;
+import models.StopTimesModel;
+import models.StopsModel;
 import org.bson.types.ObjectId;
-import dev.morphia.annotations.Entity;
-import dev.morphia.annotations.Id;
-import dev.morphia.annotations.IndexOptions;
-import dev.morphia.annotations.Indexed;
 
 import java.util.Map;
 
@@ -29,6 +29,10 @@ public class StopTime implements Comparable<StopTime> {
 
     private String dropoffType;
 
+    @Transient
+    @Inject
+    private StopsModel stopsModel;
+
     public StopTime() {
         // dummy constructor for morphia
     }
@@ -49,6 +53,10 @@ public class StopTime implements Comparable<StopTime> {
 
     public String getStopId() {
         return stopId;
+    }
+
+    public Stop getStop() {
+        return stopsModel.getById(stopId);
     }
 
     public String getStopSequence() {

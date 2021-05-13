@@ -14,5 +14,7 @@ public interface StopsModel {
 
     List<Stop> create(List<Map<String, String>> dataBatch);
 
+    Stop getById(String stopId);
+
     Set<Stop> getByName(String name);
 }

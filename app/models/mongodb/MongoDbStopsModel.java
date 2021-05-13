@@ -44,6 +44,14 @@ public class MongoDbStopsModel implements StopsModel {
         return serviceCalendarExceptions;
     }
 
+    @Override
+    public Stop getById(String stopId) {
+        Stop stop = query().field("stopId").equal(stopId).get();
+        injector.injectMembers(stop);
+        return stop;
+    }
+
+    @Override
     public Set<Stop> getByName(String name) {
         Set<Stop> stops = new HashSet<>();
         stops.addAll(query().field("name").equal(name).asList());

@@ -6,7 +6,15 @@
 } {
     <table>
     @for(departure <- departures) {
-        <tr><td>@departure.getDepartureTime()</td><td>@departure.getHeadsign()</td></tr>
+        <tr>
+            <td>@departure.getDepartureTime()</td>
+            <td>
+                @for(stopTime <- departure.getStopTimes) {
+                    @stopTime.getStop.getName
+                }
+            </td>
+            <td>@departure.getHeadsign()</td>
+        </tr>
     }
     </table>
 }

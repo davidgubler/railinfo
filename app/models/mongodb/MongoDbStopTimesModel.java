@@ -50,11 +50,15 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     @Override
     public List<StopTime> getByStops(Collection<Stop> stops) {
         List<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toList());
-        return query().field("stopId").in(stopIds).asList();
+        List<StopTime> stopTimes = query().field("stopId").in(stopIds).asList();
+        stopTimes.stream().forEach(st -> injector.injectMembers(st));
+        return stopTimes;
     }
 
     @Override
     public List<StopTime> getByTrip(Trip trip) {
-        return query().field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
+        List<StopTime> stopTimes = query().field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
+        stopTimes.stream().forEach(st -> injector.injectMembers(st));
+        return stopTimes;
     }
 }
