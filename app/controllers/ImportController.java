@@ -1,10 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
-import entities.ServiceCalendar;
-import entities.Stop;
-import entities.StopTime;
-import entities.Trip;
+import entities.*;
 import models.*;
 import play.mvc.*;
 
@@ -28,6 +25,9 @@ public class ImportController extends Controller {
 
     @Inject
     private TripsModel tripsModel;
+
+    @Inject
+    private RoutesModel routesModel;
 
     @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
@@ -91,19 +91,14 @@ public class ImportController extends Controller {
         return c;
     }
 
-    private List<Stop> stops = new LinkedList<>();
-    private List<Trip> trips = new LinkedList<>();
-    private List<ServiceCalendar> serviceCalendars = new LinkedList<>();
-    private List<StopTime> stopTimes = new LinkedList<>();
-
-    public Result flubber() throws IOException {
+    public Result load() throws IOException {
         long start = System.currentTimeMillis();
         File timetableZip = new File("/home/david/Downloads/gtfs_fp2021_2021-04-07_09-10.zip");
         ZipInputStream zipIn = new ZipInputStream(new FileInputStream(timetableZip));
 
         ZipEntry entry = zipIn.getNextEntry();
 
-        int stops = 0, trips = 0, stopTimes = 0, serviceCalendars = 0, serviceCalendarExceptions = 0;
+        int stops = 0, trips = 0, routes = 0, stopTimes = 0, serviceCalendars = 0, serviceCalendarExceptions = 0;
 
         while (entry != null) {
             if (entry.isDirectory()) {
@@ -120,6 +115,9 @@ public class ImportController extends Controller {
             } else if ("trips.txt".equals(entry.getName())) {
                 tripsModel.drop();
                 trips = parseFile(zipIn, dataMap -> tripsModel.create(dataMap));
+            } else if ("routes.txt".equals(entry.getName())) {
+                routesModel.drop();
+                routes = parseFile(zipIn, dataMap -> routesModel.create(dataMap));
             } else if ("stop_times.txt".equals(entry.getName())) {
                 stopTimesModel.drop();
                 stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(dataMap));
@@ -143,10 +141,12 @@ public class ImportController extends Controller {
 
         System.out.println("found " + stops + " stops");
         System.out.println("found " + trips + " trips");
+        System.out.println("found " + routes + " routes");
         System.out.println("found " + stopTimes + " stopTimes");
         System.out.println("found " + serviceCalendars + " serviceCalendars");
         System.out.println("found " + serviceCalendarExceptions + " serviceCalendarExceptions");
         System.out.println("time taken: " + (System.currentTimeMillis() - start) + " ms");
+
         return ok();
     }
 }

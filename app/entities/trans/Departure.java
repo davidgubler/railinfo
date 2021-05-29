@@ -1,5 +1,6 @@
 package entities.trans;
 
+import entities.Route;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
@@ -65,6 +66,10 @@ public class Departure implements Comparable<Departure> {
             return stopIdSplit[2];
         }
         return null;
+    }
+
+    public Route getRoute() {
+        return trip.getRoute();
     }
 
     @Override

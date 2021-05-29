@@ -13,7 +13,7 @@
         </tr>
     @for(departure <- departures) {
         <tr>
-            <td></td>
+            <td><span class="product @departure.getRoute.getDesc.toLowerCase">@departure.getRoute.getShortName</span></td>
             <td>@departure.getDepartureTime()</td>
             <td>
                 @for(stopTime <- departure.getImportantIntermediateStopTimes(4)) {

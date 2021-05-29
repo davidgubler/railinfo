@@ -44,6 +44,7 @@ public class MongoDb {
         morphia.map(Stop.class);
         morphia.map(StopTime.class);
         morphia.map(Trip.class);
+        morphia.map(Route.class);
         morphia.map(ServiceCalendar.class);
         morphia.map(ServiceCalendarException.class);
 

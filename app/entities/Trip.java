@@ -2,6 +2,7 @@ package entities;
 
 import com.google.inject.Inject;
 import entities.trans.Departure;
+import models.RoutesModel;
 import models.ServiceCalendarExceptionsModel;
 import models.ServiceCalendarsModel;
 import models.StopTimesModel;
@@ -48,6 +49,10 @@ public class Trip implements Comparable<Trip> {
     @Transient
     @Inject
     private StopTimesModel stopTimesModel;
+
+    @Transient
+    @Inject
+    private RoutesModel routesModel;
 
     public Trip() {
         // dummy constructor for morphia
@@ -143,6 +148,10 @@ public class Trip implements Comparable<Trip> {
             i++;
         }
         return new Departure(this, stopTimes.subList(i, stopTimes.size()));
+    }
+
+    public Route getRoute() {
+        return routesModel.getByRouteId(routeId);
     }
 
     @Override

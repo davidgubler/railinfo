@@ -39,9 +39,9 @@ public class MongoDbTripsModel implements TripsModel {
 
     @Override
     public List<Trip> create(List<Map<String, String>> dataBatch) {
-        List<Trip> serviceCalendarExceptions = dataBatch.stream().map(data -> new Trip(data)).collect(Collectors.toList());
-        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return serviceCalendarExceptions;
+        List<Trip> trips = dataBatch.stream().map(data -> new Trip(data)).collect(Collectors.toList());
+        mongoDb.getDs().save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        return trips;
     }
 
     @Override

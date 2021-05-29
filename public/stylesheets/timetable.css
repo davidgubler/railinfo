@@ -25,5 +25,21 @@ th {
 
 td {
     font-size: 20px;
-    border-top: 2px solid #ffffff;
+    border-top: 1px solid #ffffff;
+    padding: 2px;
+}
+
+span.product {
+    background-color: #ffffff;
+    color: #1a258f;
+    display: inline-block;
+    padding-left: 2px;
+    width: 80px;
+    line-height: 22px;
+}
+
+span.interregio, span.intercity, span.regioexpress, span.eurocity, span.intercityexpress, span.railjet {
+    background-color: red;
+    color: #ffffff;
+    font-style:italic
 }
