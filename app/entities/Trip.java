@@ -1,7 +1,6 @@
 package entities;
 
 import com.google.inject.Inject;
-import entities.trans.Departure;
 import models.RoutesModel;
 import models.ServiceCalendarExceptionsModel;
 import models.ServiceCalendarsModel;
@@ -11,10 +10,8 @@ import dev.morphia.annotations.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity(value = "trips", noClassnameStored = true)
@@ -95,20 +92,19 @@ public class Trip implements Comparable<Trip> {
         return tripId;
     }
 
-    public boolean isActiveToday() {
-        LocalDate now = LocalDate.now();
+    public boolean isActive(LocalDate date) {
         List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(serviceId);
-        List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> now.equals(s.getDate())).collect(Collectors.toList());
+        List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> date.equals(s.getDate())).collect(Collectors.toList());
         if (todaysExceptions.size() == 1) {
             return todaysExceptions.get(0).getActive();
         }
 
         ServiceCalendar cal = serviceCalendarsModel.getByServiceId(serviceId);
-        if (now.isBefore(cal.getStart()) || now.isAfter(cal.getEnd())) {
+        if (date.isBefore(cal.getStart()) || date.isAfter(cal.getEnd())) {
             return false;
         }
 
-        DayOfWeek dow = now.getDayOfWeek();
+        DayOfWeek dow = date.getDayOfWeek();
         if (dow == DayOfWeek.MONDAY && cal.getMonday()) {
             return true;
         }
@@ -135,19 +131,6 @@ public class Trip implements Comparable<Trip> {
 
     public List<StopTime> getStopTimes() {
         return stopTimesModel.getByTrip(this);
-    }
-
-    public Departure getDeparture(Collection<Stop> stops) {
-        Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
-        List<StopTime> stopTimes = getStopTimes();
-        int i = 0;
-        for (StopTime stopTime : stopTimes) {
-            if (stopIds.contains(stopTime.getStopId())) {
-                break;
-            }
-            i++;
-        }
-        return new Departure(this, stopTimes.subList(i, stopTimes.size()));
     }
 
     public Route getRoute() {

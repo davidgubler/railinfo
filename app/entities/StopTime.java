@@ -62,6 +62,10 @@ public class StopTime implements Comparable<StopTime> {
         return stopSequence;
     }
 
+    public String getArrival() {
+        return arrival;
+    }
+
     public String getDeparture() {
         return departure;
     }

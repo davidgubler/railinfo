@@ -1,4 +1,4 @@
-@(	departures: List[entities.trans.Departure]
+@(	departures: List[entities.realized.RealizedDeparture]
 )
 
 @template(title = "Timetable") {
@@ -14,7 +14,7 @@
     @for(departure <- departures) {
         <tr>
             <td><span class="product @departure.getRoute.getDesc.toLowerCase">@departure.getRoute.getShortName</span></td>
-            <td>@departure.getDepartureTime()</td>
+            <td>@departure.getDepartureTimeStr()</td>
             <td>
                 @for(stopTime <- departure.getImportantIntermediateStopTimes(4)) {
                 <span class="stop">@stopTime.getStop.getName</span>
