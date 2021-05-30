@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
+import entities.Route;
 import entities.Trip;
 import models.TripsModel;
 import dev.morphia.query.Query;
@@ -49,5 +50,12 @@ public class MongoDbTripsModel implements TripsModel {
         Trip trip = query().field("tripId").equal(id).get();
         injector.injectMembers(trip);
         return trip;
+    }
+
+    @Override
+    public List<Trip> getByRoute(Route route) {
+        List<Trip> trips = query().field("routeId").equal(route.getRouteId()).asList();
+        trips.stream().forEach(t -> injector.injectMembers(t));
+        return trips;
     }
 }

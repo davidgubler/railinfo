@@ -1,5 +1,6 @@
 package models;
 
+import entities.Route;
 import entities.Trip;
 
 import java.util.List;
@@ -14,4 +15,6 @@ public interface TripsModel {
     List<Trip> create(List<Map<String, String>> dataBatch);
 
     Trip getByTripId(String id);
+
+    List<Trip> getByRoute(Route route);
 }

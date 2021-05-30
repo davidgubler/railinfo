@@ -14,4 +14,6 @@ public interface RoutesModel {
     List<Route> create(List<Map<String, String>> dataBatch);
 
     Route getByRouteId(String id);
+
+    List<Route> getByType(int from, int to);
 }

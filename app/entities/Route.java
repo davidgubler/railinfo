@@ -25,7 +25,7 @@ public class Route {
 
     private String desc;
 
-    private String type;
+    private Integer type;
 
     @Transient
     @Inject
@@ -49,10 +49,10 @@ public class Route {
         this.shortName = data.get("route_short_name");
         this.longName = data.get("route_long_name");
         this.desc = data.get("route_desc");
-        this.type = data.get("route_type");
+        this.type = Integer.parseInt(data.get("route_type"));
     }
 
-    public String routeId() {
+    public String getRouteId() {
         return routeId;
     }
 
@@ -72,7 +72,7 @@ public class Route {
         return desc;
     }
 
-    public String getType() {
+    public Integer getType() {
         return type;
     }
 

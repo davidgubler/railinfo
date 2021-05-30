@@ -11,3 +11,5 @@ GET     /assets/*file                   controllers.Assets.versioned(path="/publ
 
 GET     /load                           controllers.ImportController.load()
 GET     /timetable/departures/:stop     controllers.TimetableController.departures(stop: String)
+
+GET     /topology                       controllers.TopologyController.topology()

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MongoDbStopsModel implements StopsModel {
@@ -53,6 +54,16 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public Stop getById(String stopId) {
         Stop stop = query().field("stopId").equal(stopId).get();
+        if (stop == null && !stopId.endsWith("P")) {
+            stop = query().field("stopId").equal(stopId + "P").get();
+        }
+        if (stop == null) {
+            Pattern regexp = Pattern.compile("^" + stopId + ":");
+            stop = query().filter("stopId", regexp).get();
+        }
+        if (stop == null) {
+            System.out.println("ERROR: stopId " + stopId + " not found");
+        }
         injector.injectMembers(stop);
         return stop;
     }

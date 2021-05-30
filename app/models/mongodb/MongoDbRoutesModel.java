@@ -50,4 +50,9 @@ public class MongoDbRoutesModel implements RoutesModel {
         injector.injectMembers(route);
         return route;
     }
+
+    @Override
+    public List<Route> getByType(int from, int to) {
+        return query().field("type").greaterThanOrEq(from).field("type").lessThanOrEq(to).asList();
+    }
 }
