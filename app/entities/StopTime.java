@@ -80,7 +80,7 @@ public class StopTime implements Comparable<StopTime> {
 
     @Override
     public int compareTo(StopTime stopTime) {
-        return tripId.compareTo(stopTime.getTripId());
+        return stopSequence.compareTo(stopTime.getStopSequence());
     }
 
     @Override

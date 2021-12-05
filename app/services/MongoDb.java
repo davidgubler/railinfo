@@ -41,6 +41,7 @@ public class MongoDb {
         db = this.mongoClient.getDatabase(database);
 
         morphia = new Morphia();
+        morphia.map(Edge.class);
         morphia.map(Stop.class);
         morphia.map(StopTime.class);
         morphia.map(Trip.class);

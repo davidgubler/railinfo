@@ -1,6 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
+import entities.Edge;
 import entities.Route;
 import entities.StopTime;
 import entities.Trip;
@@ -30,72 +31,7 @@ public class TopologyController extends Controller {
     @Inject
     private RoutesModel routesModel;
 
-    private class Edge implements Comparable<Edge> {
-        private String fromStopId;
-        private String toStopId;
-        private Map<Integer, Integer> travelTimes = new HashMap<>(); // key are seconds, value is #journeys
-        private Integer typicalTime = null;
 
-        public Edge(String fromStopId, String toStopId) {
-            this.fromStopId = fromStopId;
-            this.toStopId = toStopId;
-        }
-
-        public void addJourney(Integer seconds) {
-            typicalTime = null;
-            // we assume that a stop takes 1min 30s, thus we subtract this
-            seconds -= 90;
-            if (seconds < 30) {
-                // the minimum assumed travel time between stops is 30s
-                seconds = 30;
-            }
-            if (travelTimes.containsKey(seconds)) {
-                travelTimes.put(seconds, travelTimes.get(seconds) + 1);
-            } else {
-                travelTimes.put(seconds, 1);
-            }
-        }
-
-        public Integer getTypicalTime() {
-            if (typicalTime == null) {
-                int mostSeconds = 0, mostJourneys = 0;
-                for (Map.Entry<Integer, Integer> entry : travelTimes.entrySet()) {
-                    if (entry.getValue() > mostJourneys) {
-                        mostSeconds = entry.getKey();
-                        mostJourneys = entry.getValue();
-                    }
-                }
-                typicalTime = mostSeconds;
-            }
-            return typicalTime;
-        }
-
-        public String getFromStopId() {
-            return fromStopId;
-        }
-
-        public String getToStopId() {
-            return toStopId;
-        }
-
-        @Override
-        public int compareTo(Edge edge) {
-            return getTypicalTime().compareTo(edge.getTypicalTime());
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Edge edge = (Edge) o;
-            return Objects.equals(fromStopId, edge.fromStopId) && Objects.equals(toStopId, edge.toStopId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(fromStopId, toStopId);
-        }
-    }
 
     Map<String, List<Edge>> edgesFromStop = new HashMap<>();
 
@@ -156,23 +92,38 @@ public class TopologyController extends Controller {
 
 
     public Result topology()  {
-        List<Route> railRoutes = routesModel.getByType(100, 199);
+        long start;
 
-        //long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
+        System.out.print("fetching rail routes... ");
+        List<Route> railRoutes = routesModel.getByType(100, 199);
+        System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        long x, addJourneyTime = 0, getStopTimesTime = 0;
+
+        start = System.currentTimeMillis();
+        System.out.print("extracting edges... ");
         for (Route route : railRoutes) {
+            System.out.println(route);
             List<Trip> trips = tripsModel.getByRoute(route);
             for (Trip trip : trips) {
                 String lastStopId = null;
                 int depHour = 0, depMinute = 0, depSecond = 0;
 
-                for (StopTime stopTime : trip.getStopTimes()) {
+                x = System.currentTimeMillis();
+                List<StopTime> stopTimes = trip.getStopTimes();
+                getStopTimesTime += (System.currentTimeMillis() - x);
+
+                for (StopTime stopTime : stopTimes) {
                     if (lastStopId != null) {
                         String[] split = stopTime.getArrival().split(":");
                         int arrHour = Integer.parseInt(split[0]);
                         int arrMinute = Integer.parseInt(split[1]);
                         int arrSecond = Integer.parseInt(split[2]);
                         int seconds = ((arrHour - depHour) * 60 + arrMinute - depMinute) * 60 + arrSecond - depSecond;
+                        x = System.currentTimeMillis();
                         addJourney(lastStopId, stopTime.getParentStopId(), seconds);
+                        addJourneyTime += (System.currentTimeMillis() - x);
                     }
                     lastStopId = stopTime.getParentStopId();
                     String[] split = stopTime.getDeparture().split(":");
@@ -182,13 +133,15 @@ public class TopologyController extends Controller {
                 }
             }
         }
-
         List<Edge> allEdges = new LinkedList<>();
-
         for (Map.Entry<String, List<Edge>> entry : edgesFromStop.entrySet()) {
             allEdges.addAll(entry.getValue());
         }
+        System.out.println(allEdges.size() + " in " + (System.currentTimeMillis() - start) + " ms");
+        System.out.println("addJourneyTime: " + addJourneyTime + " ms");
+        System.out.println("getStopTimesTime: " + getStopTimesTime + " ms");
 
+/*
         Collections.sort(allEdges);
         Collections.reverse(allEdges);
 
@@ -196,7 +149,7 @@ public class TopologyController extends Controller {
         int i = 0;
         for (Edge edge : allEdges) {
             breakDownEdge(edge);
-        }
+        }*/
 
         //System.out.println("took " + (System.currentTimeMillis() - start) + " ms");
 
