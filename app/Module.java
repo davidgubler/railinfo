@@ -9,7 +9,7 @@ public class Module extends AbstractModule {
         bind(MongoDb.class).asEagerSingleton();
         bind(ServiceCalendarsModel.class).to(MongoDbServiceCalendarsModel.class);
         bind(ServiceCalendarExceptionsModel.class).to(MongoDbServiceCalendarExceptionsModel.class);
-        bind(StopsModel.class).to(MongoDbStopsModel.class);
+        bind(StopsModel.class).to(MongoDbStopsModel.class).asEagerSingleton();
         bind(StopTimesModel.class).to(MongoDbStopTimesModel.class);
         bind(TripsModel.class).to(MongoDbTripsModel.class);
         bind(RoutesModel.class).to(MongoDbRoutesModel.class);

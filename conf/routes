@@ -15,3 +15,4 @@ GET     /timetable/departures/:stop     controllers.TimetableController.departur
 GET     /admin                          controllers.AdminController.admin(request: Request)
 POST    /admin/recalculateEdges         controllers.AdminController.recalculateEdgesPost(request: Request)
 GET     /topology                       controllers.TopologyController.topology()
+GET     /topology/map                   controllers.TopologyController.map(request: Request)

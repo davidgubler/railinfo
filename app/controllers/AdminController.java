@@ -1,6 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import entities.Edge;
 import entities.Route;
 import entities.StopTime;
@@ -29,6 +30,9 @@ public class AdminController extends Controller {
 
     @Inject
     private EdgesModel edgesModel;
+
+    @Inject
+    private Injector injector;
 
     @AddCSRFToken
     public Result admin(Http.Request request) {
@@ -75,6 +79,7 @@ public class AdminController extends Controller {
                             Edge edge = edgesFromStop.get(lastStopId).stream().filter(e -> e.getToStopId().equals(stopTime.getParentStopId())).findFirst().orElse(null);
                             if (edge == null) {
                                 edge = new Edge(lastStopId, stopTime.getParentStopId());
+                                injector.injectMembers(edge);
                                 edgesFromStop.get(lastStopId).add(edge);
                             }
                             edge.addJourney(seconds);

@@ -10,10 +10,7 @@ import models.StopsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -53,9 +50,9 @@ public class MongoDbStopsModel implements StopsModel {
 
     @Override
     public Stop getById(String stopId) {
-        Stop stop = query().field("stopId").equal(stopId).get();
+        Stop stop = getStops().get(stopId);
         if (stop == null && !stopId.endsWith("P")) {
-            stop = query().field("stopId").equal(stopId + "P").get();
+            stop = getStops().get(stopId + "P");
         }
         if (stop == null) {
             Pattern regexp = Pattern.compile("^" + stopId + ":");
@@ -81,5 +78,19 @@ public class MongoDbStopsModel implements StopsModel {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
         UpdateOperations<Stop> ops = ops().set("importance", importance);
         mongoDb.getDs().update(query().field("stopId").in(stopIds), ops);
+    }
+
+    private Map<String, Stop> stops = null;
+
+    private Map<String, Stop> getStops() {
+        if (this.stops == null) {
+            List<Stop> stopsList = query().asList();
+            Map<String, Stop> stops = new HashMap<>();
+            for(Stop stop : stopsList) {
+                stops.put(stop.getStopId(), stop);
+            }
+            this.stops = Collections.unmodifiableMap(stops);
+        }
+        return this.stops;
     }
 }

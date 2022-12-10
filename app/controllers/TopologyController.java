@@ -1,15 +1,15 @@
 package controllers;
 
 import com.google.inject.Inject;
-import entities.Edge;
-import entities.Route;
-import entities.StopTime;
-import entities.Trip;
+import com.google.inject.Injector;
+import entities.*;
 import models.*;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TopologyController extends Controller {
 
@@ -31,6 +31,9 @@ public class TopologyController extends Controller {
     @Inject
     private RoutesModel routesModel;
 
+    @Inject
+    private Injector injector;
+
 
 
     Map<String, List<Edge>> edgesFromStop = new HashMap<>();
@@ -42,6 +45,7 @@ public class TopologyController extends Controller {
         Edge edge = edgesFromStop.get(from).stream().filter(e -> e.getToStopId().equals(to)).findFirst().orElse(null);
         if (edge == null) {
             edge = new Edge(from, to);
+            injector.injectMembers(edge);
             edgesFromStop.get(from).add(edge);
         }
         edge.addJourney(seconds);
@@ -164,5 +168,65 @@ public class TopologyController extends Controller {
         //System.out.println("took " + (System.currentTimeMillis() - start) + " ms");
 
         return ok();
+    }
+
+
+
+    public Result map(Http.Request request) {
+        long start = System.currentTimeMillis();
+        System.out.print("fetching rail routes... ");
+        List<Route> railRoutes = routesModel.getByType(100, 199);
+        System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
+
+        System.out.print("extracting edges... ");
+        for (Route route : railRoutes) {
+            System.out.println(route + " " + route.getShortName());
+            List<Trip> trips = tripsModel.getByRoute(route);
+
+            if (trips.size() > 4) {
+                trips = trips.subList(0, 4);
+            }
+
+            for (Trip trip : trips) {
+                String lastStopId = null;
+                int depHour = 0, depMinute = 0, depSecond = 0;
+
+                List<StopTime> stopTimes = trip.getStopTimes();
+                for (StopTime stopTime : stopTimes) {
+                    if (lastStopId != null) {
+                        String[] split = stopTime.getArrival().split(":");
+                        int arrHour = Integer.parseInt(split[0]);
+                        int arrMinute = Integer.parseInt(split[1]);
+                        int arrSecond = Integer.parseInt(split[2]);
+                        int seconds = ((arrHour - depHour) * 60 + arrMinute - depMinute) * 60 + arrSecond - depSecond;
+                        //if (seconds < 300) {
+                            addJourney(lastStopId, stopTime.getParentStopId(), seconds);
+                        //}
+                    }
+                    lastStopId = stopTime.getParentStopId();
+                    String[] split = stopTime.getDeparture().split(":");
+                    depHour = Integer.parseInt(split[0]);
+                    depMinute = Integer.parseInt(split[1]);
+                    depSecond = Integer.parseInt(split[2]);
+                }
+            }
+        }
+
+
+        List<Edge> allEdges = new LinkedList<>();
+        for (Map.Entry<String, List<Edge>> entry : edgesFromStop.entrySet()) {
+            allEdges.addAll(entry.getValue());
+        }
+
+        System.out.println("took " + (System.currentTimeMillis() - start) + " ms to extract all edges");
+        System.out.println(allEdges.size() + " edges found");
+
+        System.out.println("checking edges...");
+        allEdges = allEdges.stream().filter(e -> e.isPrintable()).collect(Collectors.toList());
+        System.out.println("done");
+
+        allEdges.sort();
+
+        return ok(views.html.topology.map.render(allEdges));
     }
 }

@@ -93,7 +93,7 @@ public class ImportController extends Controller {
 
     public Result load() throws IOException {
         long start = System.currentTimeMillis();
-        File timetableZip = new File("/home/david/Downloads/gtfs_fp2021_2021-04-07_09-10.zip");
+        File timetableZip = new File("/home/david/Downloads/gtfs_fp2022_2022-12-07_04-15.zip");
         ZipInputStream zipIn = new ZipInputStream(new FileInputStream(timetableZip));
 
         ZipEntry entry = zipIn.getNextEntry();

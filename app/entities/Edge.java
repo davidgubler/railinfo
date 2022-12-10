@@ -1,6 +1,8 @@
 package entities;
 
+import com.google.inject.Inject;
 import dev.morphia.annotations.*;
+import models.StopsModel;
 import org.bson.types.ObjectId;
 
 import java.util.HashMap;
@@ -18,7 +20,16 @@ public class Edge implements Comparable<Edge> {
     private Integer typicalTime = 0;
 
     @Transient
+    private Stop fromStop;
+    @Transient
+    private Stop toStop;
+
+    @Transient
     private Map<Integer, Integer> travelTimes = new HashMap<>(); // key are seconds, value is #journeys
+
+    @Transient
+    @Inject
+    private StopsModel stopsModel;
 
     public Edge() {
         // dummy constructor for morphia
@@ -64,8 +75,42 @@ public class Edge implements Comparable<Edge> {
         return fromStopId;
     }
 
+    public Stop getFromStop() {
+        if (fromStop == null) {
+            fromStop = stopsModel.getById(fromStopId);
+        }
+        return fromStop;
+    }
+
     public String getToStopId() {
         return toStopId;
+    }
+
+    public Stop getToStop() {
+        if (toStop == null) {
+            toStop = stopsModel.getById(toStopId);
+        }
+        return toStop;
+    }
+
+    public Double getFromLat() {
+        return getFromStop() == null ? null : getFromStop().getLat();
+    }
+
+    public Double getFromLng() {
+        return getFromStop() == null ? null : getFromStop().getLng();
+    }
+
+    public Double getToLat() {
+        return getToStop() == null ? null : getToStop().getLat();
+    }
+
+    public Double getToLng() {
+        return getToStop() == null ? null : getToStop().getLng();
+    }
+
+    public boolean isPrintable() {
+        return getFromLat() != null && getToLat() != null && getFromLng() != null && getToLng() != null;
     }
 
     @Override
