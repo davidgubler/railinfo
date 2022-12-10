@@ -15,14 +15,14 @@ public class Edge implements Comparable<Edge> {
     private ObjectId _id;
 
     @Indexed
-    private String fromStopId;
-    private String toStopId;
+    private String stop1Id;
+    private String stop2Id;
     private Integer typicalTime = 0;
 
     @Transient
-    private Stop fromStop;
+    private Stop stop1;
     @Transient
-    private Stop toStop;
+    private Stop stop2;
 
     @Transient
     private Map<Integer, Integer> travelTimes = new HashMap<>(); // key are seconds, value is #journeys
@@ -35,13 +35,13 @@ public class Edge implements Comparable<Edge> {
         // dummy constructor for morphia
     }
 
-    public Edge(String fromStopId, String toStopId) {
-        this.fromStopId = fromStopId;
-        this.toStopId = toStopId;
+    public Edge(String stop1Id, String stop2Id) {
+        this.stop1Id = stop1Id;
+        this.stop2Id = stop2Id;
     }
 
     public void addJourney(Integer seconds) {
-        // we assume that a stop takes 1min 30s, thus we subtract this
+        // we assume that a stop takes 1.5 min, thus we subtract this
         seconds -= 90;
         if (seconds < 30) {
             // the minimum assumed travel time between stops is 30s
@@ -61,56 +61,65 @@ public class Edge implements Comparable<Edge> {
     }
 
     private Integer calculateTypicalTime() {
-        int mostSeconds = 0, mostJourneys = 0;
+        int smallest = Integer.MAX_VALUE;
         for (Map.Entry<Integer, Integer> entry : travelTimes.entrySet()) {
-            if (entry.getValue() > mostJourneys) {
-                mostSeconds = entry.getKey();
-                mostJourneys = entry.getValue();
+            if (entry.getKey() < smallest) {
+                smallest = entry.getKey();
             }
         }
-        return mostSeconds;
+        return smallest < 30 ? 30 : smallest;
     }
 
-    public String getFromStopId() {
-        return fromStopId;
+    public String getStop1Id() {
+        return stop1Id;
     }
 
-    public Stop getFromStop() {
-        if (fromStop == null) {
-            fromStop = stopsModel.getById(fromStopId);
+    public Stop getStop1() {
+        if (stop1 == null) {
+            stop1 = stopsModel.getById(stop1Id);
         }
-        return fromStop;
+        return stop1;
     }
 
-    public String getToStopId() {
-        return toStopId;
+    public String getStop2Id() {
+        return stop2Id;
     }
 
-    public Stop getToStop() {
-        if (toStop == null) {
-            toStop = stopsModel.getById(toStopId);
+    public Stop getStop2() {
+        if (stop2== null) {
+            stop2 = stopsModel.getById(stop2Id);
         }
-        return toStop;
+        return stop2;
     }
 
-    public Double getFromLat() {
-        return getFromStop() == null ? null : getFromStop().getLat();
+    public Stop getDestination(Stop from) {
+        if (getStop1().equals(from)) {
+            return getStop2();
+        }
+        if (getStop2().equals(from)) {
+            return getStop1();
+        }
+        return null;
     }
 
-    public Double getFromLng() {
-        return getFromStop() == null ? null : getFromStop().getLng();
+    public Double getStop1Lat() {
+        return getStop1() == null ? null : getStop1().getLat();
     }
 
-    public Double getToLat() {
-        return getToStop() == null ? null : getToStop().getLat();
+    public Double getStop1Lng() {
+        return getStop1() == null ? null : getStop1().getLng();
     }
 
-    public Double getToLng() {
-        return getToStop() == null ? null : getToStop().getLng();
+    public Double getStop2Lat() {
+        return getStop2() == null ? null : getStop2().getLat();
+    }
+
+    public Double getStop2Lng() {
+        return getStop2() == null ? null : getStop2().getLng();
     }
 
     public boolean isPrintable() {
-        return getFromLat() != null && getToLat() != null && getFromLng() != null && getToLng() != null;
+        return getStop1Lat() != null && getStop1Lng() != null && getStop2Lat() != null && getStop2Lng() != null;
     }
 
     @Override
@@ -123,11 +132,11 @@ public class Edge implements Comparable<Edge> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Edge edge = (Edge) o;
-        return Objects.equals(fromStopId, edge.fromStopId) && Objects.equals(toStopId, edge.toStopId);
+        return Objects.equals(stop1Id, edge.stop1Id) && Objects.equals(stop2Id, edge.stop2Id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fromStopId, toStopId);
+        return Objects.hash(stop1Id, stop2Id);
     }
 }

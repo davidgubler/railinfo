@@ -76,7 +76,7 @@ public class AdminController extends Controller {
                             if (!edgesFromStop.containsKey(lastStopId)) {
                                 edgesFromStop.put(lastStopId, new LinkedList<>());
                             }
-                            Edge edge = edgesFromStop.get(lastStopId).stream().filter(e -> e.getToStopId().equals(stopTime.getParentStopId())).findFirst().orElse(null);
+                            Edge edge = edgesFromStop.get(lastStopId).stream().filter(e -> e.getStop2Id().equals(stopTime.getParentStopId())).findFirst().orElse(null);
                             if (edge == null) {
                                 edge = new Edge(lastStopId, stopTime.getParentStopId());
                                 injector.injectMembers(edge);

@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import dev.morphia.annotations.*;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity(value = "stops", noClassnameStored = true)
@@ -91,5 +92,18 @@ public class Stop {
 
     public String toString() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Stop stop = (Stop) o;
+        return Objects.equals(stopId, stop.stopId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(stopId);
     }
 }

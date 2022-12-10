@@ -37,7 +37,7 @@
             }
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getFromLat, @edge.getFromLng, @edge.getToLat, @edge.getToLng);
+                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng);
             }
          };
         google.maps.event.addDomListener(window, 'load', initialize);
