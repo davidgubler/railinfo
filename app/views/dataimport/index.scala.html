@@ -1,0 +1,12 @@
+@import helper._
+@(  implicit request: Http.Request
+)
+
+@template(title = "Import") {
+
+} {
+    @form(action = routes.DataImportController.importGtfsPost) {
+        @CSRF.formField
+        <input type="submit" value="Import GTFS" />
+    }
+}

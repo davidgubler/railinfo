@@ -9,10 +9,11 @@ GET     /                               controllers.HomeController.index()
 GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
 
 
-GET     /load                           controllers.ImportController.load()
 GET     /timetable/departures/:stop     controllers.TimetableController.departures(stop: String)
 
 GET     /admin                          controllers.AdminController.admin(request: Request)
 POST    /admin/recalculateEdges         controllers.AdminController.recalculateEdgesPost(request: Request)
-GET     /topology                       controllers.TopologyController.topology()
 GET     /topology/map                   controllers.TopologyController.map(request: Request)
+GET     /topology/edges                 controllers.TopologyController.edges(request: Request)
+GET     /import                         controllers.DataImportController.index(request: Request)
+POST    /import/gtfs                    controllers.DataImportController.importGtfsPost(request: Request)

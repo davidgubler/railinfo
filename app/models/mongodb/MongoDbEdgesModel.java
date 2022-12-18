@@ -6,6 +6,7 @@ import dev.morphia.query.Query;
 import entities.Edge;
 import models.EdgesModel;
 import services.MongoDb;
+import java.util.List;
 
 public class MongoDbEdgesModel implements EdgesModel {
     @Inject
@@ -29,4 +30,10 @@ public class MongoDbEdgesModel implements EdgesModel {
         return edge;
     }
 
+    @Override
+    public List<? extends Edge> getAll() {
+        List<? extends Edge> edges = query().asList();
+        edges.stream().forEach(edge -> injector.injectMembers(edge));
+        return edges;
+    }
 }

@@ -7,7 +7,6 @@ import models.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +32,9 @@ public class TopologyController extends Controller {
     private RoutesModel routesModel;
 
     @Inject
+    private EdgesModel edgesModel;
+
+    @Inject
     private Injector injector;
 
 
@@ -54,59 +56,10 @@ public class TopologyController extends Controller {
         edge.addJourney(seconds);
     }
 
-
-    public Result topology()  {
-        long start;/*
-
-        start = System.currentTimeMillis();
-        System.out.print("fetching rail routes... ");
-        List<Route> railRoutes = routesModel.getByType(100, 199);
-        System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
-
-        long x, addJourneyTime = 0, getStopTimesTime = 0;
-
-        start = System.currentTimeMillis();
-        System.out.print("extracting edges... ");
-        for (Route route : railRoutes) {
-            System.out.println(route);
-            List<Trip> trips = tripsModel.getByRoute(route);
-            for (Trip trip : trips) {
-                String lastStopId = null;
-                int depHour = 0, depMinute = 0, depSecond = 0;
-
-                x = System.currentTimeMillis();
-                List<StopTime> stopTimes = trip.getStopTimes();
-                getStopTimesTime += (System.currentTimeMillis() - x);
-
-                for (StopTime stopTime : stopTimes) {
-                    if (lastStopId != null) {
-                        String[] split = stopTime.getArrival().split(":");
-                        int arrHour = Integer.parseInt(split[0]);
-                        int arrMinute = Integer.parseInt(split[1]);
-                        int arrSecond = Integer.parseInt(split[2]);
-                        int seconds = ((arrHour - depHour) * 60 + arrMinute - depMinute) * 60 + arrSecond - depSecond;
-                        x = System.currentTimeMillis();
-                        addJourney(lastStopId, stopTime.getParentStopId(), seconds);
-                        addJourneyTime += (System.currentTimeMillis() - x);
-                    }
-                    lastStopId = stopTime.getParentStopId();
-                    String[] split = stopTime.getDeparture().split(":");
-                    depHour = Integer.parseInt(split[0]);
-                    depMinute = Integer.parseInt(split[1]);
-                    depSecond = Integer.parseInt(split[2]);
-                }
-            }
-        }
-        List<Edge> allEdges = new LinkedList<>(edges.values());
-
-        System.out.println(allEdges.size() + " in " + (System.currentTimeMillis() - start) + " ms");
-        System.out.println("addJourneyTime: " + addJourneyTime + " ms");
-        System.out.println("getStopTimesTime: " + getStopTimesTime + " ms");
-*/
-        return ok();
+    public Result edges(Http.Request request) {
+        List<? extends Edge> edges = edgesModel.getAll();
+        return ok(views.html.topology.edges.render(edges));
     }
-
-
 
     public Result map(Http.Request request) {
         long start = System.currentTimeMillis();
@@ -119,8 +72,8 @@ public class TopologyController extends Controller {
             System.out.println(route + " " + route.getShortName());
             List<Trip> trips = tripsModel.getByRoute(route);
 
-            if (trips.size() > 4) {
-                trips = trips.subList(0, 4);
+            if (trips.size() > 20) {
+                trips = trips.subList(0, 20);
             }
 
             for (Trip trip : trips) {
@@ -176,6 +129,11 @@ public class TopologyController extends Controller {
             }
         }
 
+        edgesModel.drop();
+        for (Edge edge: requiredEdges) {
+            edgesModel.save(edge);
+        }
+
         return ok(views.html.topology.map.render(requiredEdges));
     }
 
@@ -183,53 +141,64 @@ public class TopologyController extends Controller {
 
 
     private boolean possibleWithExistingEdges(Edge e, Map<Stop, Set<Edge>> existingTopology) {
-        long time = e.getTypicalTime();
-        List<Stop> path = findPath(time, Arrays.asList(e.getStop1()), e.getStop2(), existingTopology, false);
-        if (path == null) {
+        List<Edge> edges = findEdges(e.getTypicalTime(), new LinkedList<>(), new HashSet<>(), e.getStop1(), e.getStop2(), existingTopology, false);
+        /*if (path == null) {
             if ("Uster".equals(e.getStop2().getName())) {
                 System.out.println("=== " + e.getStop1().getName() + " to " + e.getStop2() + " is not possible in " + e.getTypicalTime() + " s with existing topology:");
                 findPath(time, Arrays.asList(e.getStop1()), e.getStop2(), existingTopology, true);
             }
         } else {
             //System.out.println(" == YES! " + StringUtils.join(path, ", "));
+        }*/
+        if (edges != null && ("Bern".equals(e.getStop2().getName()) && "Olten".equals(e.getStop1().getName())) || ("Bern".equals(e.getStop1().getName()) && "Olten".equals(e.getStop2().getName())) && e.getTypicalTime() < 30*60) {
+            System.out.println("Olten - Bern in " + e.getTypicalTime()/60 + " min:");
+            long time = 0l;
+            Stop stop = e.getStop1();
+            System.out.println("edges: " + edges.size());
+            for (Edge subEdge : edges) {
+                time += subEdge.getTypicalTime();
+                stop = subEdge.getDestination(stop);
+                System.out.println(time/60 + " min: " + stop);
+            }
         }
-        return path != null;
+        return edges != null;
     }
 
 
-
-
-    private List<Stop> findPath(long remainingTime, List<Stop> stops, Stop destination, Map<Stop, Set<Edge>> existingTopology, boolean debug) {
+    private List<Edge> findEdges(long remainingTime, List<Edge> edges, Set<Stop> beenTo, Stop thisStop, Stop destination, Map<Stop, Set<Edge>> existingTopology, boolean debug) {
         if (debug) {
-            System.out.println("To " + destination + " : " + StringUtils.join(stops, " => ") + ", remaining " + remainingTime + " s");
+
+            //System.out.println("To " + destination + " : " + StringUtils.join(stops, " => ") + ", remaining " + remainingTime + " s");
         }
         if (remainingTime < -60) {
             return null;
         }
-        Stop lastStop = stops.get(stops.size() - 1);
-        if (destination.equals(lastStop)) {
+        if (destination.equals(thisStop)) {
             // success!
-            return stops;
+            return edges;
         }
 
-        if (!existingTopology.containsKey(lastStop)) {
+        if (!existingTopology.containsKey(thisStop)) {
             return null;
         }
-        Set<Edge> possibleEdges = existingTopology.get(lastStop);
+        Set<Edge> possibleEdges = existingTopology.get(thisStop);
 
         // filter all the edges that lead to places where we've already been
-        possibleEdges = possibleEdges.stream().filter(e -> !stops.contains(e.getDestination(lastStop))).collect(Collectors.toSet());
+        possibleEdges = possibleEdges.stream().filter(e -> !beenTo.contains(e.getDestination(thisStop))).collect(Collectors.toSet());
 
         if (possibleEdges.isEmpty()) {
             return null;
         }
 
         for (Edge edge : possibleEdges) {
-            List<Stop> newStops = new LinkedList<>(stops);
-            newStops.add(edge.getDestination(lastStop));
-            List<Stop> path = findPath(remainingTime - edge.getTypicalTime(), newStops, destination, existingTopology, debug);
-            if (path != null) {
-                return path;
+            Stop edgeDestination = edge.getDestination(thisStop);
+            Set<Stop> newBeenTo = new HashSet<>(beenTo);
+            newBeenTo.add(thisStop);
+            LinkedList<Edge> newEdges = new LinkedList<>(edges);
+            newEdges.add(edge);
+            List<Edge> successEdges = findEdges(remainingTime - edge.getTypicalTime(), newEdges, newBeenTo, edgeDestination, destination, existingTopology, debug);
+            if (successEdges != null) {
+                return successEdges;
             }
         }
         return null;

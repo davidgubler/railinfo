@@ -16,6 +16,7 @@ public class Edge implements Comparable<Edge> {
 
     @Indexed
     private String stop1Id;
+    @Indexed
     private String stop2Id;
     private Integer typicalTime = 0;
 
@@ -41,8 +42,8 @@ public class Edge implements Comparable<Edge> {
     }
 
     public void addJourney(Integer seconds) {
-        // we assume that a stop takes 1.5 min, thus we subtract this
-        seconds -= 90;
+        // we assume that a stop takes 1 min, thus we subtract this
+        seconds -= 60;
         if (seconds < 30) {
             // the minimum assumed travel time between stops is 30s
             seconds = 30;

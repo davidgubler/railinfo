@@ -1,0 +1,14 @@
+@(	edges: List[_ <: entities.Edge]
+)
+
+@template(title = "Topology Edges") {
+} {
+    <table>
+        @for(edge <- edges) {
+            <tr>
+                <td>@edge.getStop1</td><td>@edge.getStop2</td><td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
+            </tr>
+        }
+    </table>
+
+}

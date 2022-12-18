@@ -1,19 +1,17 @@
 package controllers;
 
 import com.google.inject.Inject;
-import entities.*;
 import models.*;
+import play.filters.csrf.AddCSRFToken;
 import play.mvc.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ImportController extends Controller {
+public class DataImportController extends Controller {
 
     public static final String UTF8_BOM = "\uFEFF";
 
@@ -34,6 +32,22 @@ public class ImportController extends Controller {
 
     @Inject
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
+
+    @AddCSRFToken
+    public Result index(Http.Request request) {
+        return ok(views.html.dataimport.index.render(request));
+    }
+
+    public Result importGtfsPost(Http.Request request) {
+        new Thread(() -> {
+            try {
+                importGtfs();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        return ok();
+    }
 
     private String[] parseLine(String line, int length) {
         String[] components = new String[length];
@@ -91,9 +105,11 @@ public class ImportController extends Controller {
         return c;
     }
 
-    public Result load() throws IOException {
+
+
+    private void importGtfs() throws IOException {
         long start = System.currentTimeMillis();
-        File timetableZip = new File("/home/david/Downloads/gtfs_fp2022_2022-12-07_04-15.zip");
+        File timetableZip = new File("/home/david/Downloads/gtfs_fp2023_2022-12-14_04-15.zip");
         ZipInputStream zipIn = new ZipInputStream(new FileInputStream(timetableZip));
 
         ZipEntry entry = zipIn.getNextEntry();
@@ -146,7 +162,5 @@ public class ImportController extends Controller {
         System.out.println("found " + serviceCalendars + " serviceCalendars");
         System.out.println("found " + serviceCalendarExceptions + " serviceCalendarExceptions");
         System.out.println("time taken: " + (System.currentTimeMillis() - start) + " ms");
-
-        return ok();
     }
 }
