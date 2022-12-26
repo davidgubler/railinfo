@@ -1,0 +1,27 @@
+@(	implicit request: Http.Request,
+    users: List[_ <: entities.User],
+)
+
+@template(title = "Users") {
+} {
+    <a href="@routes.AdminController.usersCreate()">Create new user...</a>
+    <table class="dataTable" data-paging="false" data-ordering="false">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for(user <- users) {
+            <tr>
+                <td>@user.getEmail</td>
+                <td>@user.getName</td>
+                <td><a href="@routes.AdminController.usersEdit(user.getId)">edit</a> <a href="@routes.AdminController.usersDelete(user.getId)">delete</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+}

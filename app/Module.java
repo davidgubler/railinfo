@@ -14,5 +14,6 @@ public class Module extends AbstractModule {
         bind(TripsModel.class).to(MongoDbTripsModel.class);
         bind(RoutesModel.class).to(MongoDbRoutesModel.class);
         bind(EdgesModel.class).to(MongoDbEdgesModel.class);
+        bind(UsersModel.class).to(MongoDbUsersModel.class);
     }
 }

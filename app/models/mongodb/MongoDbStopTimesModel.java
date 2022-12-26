@@ -11,6 +11,7 @@ import entities.Trip;
 import models.StopTimesModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
+import utils.Config;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,25 +25,25 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     private MongoDb mongoDb;
 
     private Query<StopTime> query() {
-        return mongoDb.getDs().createQuery(StopTime.class);
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(StopTime.class);
     }
 
     @Override
     public void drop() {
-        mongoDb.get().getCollection("stopTimes").drop();
+        mongoDb.get(Config.TIMETABLE_DB).getCollection("stopTimes").drop();
     }
 
     @Override
     public StopTime create(Map<String, String> data) {
         StopTime stopTime = new StopTime(data);
-        mongoDb.getDs().save(stopTime);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(stopTime);
         return stopTime;
     }
 
     @Override
     public List<StopTime> create(List<Map<String, String>> dataBatch) {
         List<StopTime> serviceCalendarExceptions = dataBatch.stream().map(data -> new StopTime(data)).collect(Collectors.toList());
-        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return serviceCalendarExceptions;
     }
 

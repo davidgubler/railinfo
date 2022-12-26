@@ -1,11 +1,12 @@
 @(  implicit request: Http.Request,
     edge: entities.Edge,
+    errors: Map[String, String],
 )
 
 @template(title = "Edit Edge") {
 } {
     @form(request, routes.TopologyController.editPost(edge.getId)) {
-        @formInputText("Time", "typicalTime", utils.StringUtils.formatSeconds(edge.getTypicalTime))
-        @formButtons(request, routes.TopologyController.edges(), "Save")
+        @formInputText("Time", "typicalTime", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
+        @formButtons(routes.TopologyController.edges(), "Save")
     }
 }

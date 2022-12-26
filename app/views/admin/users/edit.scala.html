@@ -1,0 +1,17 @@
+@(  implicit request: Http.Request,
+    editUser: entities.User,
+    email: String,
+    name: String,
+    password: String,
+    errors: Map[String, String],
+)
+
+@template(title = "Edit User: " + editUser.getEmail()) {
+} {
+    @form(request, routes.AdminController.usersEditPost(editUser.getId)) {
+        @formInputText("E-Mail Address", "email", email, errors)
+        @formInputText("Name", "name", name, errors)
+        @formInputPassword("Password", "password", password, errors)
+        @formButtons(routes.AdminController.usersList(), "Save")
+    }
+}

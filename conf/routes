@@ -1,18 +1,22 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# An example controller showing a sample home page
-GET     /                               controllers.HomeController.index()
-
-# Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
 
+GET     /                               controllers.HomeController.index()
+
+GET     /login                          controllers.LoginController.login(request: Request)
+POST    /login                          controllers.LoginController.loginPost(request: Request)
 
 GET     /timetable/departures/:stop     controllers.TimetableController.departures(stop: String)
 
 GET     /admin                          controllers.AdminController.admin(request: Request)
+GET     /admin/users                    controllers.AdminController.usersList(request: Request)
+GET     /admin/users/_create            controllers.AdminController.usersCreate(request: Request)
+POST    /admin/users/_create            controllers.AdminController.usersCreatePost(request: Request)
+GET     /admin/users/:uid/edit          controllers.AdminController.usersEdit(request: Request, uid: String)
+POST    /admin/users/:uid/edit          controllers.AdminController.usersEditPost(request: Request, uid: String)
+GET     /admin/users/:uid/delete        controllers.AdminController.usersDelete(request: Request, uid: String)
+POST    /admin/users/:uid/delete        controllers.AdminController.usersDeletePost(request: Request, uid: String)
 POST    /admin/recalculateEdges         controllers.AdminController.recalculateEdgesPost(request: Request)
+
 GET     /topology/map                   controllers.TopologyController.map(request: Request)
 GET     /topology/edges                 controllers.TopologyController.edges(request: Request)
 GET     /topology/edges/_create         controllers.TopologyController.create(request: Request)
@@ -21,5 +25,6 @@ GET     /topology/edges/:edge/edit      controllers.TopologyController.edit(requ
 POST    /topology/edges/:edge/edit      controllers.TopologyController.editPost(request: Request, edge: String)
 GET     /topology/edges/:edge/delete    controllers.TopologyController.delete(request: Request, edge: String)
 POST    /topology/edges/:edge/delete    controllers.TopologyController.deletePost(request: Request, edge: String)
+
 GET     /import                         controllers.DataImportController.index(request: Request)
 POST    /import/gtfs                    controllers.DataImportController.importGtfsPost(request: Request)

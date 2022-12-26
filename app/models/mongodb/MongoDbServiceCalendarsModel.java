@@ -8,6 +8,7 @@ import entities.ServiceCalendar;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
+import utils.Config;
 
 import java.util.List;
 import java.util.Map;
@@ -22,25 +23,25 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
     private MongoDb mongoDb;
 
     private Query<ServiceCalendar> query() {
-        return mongoDb.getDs().createQuery(ServiceCalendar.class);
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(ServiceCalendar.class);
     }
 
     @Override
     public void drop() {
-        mongoDb.get().getCollection("serviceCalendars").drop();
+        mongoDb.get(Config.TIMETABLE_DB).getCollection("serviceCalendars").drop();
     }
 
     @Override
     public ServiceCalendar create(Map<String, String> data) {
         ServiceCalendar serviceCalendar = new ServiceCalendar(data);
-        mongoDb.getDs().save(serviceCalendar);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendar);
         return serviceCalendar;
     }
 
     @Override
     public List<ServiceCalendar> create(List<Map<String, String>> dataBatch) {
         List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendar(data)).collect(Collectors.toList());
-        mongoDb.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return serviceCalendarExceptions;
     }
 

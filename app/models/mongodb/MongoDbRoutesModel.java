@@ -8,6 +8,7 @@ import dev.morphia.query.Query;
 import entities.Route;
 import models.RoutesModel;
 import services.MongoDb;
+import utils.Config;
 
 import java.util.List;
 import java.util.Map;
@@ -22,25 +23,25 @@ public class MongoDbRoutesModel implements RoutesModel {
     private MongoDb mongoDb;
 
     private Query<Route> query() {
-        return mongoDb.getDs().createQuery(Route.class);
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(Route.class);
     }
 
     @Override
     public void drop() {
-        mongoDb.get().getCollection("routes").drop();
+        mongoDb.get(Config.TIMETABLE_DB).getCollection("routes").drop();
     }
 
     @Override
     public Route create(Map<String, String> data) {
         Route route = new Route(data);
-        mongoDb.getDs().save(route);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(route);
         return route;
     }
 
     @Override
     public List<Route> create(List<Map<String, String>> dataBatch) {
         List<Route> routes = dataBatch.stream().map(data -> new Route(data)).collect(Collectors.toList());
-        mongoDb.getDs().save(routes, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        mongoDb.getDs(Config.TIMETABLE_DB).save(routes, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return routes;
     }
 

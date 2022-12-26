@@ -1,0 +1,16 @@
+@(  implicit request: Http.Request,
+    email: String,
+    name: String,
+    password: String,
+    errors: Map[String, String],
+)
+
+@template(title = "Create User") {
+} {
+    @form(request, routes.AdminController.usersCreatePost()) {
+        @formInputText("E-Mail Address", "email", email, errors)
+        @formInputText("Name", "name", name, errors)
+        @formInputPassword("Password", "password", password, errors)
+        @formButtons(routes.AdminController.usersList(), "Create")
+    }
+}

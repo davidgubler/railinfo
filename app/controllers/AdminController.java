@@ -1,20 +1,22 @@
 package controllers;
 
+import biz.Users;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import entities.User;
 import entities.mongodb.MongoDbEdge;
 import entities.Route;
 import entities.StopTime;
 import entities.Trip;
-import models.EdgesModel;
-import models.RoutesModel;
-import models.StopsModel;
-import models.TripsModel;
+import models.*;
 import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.RequireCSRFCheck;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.InputUtils;
+import utils.InputValidationException;
+import utils.NotFoundException;
 
 import java.util.*;
 
@@ -32,7 +34,74 @@ public class AdminController extends Controller {
     private EdgesModel edgesModel;
 
     @Inject
+    private UsersModel usersModel;
+
+    @Inject
+    private Users users;
+
+    @Inject
     private Injector injector;
+
+    public Result usersList(Http.Request request) {
+        List<? extends User> users = usersModel.getAll();
+        return ok(views.html.admin.users.list.render(request, users));
+    }
+
+    public Result usersCreate(Http.Request request) {
+        return ok(views.html.admin.users.create.render(request, null, null, null, InputUtils.NOERROR));
+    }
+
+    public Result usersCreatePost(Http.Request request) {
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String email = InputUtils.trimToNull(data.get("email"));
+        String name = InputUtils.trimToNull(data.get("name"));
+        String password = InputUtils.trimToNull(data.get("password"));
+        try {
+            users.create(email, name, password, null);
+            return redirect(controllers.routes.AdminController.usersList());
+        } catch (InputValidationException e) {
+            return ok(views.html.admin.users.create.render(request, email, name, password, e.getErrors()));
+        }
+    }
+
+    public Result usersEdit(Http.Request request, String uid) {
+        User editUser = usersModel.get(uid);
+        if (editUser == null) {
+            throw new NotFoundException("User");
+        }
+        return ok(views.html.admin.users.edit.render(request, editUser, editUser.getEmail(), editUser.getName(), null, InputUtils.NOERROR));
+    }
+
+    public Result usersEditPost(Http.Request request, String uid) {
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        User editUser = usersModel.get(uid);
+        String email = InputUtils.trimToNull(data.get("email"));
+        String name = InputUtils.trimToNull(data.get("name"));
+        String password = InputUtils.trimToNull(data.get("password"));
+        try {
+            users.update(editUser, email, name, password, null);
+            return redirect(controllers.routes.AdminController.usersList());
+        } catch (InputValidationException e) {
+            return ok(views.html.admin.users.edit.render(request, editUser, email, name, password, e.getErrors()));
+        }
+    }
+
+    public Result usersDelete(Http.Request request, String uid) {
+        User deleteUser = usersModel.get(uid);
+        if (deleteUser == null) {
+            throw new NotFoundException("User");
+        }
+        return ok(views.html.admin.users.delete.render(request, deleteUser));
+    }
+
+    public Result usersDeletePost(Http.Request request, String uid) {
+        User deleteUser = usersModel.get(uid);
+        if (deleteUser == null) {
+            throw new NotFoundException("User");
+        }
+        users.delete(deleteUser, null);
+        return redirect(controllers.routes.AdminController.usersList());
+    }
 
     @AddCSRFToken
     public Result admin(Http.Request request) {

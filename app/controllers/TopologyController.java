@@ -66,7 +66,7 @@ public class TopologyController extends Controller {
 
     public Result edges(Http.Request request) {
         List<? extends Edge> edges = edgesModel.getAll();
-        return ok(views.html.topology.edges.render(edges));
+        return ok(views.html.topology.edges.render(request, edges));
     }
 
     public Result create(Http.Request request) {
@@ -82,7 +82,7 @@ public class TopologyController extends Controller {
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
-        return ok(views.html.topology.edit.render(request, edge));
+        return ok(views.html.topology.edit.render(request, edge, InputUtils.NOERROR));
     }
 
     public Result editPost(Http.Request request, String edgeId) {

@@ -9,6 +9,7 @@ import entities.Trip;
 import models.TripsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
+import utils.Config;
 
 import java.util.List;
 import java.util.Map;
@@ -23,25 +24,25 @@ public class MongoDbTripsModel implements TripsModel {
     private MongoDb mongoDb;
 
     private Query<Trip> query() {
-        return mongoDb.getDs().createQuery(Trip.class);
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(Trip.class);
     }
 
     @Override
     public void drop() {
-        mongoDb.get().getCollection("trips").drop();
+        mongoDb.get(Config.TIMETABLE_DB).getCollection("trips").drop();
     }
 
     @Override
     public Trip create(Map<String, String> data) {
         Trip trip = new Trip(data);
-        mongoDb.getDs().save(trip);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(trip);
         return trip;
     }
 
     @Override
     public List<Trip> create(List<Map<String, String>> dataBatch) {
         List<Trip> trips = dataBatch.stream().map(data -> new Trip(data)).collect(Collectors.toList());
-        mongoDb.getDs().save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        mongoDb.getDs(Config.TIMETABLE_DB).save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return trips;
     }
 
