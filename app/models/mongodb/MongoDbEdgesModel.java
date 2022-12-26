@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import dev.morphia.query.Query;
 import entities.Edge;
 import models.EdgesModel;
+import org.bson.types.ObjectId;
 import services.MongoDb;
 import java.util.List;
 
@@ -35,5 +36,10 @@ public class MongoDbEdgesModel implements EdgesModel {
         List<? extends Edge> edges = query().asList();
         edges.stream().forEach(edge -> injector.injectMembers(edge));
         return edges;
+    }
+
+    @Override
+    public Edge get(String id) {
+        return query().field("_id").equal(new ObjectId(id)).first();
     }
 }

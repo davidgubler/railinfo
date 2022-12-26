@@ -10,4 +10,6 @@ public interface EdgesModel {
     Edge save(Edge edge);
 
     List<? extends Edge> getAll();
+
+    Edge get(String id);
 }

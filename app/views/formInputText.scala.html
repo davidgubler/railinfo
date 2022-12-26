@@ -1,0 +1,11 @@
+@(  label: String,
+    name: String,
+    value: String = null,
+)
+
+<div class="form-group row">
+    <label for="@name" class="col-lg-2 col-form-label">@label</label>
+    <div class="col-lg-2">
+        <input type="text" class="form-control" id="@name" name="@name" value="@value">
+    </div>
+</div>

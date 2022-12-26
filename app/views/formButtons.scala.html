@@ -1,0 +1,11 @@
+@(  request: Http.Request,
+    cancel: Call = null,
+    submit: String,
+)
+
+<div class="mt-4">
+    @if(cancel != null){
+    <a href="@cancel" class="btn btn-link">Cancel</a>
+    }
+    <input class="btn btn-primary" type="submit" value="Save">
+</div>

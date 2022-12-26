@@ -3,12 +3,25 @@
 
 @template(title = "Topology Edges") {
 } {
-    <table>
+    <table class="dataTable" data-paging="false" data-ordering="false">
+        <thead>
+            <tr>
+                <th>Stop 1</th>
+                <th>Stop 2</th>
+                <th>Duration (hh:)mm:ss</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
         @for(edge <- edges) {
             <tr>
-                <td>@edge.getStop1</td><td>@edge.getStop2</td><td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
+                <td>@edge.getStop1</td>
+                <td>@edge.getStop2</td>
+                <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
+                <td><a href="@routes.TopologyController.edit(edge.getId())">edit</a> <a href="@routes.TopologyController.delete(edge.getId())">delete</a></td>
             </tr>
         }
+        </tbody>
     </table>
 
 }

@@ -41,6 +41,10 @@ public class Edge implements Comparable<Edge> {
         this.stop2Id = stop2Id;
     }
 
+    public String getId() {
+        return _id.toString();
+    }
+
     public void addJourney(Integer seconds) {
         // we assume that a stop takes 1 min, thus we subtract this
         seconds -= 60;

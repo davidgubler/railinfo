@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.*;
 import models.*;
+import utils.NotFoundException;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -60,6 +61,40 @@ public class TopologyController extends Controller {
         List<? extends Edge> edges = edgesModel.getAll();
         return ok(views.html.topology.edges.render(edges));
     }
+
+    public Result create(Http.Request request) {
+        return ok();
+    }
+
+    public Result createPost(Http.Request request) {
+        return ok();
+    }
+
+    public Result edit(Http.Request request, String edgeId) {
+        Edge edge = edgesModel.get(edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+        return ok(views.html.topology.edit.render(request, edge));
+    }
+
+    public Result editPost(Http.Request request, String edgeId) {
+        Edge edge = edgesModel.get(edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+        return ok();
+    }
+
+    public Result delete(Http.Request request, String edgeId) {
+        return ok();
+    }
+
+    public Result deletePost(Http.Request request, String edgeId) {
+        return ok();
+    }
+
+
 
     public Result map(Http.Request request) {
         long start = System.currentTimeMillis();
@@ -203,4 +238,6 @@ public class TopologyController extends Controller {
         }
         return null;
     }
+
+
 }
