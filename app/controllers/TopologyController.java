@@ -1,9 +1,13 @@
 package controllers;
 
+import biz.Topology;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.*;
+import entities.Edge;
+import entities.mongodb.MongoDbEdge;
 import models.*;
+import utils.InputUtils;
 import utils.NotFoundException;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -13,6 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TopologyController extends Controller {
+
+    @Inject
+    private Topology topology;
 
     @Inject
     private StopsModel stopsModel;
@@ -50,7 +57,7 @@ public class TopologyController extends Controller {
         String key = from + "|" + to;
         Edge edge = edges.get(key);
         if (edge == null) {
-            edge = new Edge(from, to);
+            edge = new MongoDbEdge(from, to);
             injector.injectMembers(edge);
             edges.put(key, edge);
         }
@@ -83,6 +90,9 @@ public class TopologyController extends Controller {
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        int typicalTime = InputUtils.parseDuration(data.get("typicalTime"));
+        topology.updateEdge(edge, typicalTime);
         return ok();
     }
 

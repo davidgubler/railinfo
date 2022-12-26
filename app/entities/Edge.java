@@ -1,147 +1,29 @@
 package entities;
 
-import com.google.inject.Inject;
-import dev.morphia.annotations.*;
-import models.StopsModel;
-import org.bson.types.ObjectId;
+public interface Edge extends Comparable<Edge> {
+    String getId();
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+    void addJourney(Integer seconds);
 
-@Entity(value = "edges", noClassnameStored = true)
-public class Edge implements Comparable<Edge> {
-    @Id
-    private ObjectId _id;
+    Integer getTypicalTime();
 
-    @Indexed
-    private String stop1Id;
-    @Indexed
-    private String stop2Id;
-    private Integer typicalTime = 0;
+    String getStop1Id();
 
-    @Transient
-    private Stop stop1;
-    @Transient
-    private Stop stop2;
+    Stop getStop1();
 
-    @Transient
-    private Map<Integer, Integer> travelTimes = new HashMap<>(); // key are seconds, value is #journeys
+    String getStop2Id();
 
-    @Transient
-    @Inject
-    private StopsModel stopsModel;
+    Stop getStop2();
 
-    public Edge() {
-        // dummy constructor for morphia
-    }
+    Stop getDestination(Stop from);
 
-    public Edge(String stop1Id, String stop2Id) {
-        this.stop1Id = stop1Id;
-        this.stop2Id = stop2Id;
-    }
+    Double getStop1Lat();
 
-    public String getId() {
-        return _id.toString();
-    }
+    Double getStop1Lng();
 
-    public void addJourney(Integer seconds) {
-        // we assume that a stop takes 1 min, thus we subtract this
-        seconds -= 60;
-        if (seconds < 30) {
-            // the minimum assumed travel time between stops is 30s
-            seconds = 30;
-        }
-        if (travelTimes.containsKey(seconds)) {
-            travelTimes.put(seconds, travelTimes.get(seconds) + 1);
-        } else {
-            travelTimes.put(seconds, 1);
-        }
+    Double getStop2Lat();
 
-        typicalTime = calculateTypicalTime();
-    }
+    Double getStop2Lng();
 
-    public Integer getTypicalTime() {
-        return typicalTime;
-    }
-
-    private Integer calculateTypicalTime() {
-        int smallest = Integer.MAX_VALUE;
-        for (Map.Entry<Integer, Integer> entry : travelTimes.entrySet()) {
-            if (entry.getKey() < smallest) {
-                smallest = entry.getKey();
-            }
-        }
-        return smallest < 30 ? 30 : smallest;
-    }
-
-    public String getStop1Id() {
-        return stop1Id;
-    }
-
-    public Stop getStop1() {
-        if (stop1 == null) {
-            stop1 = stopsModel.getById(stop1Id);
-        }
-        return stop1;
-    }
-
-    public String getStop2Id() {
-        return stop2Id;
-    }
-
-    public Stop getStop2() {
-        if (stop2== null) {
-            stop2 = stopsModel.getById(stop2Id);
-        }
-        return stop2;
-    }
-
-    public Stop getDestination(Stop from) {
-        if (getStop1().equals(from)) {
-            return getStop2();
-        }
-        if (getStop2().equals(from)) {
-            return getStop1();
-        }
-        return null;
-    }
-
-    public Double getStop1Lat() {
-        return getStop1() == null ? null : getStop1().getLat();
-    }
-
-    public Double getStop1Lng() {
-        return getStop1() == null ? null : getStop1().getLng();
-    }
-
-    public Double getStop2Lat() {
-        return getStop2() == null ? null : getStop2().getLat();
-    }
-
-    public Double getStop2Lng() {
-        return getStop2() == null ? null : getStop2().getLng();
-    }
-
-    public boolean isPrintable() {
-        return getStop1Lat() != null && getStop1Lng() != null && getStop2Lat() != null && getStop2Lng() != null;
-    }
-
-    @Override
-    public int compareTo(Edge edge) {
-        return getTypicalTime().compareTo(edge.getTypicalTime());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Edge edge = (Edge) o;
-        return Objects.equals(stop1Id, edge.stop1Id) && Objects.equals(stop2Id, edge.stop2Id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(stop1Id, stop2Id);
-    }
+    boolean isPrintable();
 }

@@ -1,12 +1,10 @@
-@import helper._
 @(  implicit request: Http.Request
 )
 
 @template(title = "Admin") {
 
 } {
-    @form(action = routes.AdminController.recalculateEdgesPost) {
-        @CSRF.formField
+    @form(request, routes.AdminController.recalculateEdgesPost) {
         <input type="submit" value="Import" />
         <input type="submit" value="Recalculate Edges" />
     }

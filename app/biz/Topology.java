@@ -8,7 +8,7 @@ public class Topology {
     @Inject
     private EdgesModel edgesModel;
 
-    public static void updateEdge(Edge edge, long time) {
-        
+    public void updateEdge(Edge edge, int time) {
+        edgesModel.update(edge, time);
     }
 }

@@ -2,7 +2,7 @@ package controllers;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import entities.Edge;
+import entities.mongodb.MongoDbEdge;
 import entities.Route;
 import entities.StopTime;
 import entities.Trip;
@@ -43,7 +43,7 @@ public class AdminController extends Controller {
     public Result recalculateEdgesPost(Http.Request request) {
         new Thread(() -> {
 
-            Map<String, List<Edge>> edgesFromStop = new HashMap<>();
+            Map<String, List<MongoDbEdge>> edgesFromStop = new HashMap<>();
 
 
             long start;
@@ -76,9 +76,9 @@ public class AdminController extends Controller {
                             if (!edgesFromStop.containsKey(lastStopId)) {
                                 edgesFromStop.put(lastStopId, new LinkedList<>());
                             }
-                            Edge edge = edgesFromStop.get(lastStopId).stream().filter(e -> e.getStop2Id().equals(stopTime.getParentStopId())).findFirst().orElse(null);
+                            MongoDbEdge edge = edgesFromStop.get(lastStopId).stream().filter(e -> e.getStop2Id().equals(stopTime.getParentStopId())).findFirst().orElse(null);
                             if (edge == null) {
-                                edge = new Edge(lastStopId, stopTime.getParentStopId());
+                                edge = new MongoDbEdge(lastStopId, stopTime.getParentStopId());
                                 injector.injectMembers(edge);
                                 edgesFromStop.get(lastStopId).add(edge);
                             }
@@ -93,16 +93,16 @@ public class AdminController extends Controller {
                     }
                 }
             }
-            List<Edge> allEdges = new LinkedList<>();
-            for (Map.Entry<String, List<Edge>> entry : edgesFromStop.entrySet()) {
+            List<MongoDbEdge> allEdges = new LinkedList<>();
+            for (Map.Entry<String, List<MongoDbEdge>> entry : edgesFromStop.entrySet()) {
                 allEdges.addAll(entry.getValue());
             }
             System.out.println(allEdges.size() + " in " + (System.currentTimeMillis() - start) + " ms");
 
-            allEdges.sort(Comparator.comparing(Edge::getTypicalTime));
+            allEdges.sort(Comparator.comparing(MongoDbEdge::getTypicalTime));
 
             edgesModel.drop();
-            for (Edge edge : allEdges) {
+            for (MongoDbEdge edge : allEdges) {
                 edgesModel.save(edge);
                 //System.out.println(stopsModel.getById(e.getFromStopId()) + " -> " + stopsModel.getById(e.getToStopId()) + ": " + e.getTypicalTime() + "s");
             }

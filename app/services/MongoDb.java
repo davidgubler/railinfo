@@ -10,6 +10,7 @@ import com.mongodb.client.MongoDatabase;
 import entities.*;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import entities.mongodb.MongoDbEdge;
 
 import java.util.Arrays;
 
@@ -41,7 +42,7 @@ public class MongoDb {
         db = this.mongoClient.getDatabase(database);
 
         morphia = new Morphia();
-        morphia.map(Edge.class);
+        morphia.map(MongoDbEdge.class);
         morphia.map(Stop.class);
         morphia.map(StopTime.class);
         morphia.map(Trip.class);

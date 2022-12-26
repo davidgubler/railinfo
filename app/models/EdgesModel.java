@@ -12,4 +12,6 @@ public interface EdgesModel {
     List<? extends Edge> getAll();
 
     Edge get(String id);
+
+    void update(Edge edge, int typicalTime);
 }
