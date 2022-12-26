@@ -1,8 +1,9 @@
 @(  implicit request: Http.Request,
     deleteUser: entities.User,
+    user: entities.User,
 )
 
-@template(title = "Delete User: " + deleteUser.getEmail()) {
+@template(title = "Delete User: " + deleteUser.getEmail(), user) {
 } {
     @form(request, routes.AdminController.usersDeletePost(deleteUser.getId)) {
         @formButtons(routes.AdminController.usersList(), "Delete")

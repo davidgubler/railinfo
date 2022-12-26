@@ -1,8 +1,9 @@
 @(	implicit request: Http.Request,
     users: List[_ <: entities.User],
+    user: entities.User,
 )
 
-@template(title = "Users") {
+@template("Users", user) {
 } {
     <a href="@routes.AdminController.usersCreate()">Create new user...</a>
     <table class="dataTable" data-paging="false" data-ordering="false">

@@ -43,6 +43,9 @@ public class TopologyController extends Controller {
     private EdgesModel edgesModel;
 
     @Inject
+    private UsersModel usersModel;
+
+    @Inject
     private Injector injector;
 
 
@@ -65,8 +68,9 @@ public class TopologyController extends Controller {
     }
 
     public Result edges(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
         List<? extends Edge> edges = edgesModel.getAll();
-        return ok(views.html.topology.edges.render(request, edges));
+        return ok(views.html.topology.edges.render(request, edges, user));
     }
 
     public Result create(Http.Request request) {
@@ -78,14 +82,16 @@ public class TopologyController extends Controller {
     }
 
     public Result edit(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
         Edge edge = edgesModel.get(edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
-        return ok(views.html.topology.edit.render(request, edge, InputUtils.NOERROR));
+        return ok(views.html.topology.edit.render(request, edge, InputUtils.NOERROR, user));
     }
 
     public Result editPost(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
         Edge edge = edgesModel.get(edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
@@ -97,16 +103,19 @@ public class TopologyController extends Controller {
     }
 
     public Result delete(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
         return ok();
     }
 
     public Result deletePost(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
         return ok();
     }
 
 
 
     public Result map(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
         long start = System.currentTimeMillis();
         System.out.print("fetching rail routes... ");
         List<Route> railRoutes = routesModel.getByType(100, 199);
@@ -179,7 +188,7 @@ public class TopologyController extends Controller {
             edgesModel.save(edge);
         }
 
-        return ok(views.html.topology.map.render(requiredEdges));
+        return ok(views.html.topology.map.render(requiredEdges, user));
     }
 
 

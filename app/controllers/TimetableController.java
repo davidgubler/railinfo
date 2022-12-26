@@ -4,15 +4,16 @@ import com.google.inject.Inject;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
+import entities.User;
 import entities.realized.RealizedDeparture;
 import entities.realized.RealizedTrip;
 import models.*;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,8 +37,12 @@ public class TimetableController extends Controller {
     @Inject
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
+    @Inject
+    private UsersModel usersModel;
 
-    public Result departures(String stopStr)  {
+
+    public Result departures(Http.Request request, String stopStr)  {
+        User user = usersModel.getFromRequest(request);
         LocalDateTime dateTime = LocalDateTime.now();
 
         Set<Stop> stops = stopsModel.getByName(stopStr);
@@ -73,6 +78,6 @@ public class TimetableController extends Controller {
         }
         Collections.sort(departures);
 
-        return ok(views.html.timetable.stop.render(departures));
+        return ok(views.html.timetable.stop.render(departures, user));
     }
 }

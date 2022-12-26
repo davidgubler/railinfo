@@ -1,8 +1,9 @@
 @(	request: Http.Request,
-    edges: List[_ <: entities.Edge]
+    edges: List[_ <: entities.Edge],
+    user: entities.User,
 )
 
-@template(title = "Topology Edges") {
+@template("Topology Edges", user) {
 } {
     <table class="dataTable" data-paging="false" data-ordering="false">
         <thead>

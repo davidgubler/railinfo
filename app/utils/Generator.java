@@ -14,4 +14,14 @@ public class Generator {
             throw new RuntimeException(e);
         }
     }
+
+    public static String generateSessionId() {
+        try {
+            byte[] salt = new byte[64];
+            SecureRandom.getInstance("SHA1PRNG").nextBytes(salt);
+            return Hex.encodeHexString(salt);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -17,7 +17,8 @@ public class SimplePBKDF2 {
         try {
             KeySpec spec = new PBEKeySpec(password.toCharArray(), Hex.decodeHex(salt), ITERATIONS, ALGORITHM_OUPUT_SIZE);
             SecretKeyFactory f = SecretKeyFactory.getInstance(ALGORITHM);
-            return Hex.encodeHexString(f.generateSecret(spec).getEncoded());
+            String hash = Hex.encodeHexString(f.generateSecret(spec).getEncoded());
+            return hash;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

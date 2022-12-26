@@ -4,7 +4,7 @@
     errors: Map[String, String],
 )
 
-@template(title = "Log in") {
+@template("Log in", null) {
 } {
     @form(request, routes.LoginController.loginPost()) {
         @formInputText("E-Mail Address", "email", email, errors)

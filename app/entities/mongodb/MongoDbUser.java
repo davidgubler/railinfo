@@ -1,12 +1,19 @@
 package entities.mongodb;
 
+import com.mongodb.Mongo;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
+import entities.Session;
 import entities.User;
 import org.bson.types.ObjectId;
+import services.MongoDb;
 import utils.Generator;
 import utils.SimplePBKDF2;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 @Entity(value = "users", noClassnameStored = true)
 public class MongoDbUser implements User {
@@ -21,6 +28,8 @@ public class MongoDbUser implements User {
     private String passwordSalt;
 
     private String passwordHash;
+
+    private List<MongoDbSession> sessions = new LinkedList<>();
 
     public MongoDbUser() {
         // constructor for Morphia
@@ -58,6 +67,21 @@ public class MongoDbUser implements User {
     @Override
     public String getEmail() {
         return email;
+    }
+
+    @Override
+    public List<? extends Session> getSessions() {
+        return sessions;
+    }
+
+    public MongoDbSession startSession() {
+        MongoDbSession mongoDbSession = new MongoDbSession();
+        sessions.add(mongoDbSession);
+        return mongoDbSession;
+    }
+
+    public void killSessions() {
+        sessions = Collections.emptyList();
     }
 
     public void setEmail(String email) {

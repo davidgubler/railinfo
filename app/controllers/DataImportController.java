@@ -1,6 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
+import entities.User;
 import models.*;
 import play.filters.csrf.AddCSRFToken;
 import play.mvc.*;
@@ -33,9 +34,12 @@ public class DataImportController extends Controller {
     @Inject
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
-    @AddCSRFToken
+    @Inject
+    private UsersModel usersModel;
+
     public Result index(Http.Request request) {
-        return ok(views.html.dataimport.index.render(request));
+        User user = usersModel.getFromRequest(request);
+        return ok(views.html.dataimport.index.render(request, user));
     }
 
     public Result importGtfsPost(Http.Request request) {

@@ -1,7 +1,8 @@
-@(  implicit request: Http.Request
+@(  implicit request: Http.Request,
+    user: entities.User,
 )
 
-@template(title = "Import") {
+@template("Import", user) {
 
 } {
     @form(request, routes.DataImportController.importGtfsPost) {

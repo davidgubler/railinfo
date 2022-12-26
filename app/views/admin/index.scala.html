@@ -1,7 +1,8 @@
-@(  implicit request: Http.Request
+@(  implicit request: Http.Request,
+    user: entities.User,
 )
 
-@template(title = "Admin") {
+@template("Admin", user) {
 
 } {
     @form(request, routes.AdminController.recalculateEdgesPost) {

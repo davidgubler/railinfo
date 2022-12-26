@@ -20,7 +20,7 @@ public class Login {
         // INPUT
         Map<String, String> errors = new HashMap<>();
         User user = usersModel.getByEmailAndPassword(email, password);
-        if (user != null) {
+        if (user == null) {
             errors.put("email", "");
             errors.put("password", ErrorMessages.EMAIL_OR_PASSWORD_INVALID);
         }
@@ -29,11 +29,25 @@ public class Login {
         }
 
         // BUSINESS
-        // nothing
+        usersModel.startSession(user);
 
         // LOG
         // TODO
 
         return user;
+    }
+
+    public void logout(User user) {
+        // ACCESS
+        // nothing
+
+        // INPUT
+        // nothing
+
+        // BUSINESS
+        usersModel.killSessions(user);
+
+        // LOG
+        // TODO
     }
 }

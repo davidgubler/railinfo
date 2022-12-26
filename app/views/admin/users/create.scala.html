@@ -3,9 +3,10 @@
     name: String,
     password: String,
     errors: Map[String, String],
+    user: entities.User,
 )
 
-@template(title = "Create User") {
+@template(title = "Create User", user) {
 } {
     @form(request, routes.AdminController.usersCreatePost()) {
         @formInputText("E-Mail Address", "email", email, errors)

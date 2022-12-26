@@ -43,15 +43,18 @@ public class AdminController extends Controller {
     private Injector injector;
 
     public Result usersList(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
         List<? extends User> users = usersModel.getAll();
-        return ok(views.html.admin.users.list.render(request, users));
+        return ok(views.html.admin.users.list.render(request, users, user));
     }
 
     public Result usersCreate(Http.Request request) {
-        return ok(views.html.admin.users.create.render(request, null, null, null, InputUtils.NOERROR));
+        User user = usersModel.getFromRequest(request);
+        return ok(views.html.admin.users.create.render(request, null, null, null, InputUtils.NOERROR, user));
     }
 
     public Result usersCreatePost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String email = InputUtils.trimToNull(data.get("email"));
         String name = InputUtils.trimToNull(data.get("name"));
@@ -60,19 +63,21 @@ public class AdminController extends Controller {
             users.create(email, name, password, null);
             return redirect(controllers.routes.AdminController.usersList());
         } catch (InputValidationException e) {
-            return ok(views.html.admin.users.create.render(request, email, name, password, e.getErrors()));
+            return ok(views.html.admin.users.create.render(request, email, name, password, e.getErrors(), user));
         }
     }
 
     public Result usersEdit(Http.Request request, String uid) {
+        User user = usersModel.getFromRequest(request);
         User editUser = usersModel.get(uid);
         if (editUser == null) {
             throw new NotFoundException("User");
         }
-        return ok(views.html.admin.users.edit.render(request, editUser, editUser.getEmail(), editUser.getName(), null, InputUtils.NOERROR));
+        return ok(views.html.admin.users.edit.render(request, editUser, editUser.getEmail(), editUser.getName(), null, InputUtils.NOERROR, user));
     }
 
     public Result usersEditPost(Http.Request request, String uid) {
+        User user = usersModel.getFromRequest(request);
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         User editUser = usersModel.get(uid);
         String email = InputUtils.trimToNull(data.get("email"));
@@ -82,19 +87,21 @@ public class AdminController extends Controller {
             users.update(editUser, email, name, password, null);
             return redirect(controllers.routes.AdminController.usersList());
         } catch (InputValidationException e) {
-            return ok(views.html.admin.users.edit.render(request, editUser, email, name, password, e.getErrors()));
+            return ok(views.html.admin.users.edit.render(request, editUser, email, name, password, e.getErrors(), user));
         }
     }
 
     public Result usersDelete(Http.Request request, String uid) {
+        User user = usersModel.getFromRequest(request);
         User deleteUser = usersModel.get(uid);
         if (deleteUser == null) {
             throw new NotFoundException("User");
         }
-        return ok(views.html.admin.users.delete.render(request, deleteUser));
+        return ok(views.html.admin.users.delete.render(request, deleteUser, user));
     }
 
     public Result usersDeletePost(Http.Request request, String uid) {
+        User user = usersModel.getFromRequest(request);
         User deleteUser = usersModel.get(uid);
         if (deleteUser == null) {
             throw new NotFoundException("User");
@@ -103,9 +110,9 @@ public class AdminController extends Controller {
         return redirect(controllers.routes.AdminController.usersList());
     }
 
-    @AddCSRFToken
     public Result admin(Http.Request request) {
-        return ok(views.html.admin.index.render(request));
+        User user = usersModel.getFromRequest(request);
+        return ok(views.html.admin.index.render(request, user));
     }
 
     @RequireCSRFCheck
