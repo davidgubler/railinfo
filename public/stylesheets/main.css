@@ -11,6 +11,14 @@ button.navbar-toggler {
     right: 10px;
 }
 
+ul.submenu {
+    padding-left: 1rem;
+}
+
+ul.submenu li {
+    list-style: none !important;
+}
+
 header {
     height: 50px;
 }

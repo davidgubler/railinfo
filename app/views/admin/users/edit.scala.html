@@ -7,7 +7,7 @@
     user: entities.User,
 )
 
-@template("Edit User: " + editUser.getEmail(), user) {
+@template(request, "Edit User: " + editUser.getEmail(), user) {
 } {
     @form(request, routes.AdminController.usersEditPost(editUser.getId)) {
         @formInputText("E-Mail Address", "email", email, errors)

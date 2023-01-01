@@ -1,8 +1,9 @@
-@(	departures: List[entities.realized.RealizedDeparture],
+@(	implicit request: Http.Request,
+    departures: List[entities.realized.RealizedDeparture],
     user: entities.User,
 )
 
-@template("Timetable", user) {
+@template(request, "Timetable", user) {
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/timetable.css")'>
 } {
     <table>

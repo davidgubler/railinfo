@@ -6,7 +6,7 @@
     user: entities.User,
 )
 
-@template(title = "Create User", user) {
+@template(request, title = "Create User", user) {
 } {
     @form(request, routes.AdminController.usersCreatePost()) {
         @formInputText("E-Mail Address", "email", email, errors)

@@ -11,7 +11,7 @@ public class HomeController extends Controller {
 
     public Result index(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.index.render(user));
+        return ok(views.html.index.render(request, user));
     }
 
 }

@@ -188,7 +188,7 @@ public class TopologyController extends Controller {
             edgesModel.save(edge);
         }
 
-        return ok(views.html.topology.map.render(requiredEdges, user));
+        return ok(views.html.topology.map.render(request, requiredEdges, user));
     }
 
 

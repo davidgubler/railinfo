@@ -1,8 +1,9 @@
-@(	edges: List[entities.Edge],
+@(	implicit request: Http.Request,
+    edges: List[entities.Edge],
     user: entities.User,
 )
 
-@template("Topology Map", user) {
+@template(request, "Topology Map", user) {
 } {
     <script src='https://maps.googleapis.com/maps/api/js?key=@utils.Config.get(utils.Config.Option.MAPS_KEY)'></script>
     <div id='mapCanvas' style='height: 100vh;'></div>

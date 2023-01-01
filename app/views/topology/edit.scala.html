@@ -4,7 +4,7 @@
     user: entities.User,
 )
 
-@template("Edit Edge", user) {
+@template(request, "Edit Edge", user) {
 } {
     @form(request, routes.TopologyController.editPost(edge.getId)) {
         @formInputText("Time", "typicalTime", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)

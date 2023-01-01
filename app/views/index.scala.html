@@ -1,7 +1,8 @@
-@(  user: entities.User,
+@(  implicit request: Http.Request,
+    user: entities.User,
 )
 
-@template(title = "Welcome to railinfo", user) {
+@template(request, title = "Welcome to railinfo", user) {
 } {
   Nothing here.
 }

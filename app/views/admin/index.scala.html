@@ -2,7 +2,7 @@
     user: entities.User,
 )
 
-@template("Admin", user) {
+@template(request, "Admin", user) {
 
 } {
     @form(request, routes.AdminController.recalculateEdgesPost) {

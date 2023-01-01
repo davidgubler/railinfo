@@ -2,7 +2,7 @@
     user: entities.User,
 )
 
-@template("Import", user) {
+@template(request, "Import", user) {
 
 } {
     @form(request, routes.DataImportController.importGtfsPost) {

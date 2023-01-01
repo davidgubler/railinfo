@@ -3,7 +3,7 @@
     user: entities.User,
 )
 
-@template("Users", user) {
+@template(request, "Users", user) {
 } {
     <a href="@routes.AdminController.usersCreate()">Create new user...</a>
     <table class="dataTable" data-paging="false" data-ordering="false">
