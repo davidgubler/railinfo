@@ -1,5 +1,9 @@
 package utils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class StringUtils {
@@ -24,5 +28,15 @@ public class StringUtils {
             s = hours + ":" + s;
         }
         return s;
+    }
+
+    private static DateTimeFormatter hourMinuteFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+    public static String formatStopTime(LocalDate startDate, LocalDateTime time) {
+        if (time == null) {
+            return "";
+        }
+        Period period = Period.between(startDate, time.toLocalDate());
+        return hourMinuteFormatter.format(time) + (period.isZero() ? "" : "+" + period.getDays());
     }
 }

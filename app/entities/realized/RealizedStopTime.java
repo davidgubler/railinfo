@@ -42,8 +42,16 @@ public class RealizedStopTime {
         return arrival;
     }
 
+    public void setArrival(LocalDateTime arrival) {
+        this.arrival = arrival;
+    }
+
     public LocalDateTime getDeparture() {
         return departure;
+    }
+
+    public void setDeparture(LocalDateTime departure) {
+        this.departure = departure;
     }
 
     public String getStopId() {

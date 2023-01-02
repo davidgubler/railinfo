@@ -1,0 +1,29 @@
+@(	implicit request: Http.Request,
+    realizedTrip: entities.realized.RealizedTrip,
+    user: entities.User,
+)
+
+@template(request, "Trip", user) {
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/realizedTrip.css")'>
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
+} {
+    <span class="product @realizedTrip.getRoute.getDesc.toLowerCase whitebg">@realizedTrip.getRoute.getShortName</span> @realizedTrip.getTrip.getTripShortName
+    <table>
+        <thead>
+            <tr>
+                <th>Stop</th>
+                <th>Arrival</th>
+                <th>Departure</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for(realizedStopTime <- realizedTrip.getRealizedStopTimes) {
+            <tr>
+                <td>@realizedStopTime.getStop</td>
+                <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getArrival)</td>
+                <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

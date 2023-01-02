@@ -1,12 +1,12 @@
 package entities.realized;
 
+import akka.actor.ProviderSelection;
+import com.google.inject.Inject;
 import entities.*;
 import models.*;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RealizedTrip {
@@ -17,34 +17,63 @@ public class RealizedTrip {
 
     private List<RealizedStopTime> realizedStopTimes;
 
+    @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
 
+    @Inject
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
+    @Inject
     private StopTimesModel stopTimesModel;
 
+    @Inject
     private RoutesModel routesModel;
 
-    public RealizedTrip(Trip trip, LocalDate startDate, StopsModel stopsModel) {
+    @Inject
+    private StopsModel stopsModel;
+
+    public RealizedTrip(Trip trip, LocalDate startDate) {
         this.trip = trip;
         this.startDate = startDate;
-        this.realizedStopTimes = trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel)).collect(Collectors.toList());
     }
 
     public RealizedDeparture getDeparture(Collection<Stop> stops) {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
         int i = 0;
-        for (RealizedStopTime realizedStopTime : realizedStopTimes) {
+        for (RealizedStopTime realizedStopTime : getRealizedStopTimes()) {
             if (stopIds.contains(realizedStopTime.getStopId())) {
                 break;
             }
             i++;
         }
-        return new RealizedDeparture(this, realizedStopTimes.subList(i, realizedStopTimes.size()));
+        return new RealizedDeparture(this, getRealizedStopTimes().subList(i, realizedStopTimes.size()));
+    }
+
+    public List<RealizedStopTime> getRealizedStopTimes() {
+        if (realizedStopTimes == null) {
+            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel)).collect(Collectors.toList()));
+            // At least in some cases the first and last stop have invalid arrivals/departures, fix this
+            this.realizedStopTimes.get(0).setArrival(null);
+            this.realizedStopTimes.get(realizedStopTimes.size()-1).setDeparture(null);
+        }
+        return new LinkedList<>(this.realizedStopTimes);
+    }
+
+    public List<RealizedStopTime> getRealizedStopTimesComplete() {
+        List<RealizedStopTime> realizedStopTimes = getRealizedStopTimes();
+        return realizedStopTimes;
     }
 
     public String getTripHeadsign() {
         return trip.getTripHeadsign();
+    }
+
+    public Trip getTrip() {
+        return trip;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
     public Route getRoute() {

@@ -1,6 +1,7 @@
 package controllers;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
@@ -11,6 +12,7 @@ import models.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +42,9 @@ public class TimetableController extends Controller {
     @Inject
     private UsersModel usersModel;
 
+    @Inject
+    private Injector injector;
+
 
     public Result departures(Http.Request request, String stopStr)  {
         User user = usersModel.getFromRequest(request);
@@ -60,12 +65,21 @@ public class TimetableController extends Controller {
         // note that this will not be sufficient for countries that have trains running for longer than 1 day
         for (int i = -1; i <= 1; i++) {
             LocalDate d = dateTime.toLocalDate().plusDays(i);
-            realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> new RealizedTrip(t, d, stopsModel)).collect(Collectors.toSet()));
+            realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
+                RealizedTrip realizedTrip = new RealizedTrip(t, d);
+                injector.injectMembers(realizedTrip);
+                return realizedTrip;
+            }).collect(Collectors.toSet()));
         }
+        System.out.println("realized trips: " + realizedTrips.size());
 
         List<RealizedDeparture> departures = new LinkedList<>();
         for (RealizedTrip realizedTrip : realizedTrips) {
             RealizedDeparture departure = realizedTrip.getDeparture(stops);
+            if (departure.getDepartureTime() == null) {
+                // train ends here
+                continue;
+            }
             if (departure.getDepartureTime().isBefore(dateTime) || departure.getDepartureTime().isAfter(dateTime.plusHours(12)) ) {
                 // departure is in the past or more than 12h in the future
                 continue;
@@ -78,6 +92,24 @@ public class TimetableController extends Controller {
         }
         Collections.sort(departures);
 
-        return ok(views.html.timetable.stop.render(departures, user));
+        return ok(views.html.timetable.stop.render(request, departures, user));
+    }
+
+    public Result movements(Http.Request request, String stopStr)  {
+        User user = usersModel.getFromRequest(request);
+        LocalDateTime dateTime = LocalDateTime.now();
+        Set<Stop> stops = stopsModel.getByName(stopStr);
+        return ok();
+    }
+
+
+    public Result realizedTrip(Http.Request request, String tripId, String startDateStr)  {
+        User user = usersModel.getFromRequest(request);
+        LocalDate startDate = LocalDate.parse(startDateStr);
+        RealizedTrip realizedTrip = tripsModel.getRealizedTrip(tripId, startDate);
+        if (realizedTrip == null) {
+            throw new NotFoundException("Realized Trip");
+        }
+        return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user));
     }
 }

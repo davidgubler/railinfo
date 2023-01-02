@@ -77,6 +77,10 @@ public class RealizedDeparture implements Comparable<RealizedDeparture> {
         return trip.getRoute();
     }
 
+    public RealizedTrip getRealizedTrip() {
+        return trip;
+    }
+
     @Override
     public int compareTo(RealizedDeparture departure) {
         return getDepartureTime().compareTo(departure.getDepartureTime());
