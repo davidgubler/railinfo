@@ -52,7 +52,7 @@
                     </li>
                     <li class="nav-item">
                         @if(user == null) {
-                        <a class="nav-link" href="@routes.LoginController.login()">
+                        <a class="nav-link @if(request.path.startsWith("/login")){active}"" href="@routes.LoginController.login()">
                             Log in
                         </a>
                         } else {

@@ -11,6 +11,21 @@ button.navbar-toggler {
     right: 10px;
 }
 
+nav#sidebarMenu {
+    background-color: #f4f4f4 !important;
+}
+
+nav a.active {
+    font-weight: bold;
+}
+
+@media(min-width: 768px) {
+    nav#sidebarMenu {
+        position: fixed;
+        min-height: 100%;
+    }
+}
+
 ul.submenu {
     padding-left: 1rem;
 }
