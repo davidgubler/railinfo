@@ -1,0 +1,13 @@
+@(  implicit request: Http.Request,
+    edge: entities.Edge,
+    user: entities.User,
+)
+
+@template(request, "Delete Edge", user) {
+
+} {
+    @form(request, routes.TopologyController.edgeDeletePost(edge.getId)) {
+        @edge.getStop1() - @edge.getStop2() in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
+        @formButtons(routes.TopologyController.edgesList(), "Delete Edge")
+    }
+}

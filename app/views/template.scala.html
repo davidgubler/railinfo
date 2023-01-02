@@ -32,6 +32,7 @@
         <div class="row">
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse pt-3">
                 <ul class="nav flex-column">
+                    @if(user != null) {
                     <li class="nav-item has-submenu">
                         <a href="#" class="nav-link dropdown-toggle" @if(!request.path.startsWith("/admin")){data-bs-toggle="collapse"} data-bs-target="ul#admin">
                         Admin
@@ -41,13 +42,17 @@
                             <li><a href="@routes.DataImportController.index()" class="nav-link @if(request.path.startsWith("/admin/import")){active}">Data Import</a></li>
                         </ul>
                     </li>
+                    }
                     <li class="nav-item has-submenu">
                         <a href="#" class="nav-link dropdown-toggle" @if(!request.path.startsWith("/topology")){data-bs-toggle="collapse"} data-bs-target="ul#topology">
                             Topology
                         </a>
                         <ul id="topology" class="submenu @if(!request.path.startsWith("/topology")){collapse}">
                             <li><a href="@routes.TopologyController.map()" class="nav-link @if(request.path.startsWith("/topology/map")){active}">Map</a></li>
-                            <li><a href="@routes.TopologyController.edges()" class="nav-link @if(request.path.startsWith("/topology/edges")){active}">Edges</a></li>
+                            <li><a href="@routes.TopologyController.edgesList()" class="nav-link @if(request.path.startsWith("/topology/edges")){active}">Edges</a></li>
+                            @if(user != null) {
+                            <li><a href="@routes.TopologyController.recalculate()" class="nav-link @if(request.path.startsWith("/topology/recalculate")){active}">Recalculate</a></li>
+                            }
                         </ul>
                     </li>
                     <li class="nav-item">

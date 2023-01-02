@@ -6,8 +6,8 @@
 
 @template(request, "Edit Edge", user) {
 } {
-    @form(request, routes.TopologyController.editPost(edge.getId)) {
+    @form(request, routes.TopologyController.edgeEditPost(edge.getId)) {
         @formInputText("Time", "typicalTime", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
-        @formButtons(routes.TopologyController.edges(), "Save")
+        @formButtons(routes.TopologyController.edgesList(), "Save")
     }
 }

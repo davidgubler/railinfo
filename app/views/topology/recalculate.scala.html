@@ -1,0 +1,11 @@
+@(  implicit request: Http.Request,
+    user: entities.User,
+)
+
+@template(request, "Recalculate", user) {
+
+} {
+    @form(request, routes.TopologyController.recalculatePost) {
+        @formButtons(submitLabel = "Recalculate Topology")
+    }
+}

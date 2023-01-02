@@ -52,7 +52,9 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public Edge get(String id) {
-        return queryId(new ObjectId(id)).first();
+        Edge edge = queryId(new ObjectId(id)).first();
+        injector.injectMembers(edge);
+        return edge;
     }
 
     @Override
@@ -60,5 +62,11 @@ public class MongoDbEdgesModel implements EdgesModel {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDbEdge.setTypicalTime(typicalTime);
         mongoDb.getDs(Config.TIMETABLE_DB).update(queryId(mongoDbEdge.getObjectId()), ops().set("typicalTime", mongoDbEdge.getTypicalTime()));
+    }
+
+    @Override
+    public void delete(Edge edge) {
+        MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
+        mongoDb.getDs(Config.TIMETABLE_DB).delete(queryId(mongoDbEdge.getObjectId()));
     }
 }
