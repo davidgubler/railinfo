@@ -4,11 +4,15 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.*;
 import entities.mongodb.MongoDbEdge;
+import entities.realized.RealizedStopTime;
+import entities.realized.RealizedWaypoint;
 import models.EdgesModel;
 import models.RoutesModel;
 import models.TripsModel;
 import utils.NotAllowedException;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -204,4 +208,133 @@ public class Topology {
         edge.addJourney(seconds);
     }
 
+
+
+    private List<Edge> quickest(Stop from, Stop to, List<Stop> atStops, Map<Stop, Integer> times) {
+        /*List<Edge> edges = new LinkedList<>();
+        for (Stop stop : atStops) {
+            edges.addAll(edgesModel.getEdgesFrom(stop));
+        }
+
+        for(Edge edge : edges) {
+
+        }
+        */
+        //for (Edge edge : edgesModel.getEdgesFrom(from))
+        return new LinkedList<>();
+    }
+
+    private long edgeSum(List<Edge> edges) {
+        if (edges == null) {
+            return Long.MAX_VALUE;
+        }
+        long sum = 0l;
+        for (Edge edge : edges) {
+            sum+=edge.getTypicalTime();
+        }
+        return sum;
+    }
+
+
+
+    // public:
+    // List<Edge> quickest(Stop from, Stop to, long timeLimit)
+
+    // internal:
+    // List<Edge> quickest(Stop from, Stop to, long timeLimit, Set<Edge> blacklistedEdges)
+
+
+    private static class Path {
+        List<Edge> edges = new LinkedList<>();
+        long duration = 0l;
+
+        public Path() {
+        }
+
+        public Path(Edge edge, Path path) {
+            edges.add(edge);
+            edges.addAll(path.edges);
+            duration = edge.getTypicalTime() + path.duration;
+        }
+
+        public String print(Stop start) {
+            String str = start.getName();
+            for (Edge edge : edges) {
+                start = edge.getDestination(start);
+                str += " -> " + start;
+            }
+            return str;
+        }
+    }
+
+    private Path quickest(Stop from, Stop to, long timeLimit, List<Edge> travelledEdges) {
+        if (from.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
+            return new Path();
+        }
+        if (timeLimit <= 0) {
+            return null;
+        }
+
+
+        Edge quickestEdge = null;
+        Path quickestPath = null;
+
+        for (Edge tryEdge : edgesModel.getEdgesFrom(from)) {
+            if (travelledEdges.contains(tryEdge)) {
+                continue;
+            }
+            /*if (to.getName().equals("Zug")) {
+                for (Edge e : travelledEdges) {
+                    System.out.print("  ");
+                }
+                System.out.println(tryEdge.getDestination(from) + " " + (timeLimit - tryEdge.getTypicalTime()));
+            }*/
+            List<Edge> newTravelledEdges = new LinkedList<>(travelledEdges);
+            newTravelledEdges.add(tryEdge);
+            long newTimeLimit = timeLimit - tryEdge.getTypicalTime();
+            Path solution = quickest(tryEdge.getDestination(from), to, newTimeLimit, newTravelledEdges);
+            if (solution != null) {
+                quickestPath = solution;
+                quickestEdge = tryEdge;
+                timeLimit = quickestPath.duration - 1; // we're only interested in quicker paths
+            }
+        }
+
+        if (quickestPath == null) {
+            return null;
+        }
+
+        return new Path(quickestEdge, quickestPath);
+    }
+
+    private Path quickest(Stop from, Stop to, long timeLimit) {
+        return quickest(from, to, timeLimit, new LinkedList<>());
+    }
+
+    public List<RealizedWaypoint> getIntermediate(Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
+        long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
+
+        //System.out.println("searching from " + from + "[" + from.getParentStopId() + "] to " + to + "[" + to.getParentStopId() + "] in " + scheduledSeconds + "s");
+        Path quickest = quickest(from, to, scheduledSeconds * 3 / 2);
+        /*System.out.println(quickest == null ? "no path found" : quickest.print(from));
+        System.out.println("scheduled duration " + scheduledSeconds + "s, topology duration " + quickest.duration + "s");
+        System.out.println("");*/
+
+        if (quickest == null) {
+             return new LinkedList<>();
+        }
+
+        double speedFactor = (double)(scheduledSeconds - 60) / (double)quickest.duration;
+        List<RealizedWaypoint> waypoints = new LinkedList<>();
+        long topologyTime = 0;
+        Stop stop = from;
+        for (int i = 0; i < quickest.edges.size() - 1; i++) {
+            Edge edge = quickest.edges.get(i);
+            topologyTime += edge.getTypicalTime();
+            stop = edge.getDestination(stop);
+            waypoints.add(new RealizedWaypoint(stop, departure.plusSeconds(60 + Math.round(speedFactor * topologyTime))));
+        }
+
+        return waypoints;
+    }
 }

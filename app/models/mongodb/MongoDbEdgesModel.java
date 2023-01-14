@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
 import entities.Edge;
+import entities.Stop;
 import entities.mongodb.MongoDbEdge;
 import models.EdgesModel;
 import org.bson.types.ObjectId;
@@ -68,5 +69,18 @@ public class MongoDbEdgesModel implements EdgesModel {
     public void delete(Edge edge) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDb.getDs(Config.TIMETABLE_DB).delete(queryId(mongoDbEdge.getObjectId()));
+    }
+
+    @Override
+    public List<? extends Edge> getEdgesFrom(Stop stop) {
+        String stopId = stop.getParentStopId();
+
+        Query<MongoDbEdge> query = query();
+        query.or(query.or(query.criteria("stop1Id").equal(stopId), query.criteria("stop2Id").equal(stopId)));
+        List<MongoDbEdge> edges = query.asList();
+        for(Edge edge : edges) {
+            injector.injectMembers(edge);
+        }
+        return edges;
     }
 }

@@ -108,10 +108,10 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     }
 
     public Stop getDestination(Stop from) {
-        if (getStop1().equals(from)) {
+        if (getStop1Id().equals(from.getParentStopId())) {
             return getStop2();
         }
-        if (getStop2().equals(from)) {
+        if (getStop2Id().equals(from.getParentStopId())) {
             return getStop1();
         }
         return null;
@@ -153,5 +153,10 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public int hashCode() {
         return Objects.hash(stop1Id, stop2Id);
+    }
+
+    @Override
+    public String toString() {
+        return getStop1().getName() + "[" + getStop1().getParentStopId() + "] ---" + getTypicalTime() + "s--> " + getStop2().getName() + "[" + getStop2().getParentStopId() + "]";
     }
 }

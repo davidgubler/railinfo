@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-public class RealizedStopTime {
+public class RealizedStopTime implements RealizedLocation {
 
     private LocalDateTime arrival;
 
@@ -60,5 +60,10 @@ public class RealizedStopTime {
 
     public Stop getStop() {
         return stopsModel.getById(stopId);
+    }
+
+    @Override
+    public boolean stops() {
+        return true;
     }
 }

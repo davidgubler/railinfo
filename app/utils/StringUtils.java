@@ -31,6 +31,7 @@ public class StringUtils {
     }
 
     private static DateTimeFormatter hourMinuteFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    private static DateTimeFormatter hourMinuteSecondFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public static String formatStopTime(LocalDate startDate, LocalDateTime time) {
         if (time == null) {
@@ -38,5 +39,13 @@ public class StringUtils {
         }
         Period period = Period.between(startDate, time.toLocalDate());
         return hourMinuteFormatter.format(time) + (period.isZero() ? "" : "+" + period.getDays());
+    }
+
+    public static String formatWaypointTime(LocalDate startDate, LocalDateTime time) {
+        if (time == null) {
+            return "";
+        }
+        Period period = Period.between(startDate, time.toLocalDate());
+        return hourMinuteSecondFormatter.format(time) + (period.isZero() ? "" : "+" + period.getDays());
     }
 }

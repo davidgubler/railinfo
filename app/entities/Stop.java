@@ -77,7 +77,11 @@ public class Stop {
         return type;
     }
 
-    public String getParentId() {
+    public String getParentStopId() {
+        String parentId = stopId.split(":")[0];
+        if (parentId.endsWith("P")) {
+            parentId = parentId.substring(0, parentId.length() -1);
+        }
         return parentId;
     }
 

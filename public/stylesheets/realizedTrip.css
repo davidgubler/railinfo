@@ -1,7 +1,16 @@
-table {
+table.realizedTrip {
     border-collapse: collapse;
 }
 
-td {
+table.realizedTrip > tbody > tr > td:not(:last-child), table.realizedTrip > thead > tr > th:not(:last-child) {
     padding-right: 20px;
+}
+
+table.realizedTrip > tbody > tr > td:not(:first-child) {
+    text-align: center;
+}
+
+table.realizedTrip > tbody > tr.waypoint > td {
+    font-size: 12px;
+    color: #aaaaaa;
 }

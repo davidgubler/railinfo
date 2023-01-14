@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
 } {
     <span class="product @realizedTrip.getRoute.getDesc.toLowerCase whitebg">@realizedTrip.getRoute.getShortName</span> @realizedTrip.getTrip.getTripShortName
-    <table>
+    <table class="realizedTrip">
         <thead>
             <tr>
                 <th>Stop</th>
@@ -17,12 +17,19 @@
             </tr>
         </thead>
         <tbody>
-        @for(realizedStopTime <- realizedTrip.getRealizedStopTimes) {
-            <tr>
-                <td>@realizedStopTime.getStop</td>
-                <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getArrival)</td>
-                <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
-            </tr>
+        @for(realizedStopTime <- realizedTrip.getRealizedStopTimesWithIntermediate) {
+            @if(realizedStopTime.stops) {
+                <tr>
+                    <td>@realizedStopTime.getStop</td>
+                    <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getArrival)</td>
+                    <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
+                </tr>
+            } else {
+                <tr class="waypoint">
+                    <td>@realizedStopTime.getStop</td>
+                    <td colspan="2">@utils.StringUtils.formatWaypointTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
+                </tr>
+            }
         }
         </tbody>
     </table>

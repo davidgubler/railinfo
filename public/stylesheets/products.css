@@ -11,7 +11,7 @@ span.product.whitebg.s {
     border: 1px solid black;
 }
 
-span.product.interregio, span.product.intercity, span.product.ic, span.product.regioexpress, span.product.eurocity, span.product.intercityexpress, span.product.railjet {
+span.product.interregio, span.product.ir, span.product.intercity, span.product.ic, span.product.regioexpress, span.product.re, span.product.ec, span.product.eurocity, span.product.intercityexpress, span.product.ice, span.product.railjet {
     background-color: red;
     color: #ffffff;
     font-style:italic;

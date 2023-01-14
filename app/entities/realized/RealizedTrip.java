@@ -1,11 +1,13 @@
 package entities.realized;
 
-import akka.actor.ProviderSelection;
+import biz.Topology;
 import com.google.inject.Inject;
 import entities.*;
 import models.*;
 
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,9 @@ public class RealizedTrip {
 
     @Inject
     private StopsModel stopsModel;
+
+    @Inject
+    private Topology topology;
 
     public RealizedTrip(Trip trip, LocalDate startDate) {
         this.trip = trip;
@@ -59,9 +64,18 @@ public class RealizedTrip {
         return new LinkedList<>(this.realizedStopTimes);
     }
 
-    public List<RealizedStopTime> getRealizedStopTimesComplete() {
+    public List<RealizedLocation> getRealizedStopTimesWithIntermediate() {
         List<RealizedStopTime> realizedStopTimes = getRealizedStopTimes();
-        return realizedStopTimes;
+
+        List<RealizedLocation> complete = new LinkedList<>();
+        complete.add(realizedStopTimes.get(0));
+        for (int i = 1; i < realizedStopTimes.size(); i++) {
+            Stop from = realizedStopTimes.get(i-1).getStop();
+            Stop to = realizedStopTimes.get(i).getStop();
+            complete.addAll(topology.getIntermediate(from, to, realizedStopTimes.get(i-1).getDeparture(), realizedStopTimes.get(i).getArrival()));
+            complete.add(realizedStopTimes.get(i));
+        }
+        return complete;
     }
 
     public String getTripHeadsign() {

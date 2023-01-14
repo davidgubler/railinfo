@@ -1,6 +1,8 @@
 package models;
 
 import entities.Edge;
+import entities.Stop;
+
 import java.util.List;
 
 public interface EdgesModel {
@@ -16,4 +18,6 @@ public interface EdgesModel {
     void update(Edge edge, int typicalTime);
 
     void delete(Edge edge);
+
+    List<? extends Edge> getEdgesFrom(Stop stop);
 }
