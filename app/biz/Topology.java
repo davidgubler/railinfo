@@ -209,41 +209,6 @@ public class Topology {
     }
 
 
-
-    private List<Edge> quickest(Stop from, Stop to, List<Stop> atStops, Map<Stop, Integer> times) {
-        /*List<Edge> edges = new LinkedList<>();
-        for (Stop stop : atStops) {
-            edges.addAll(edgesModel.getEdgesFrom(stop));
-        }
-
-        for(Edge edge : edges) {
-
-        }
-        */
-        //for (Edge edge : edgesModel.getEdgesFrom(from))
-        return new LinkedList<>();
-    }
-
-    private long edgeSum(List<Edge> edges) {
-        if (edges == null) {
-            return Long.MAX_VALUE;
-        }
-        long sum = 0l;
-        for (Edge edge : edges) {
-            sum+=edge.getTypicalTime();
-        }
-        return sum;
-    }
-
-
-
-    // public:
-    // List<Edge> quickest(Stop from, Stop to, long timeLimit)
-
-    // internal:
-    // List<Edge> quickest(Stop from, Stop to, long timeLimit, Set<Edge> blacklistedEdges)
-
-
     private static class Path {
         List<Edge> edges = new LinkedList<>();
         long duration = 0l;
@@ -267,6 +232,7 @@ public class Topology {
         }
     }
 
+
     private Path quickest(Stop from, Stop to, long timeLimit, List<Edge> travelledEdges) {
         if (from.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
             return new Path();
@@ -283,12 +249,6 @@ public class Topology {
             if (travelledEdges.contains(tryEdge)) {
                 continue;
             }
-            /*if (to.getName().equals("Zug")) {
-                for (Edge e : travelledEdges) {
-                    System.out.print("  ");
-                }
-                System.out.println(tryEdge.getDestination(from) + " " + (timeLimit - tryEdge.getTypicalTime()));
-            }*/
             List<Edge> newTravelledEdges = new LinkedList<>(travelledEdges);
             newTravelledEdges.add(tryEdge);
             long newTimeLimit = timeLimit - tryEdge.getTypicalTime();
@@ -314,11 +274,7 @@ public class Topology {
     public List<RealizedWaypoint> getIntermediate(Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        //System.out.println("searching from " + from + "[" + from.getParentStopId() + "] to " + to + "[" + to.getParentStopId() + "] in " + scheduledSeconds + "s");
         Path quickest = quickest(from, to, scheduledSeconds * 3 / 2);
-        /*System.out.println(quickest == null ? "no path found" : quickest.print(from));
-        System.out.println("scheduled duration " + scheduledSeconds + "s, topology duration " + quickest.duration + "s");
-        System.out.println("");*/
 
         if (quickest == null) {
              return new LinkedList<>();
