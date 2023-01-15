@@ -4,6 +4,7 @@ import biz.Topology;
 import com.google.inject.Inject;
 import entities.*;
 import models.*;
+import utils.PathFinder;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -36,6 +37,9 @@ public class RealizedTrip {
 
     @Inject
     private Topology topology;
+
+    @Inject
+    private PathFinder pathFinder;
 
     public RealizedTrip(Trip trip, LocalDate startDate) {
         this.trip = trip;
@@ -72,7 +76,7 @@ public class RealizedTrip {
         for (int i = 1; i < realizedStopTimes.size(); i++) {
             Stop from = realizedStopTimes.get(i-1).getStop();
             Stop to = realizedStopTimes.get(i).getStop();
-            complete.addAll(topology.getIntermediate(from, to, realizedStopTimes.get(i-1).getDeparture(), realizedStopTimes.get(i).getArrival()));
+            complete.addAll(pathFinder.getIntermediate(from, to, realizedStopTimes.get(i-1).getDeparture(), realizedStopTimes.get(i).getArrival()));
             complete.add(realizedStopTimes.get(i));
         }
         return complete;
