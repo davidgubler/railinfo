@@ -5,10 +5,13 @@ import entities.Edge;
 import entities.Path;
 import entities.Stop;
 import entities.realized.RealizedWaypoint;
+import geometry.EdgeDirectionComparator;
+import geometry.PolarCoordinates;
 import models.EdgesModel;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,11 +29,22 @@ public class PathFinder {
             return null;
         }
 
-
         Edge quickestEdge = null;
         Path quickestPath = null;
 
-        for (Edge tryEdge : edgesModel.getEdgesFrom(from)) {
+        List<? extends Edge> edges = edgesModel.getEdgesFrom(from);
+        EdgeDirectionComparator comp = new EdgeDirectionComparator(from, to);
+        edges.sort(comp);
+        /*System.out.println(">>>>> " + from + " -> " + to + " with bearing " + comp.getTargetBearing() + " in " + timeLimit + "s");
+        for (Edge edge : edges) {
+            System.out.print(edge.toString(from));
+            double bearing = PolarCoordinates.bearingDegrees(from.getLng(), from.getLat(), edge.getDestination(from).getLng(), edge.getDestination(from).getLat());
+            double diff = PolarCoordinates.bearingDiff(comp.getTargetBearing(), bearing);
+            System.out.println(" with bearing " + bearing + " (diff " + diff + ")");
+        }
+        System.out.println("");*/
+
+        for (Edge tryEdge : edges) {
             if (travelledEdges.contains(tryEdge)) {
                 continue;
             }
@@ -69,7 +83,7 @@ public class PathFinder {
     public List<RealizedWaypoint> getIntermediate(Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        Path quickest = quickest(from, to, scheduledSeconds * 3 / 2);
+        Path quickest = quickest(from, to, scheduledSeconds * 2);
 
         if (quickest == null) {
             return new LinkedList<>();

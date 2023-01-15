@@ -159,4 +159,9 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     public String toString() {
         return getStop1().getName() + "[" + getStop1().getParentStopId() + "] ---" + getTypicalTime() + "s--> " + getStop2().getName() + "[" + getStop2().getParentStopId() + "]";
     }
+
+    @Override
+    public String toString(Stop from) {
+        return from.getName() + "[" + from.getParentStopId() + "] ---" + getTypicalTime() + "s--> " + getDestination(from).getName() + "[" + getDestination(from).getParentStopId() + "]";
+    }
 }

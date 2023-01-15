@@ -26,4 +26,6 @@ public interface Edge extends Comparable<Edge> {
     Double getStop2Lng();
 
     boolean isPrintable();
+
+    String toString(Stop from);
 }
