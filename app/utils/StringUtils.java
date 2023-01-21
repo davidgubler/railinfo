@@ -21,7 +21,7 @@ public class StringUtils {
 
     public static String formatSeconds(int totalSeconds) {
         int hours = totalSeconds/3600;
-        int minutes = (totalSeconds - hours*60) / 60;
+        int minutes = (totalSeconds - hours*3600) / 60;
         int seconds = totalSeconds % 60;
         String s = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
         if (hours > 0) {

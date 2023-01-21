@@ -7,16 +7,17 @@ import entities.Stop;
 import entities.realized.RealizedWaypoint;
 import geometry.EdgeDirectionComparator;
 import models.EdgesModel;
+import models.StopsModel;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PathFinder {
+
+    @Inject
+    private StopsModel stopsModel;
 
     @Inject
     private EdgesModel edgesModel;
@@ -31,14 +32,13 @@ public class PathFinder {
         // we've reached the current stop quicker than before
         timeFromStart.put(currentId, travelledPath.getDuration());
 
-        if (current.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
-            return new Path();
+        if (current.getParentStopId().equals(to.getParentStopId()) && travelledPath.getDuration() <= timeLimit) {
+            return travelledPath;
         }
-        if (timeLimit <= 0) {
+        if (travelledPath.getDuration() > timeLimit) {
             return null;
         }
 
-        Edge quickestEdge = null;
         Path quickestPath = null;
 
         List<? extends Edge> edges = edgesModel.getEdgesFrom(current);
@@ -46,21 +46,14 @@ public class PathFinder {
         edges.sort(comp);
 
         for (Edge tryEdge : edges) {
-            Path newTravelledPath = new Path(travelledPath, tryEdge);
-            long newTimeLimit = timeLimit - tryEdge.getTypicalTime();
-            Path solution = quickest(tryEdge.getDestination(current), to, newTimeLimit, newTravelledPath, timeFromStart);
+            Path solution = quickest(tryEdge.getDestination(current), to, timeLimit, new Path(travelledPath, tryEdge), timeFromStart);
             if (solution != null) {
                 quickestPath = solution;
-                quickestEdge = tryEdge;
                 timeLimit = quickestPath.getDuration() - 1; // we're only interested in quicker paths
             }
         }
 
-        if (quickestPath == null) {
-            return null;
-        }
-
-        return new Path(quickestEdge, quickestPath);
+        return quickestPath;
     }
 
     private ConcurrentHashMap<String, Path> quickestPaths = new ConcurrentHashMap<>();
@@ -73,7 +66,22 @@ public class PathFinder {
         long start = System.currentTimeMillis();
         Map<String, Long> cacheMap = new HashMap<>();
         Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap);
-        System.out.println("path finding took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
+
+        /*
+        System.out.println("path finding from " + from + " to " + to + " in " + StringUtils.formatSeconds((int)timeLimit) + " took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
+        Map<Long, List<Stop>> inverted = new HashMap<>();
+        for (Map.Entry<String, Long> entry : cacheMap.entrySet()) {
+            if (!inverted.containsKey(entry.getValue())) {
+                inverted.put(entry.getValue(), new LinkedList<>());
+            }
+            inverted.get(entry.getValue()).add(stopsModel.getById(entry.getKey()));
+        }
+        List<Long> travelTimes = new LinkedList<>(inverted.keySet());
+        Collections.sort(travelTimes);
+        for (Long time : travelTimes) {
+            System.out.println(StringUtils.formatSeconds(time.intValue()) + ": "  + inverted.get(time));
+        }*/
+
         quickestPaths.put(key, quickest);
         String reverseKey = to.getParentStopId() + "|" + from.getParentStopId();
         quickestPaths.put(reverseKey, quickest.getReverse());
