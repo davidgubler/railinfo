@@ -27,6 +27,7 @@ public class PathFinder {
             // the current stop has already been reached via a quicker path, thus we abort
             return null;
         }
+
         // we've reached the current stop quicker than before
         timeFromStart.put(currentId, travelledPath.getDuration());
 
@@ -52,6 +53,15 @@ public class PathFinder {
             }
         }
 
+
+        /*if (quickestPath != null) {
+            System.out.println(">>> from " + current + " to " + to);*/
+            /*for (Edge edge : quickestPath.getEdges()) {
+                System.out.println(edge);
+            }*/
+            //System.out.println(quickestPath.getReverse().toString(to));
+        //}
+
         return quickestPath;
     }
 
@@ -65,7 +75,7 @@ public class PathFinder {
         long start = System.currentTimeMillis();
         Map<String, Long> cacheMap = new HashMap<>();
         Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap);
-        //System.out.println("path finding took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
+        System.out.println("path finding took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
         quickestPaths.put(key, quickest);
         String reverseKey = to.getParentStopId() + "|" + from.getParentStopId();
         quickestPaths.put(reverseKey, quickest.getReverse());

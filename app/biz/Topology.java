@@ -203,7 +203,4 @@ public class Topology {
         }
         edge.addJourney(seconds);
     }
-
-
-
 }

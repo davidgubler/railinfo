@@ -12,6 +12,7 @@ import services.MongoDb;
 import utils.Config;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -49,21 +50,18 @@ public class MongoDbStopsModel implements StopsModel {
         return serviceCalendarExceptions;
     }
 
+    private ConcurrentHashMap<String, Stop> stopsCache = new ConcurrentHashMap<>();
+
     @Override
     public Stop getById(String stopId) {
-        Stop stop = getStops().get(stopId);
-        if (stop == null && !stopId.endsWith("P")) {
-            stop = getStops().get(stopId + "P");
+        if (stopId == null) {
+            return null;
         }
-        if (stop == null) {
-            Pattern regexp = Pattern.compile("^" + stopId + ":");
-            stop = query().filter("stopId", regexp).get();
+        stopId = stopId.split(":")[0];
+        if (stopId.endsWith("P")) {
+            stopId = stopId.substring(0, stopId.length() - 1);
         }
-        if (stop == null) {
-            System.out.println("ERROR: stopId " + stopId + " not found");
-        }
-        injector.injectMembers(stop);
-        return stop;
+        return getStops().get(stopId);
     }
 
     @Override
@@ -86,10 +84,15 @@ public class MongoDbStopsModel implements StopsModel {
     private Map<String, Stop> getStops() {
         if (this.stops == null) {
             List<Stop> stopsList = query().asList();
+
             Map<String, Stop> stops = new HashMap<>();
             for(Stop stop : stopsList) {
-                stops.put(stop.getStopId(), stop);
+                Stop alreadyInMap = stops.get(stop.getParentStopId());
+                if (alreadyInMap == null || alreadyInMap.getStopId().length() > stop.getStopId().length() ) {
+                    stops.put(stop.getParentStopId(), stop);
+                }
             }
+            System.out.println("found " + stopsList.size() + " stops, combined into " + stops.keySet().size());
             this.stops = Collections.unmodifiableMap(stops);
         }
         return this.stops;

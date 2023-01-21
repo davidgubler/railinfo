@@ -101,7 +101,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     }
 
     public Stop getStop2() {
-        if (stop2== null) {
+        if (stop2 == null) {
             stop2 = stopsModel.getById(stop2Id);
         }
         return stop2;
