@@ -20,6 +20,14 @@ public class Path {
         duration = edge.getTypicalTime() + path.duration;
     }
 
+    public Path(Path path, Edge edge) {
+        List<Edge> edges = new LinkedList<>();
+        edges.addAll(path.edges);
+        edges.add(edge);
+        this.edges = Collections.unmodifiableList(edges);
+        duration = path.duration + edge.getTypicalTime();
+    }
+
     public Path getReverse() {
         Path reversePath = new Path();
         reversePath.edges = new LinkedList<>(edges);

@@ -6,14 +6,14 @@ import entities.Path;
 import entities.Stop;
 import entities.realized.RealizedWaypoint;
 import geometry.EdgeDirectionComparator;
-import geometry.PolarCoordinates;
 import models.EdgesModel;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PathFinder {
@@ -21,8 +21,16 @@ public class PathFinder {
     @Inject
     private EdgesModel edgesModel;
 
-    private Path quickest(Stop from, Stop to, long timeLimit, List<Edge> travelledEdges) {
-        if (from.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
+    private Path quickest(Stop current, Stop to, long timeLimit, Path travelledPath, Map<String, Long> timeFromStart) {
+        String currentId = current.getParentStopId();
+        if (timeFromStart.containsKey(currentId) && timeFromStart.get(currentId) <= travelledPath.getDuration()) {
+            // the current stop has already been reached via a quicker path, thus we abort
+            return null;
+        }
+        // we've reached the current stop quicker than before
+        timeFromStart.put(currentId, travelledPath.getDuration());
+
+        if (current.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
             return new Path();
         }
         if (timeLimit <= 0) {
@@ -32,26 +40,14 @@ public class PathFinder {
         Edge quickestEdge = null;
         Path quickestPath = null;
 
-        List<? extends Edge> edges = edgesModel.getEdgesFrom(from);
-        EdgeDirectionComparator comp = new EdgeDirectionComparator(from, to);
+        List<? extends Edge> edges = edgesModel.getEdgesFrom(current);
+        EdgeDirectionComparator comp = new EdgeDirectionComparator(current, to);
         edges.sort(comp);
-        /*System.out.println(">>>>> " + from + " -> " + to + " with bearing " + comp.getTargetBearing() + " in " + timeLimit + "s");
-        for (Edge edge : edges) {
-            System.out.print(edge.toString(from));
-            double bearing = PolarCoordinates.bearingDegrees(from.getLng(), from.getLat(), edge.getDestination(from).getLng(), edge.getDestination(from).getLat());
-            double diff = PolarCoordinates.bearingDiff(comp.getTargetBearing(), bearing);
-            System.out.println(" with bearing " + bearing + " (diff " + diff + ")");
-        }
-        System.out.println("");*/
 
         for (Edge tryEdge : edges) {
-            if (travelledEdges.contains(tryEdge)) {
-                continue;
-            }
-            List<Edge> newTravelledEdges = new LinkedList<>(travelledEdges);
-            newTravelledEdges.add(tryEdge);
+            Path newTravelledPath = new Path(travelledPath, tryEdge);
             long newTimeLimit = timeLimit - tryEdge.getTypicalTime();
-            Path solution = quickest(tryEdge.getDestination(from), to, newTimeLimit, newTravelledEdges);
+            Path solution = quickest(tryEdge.getDestination(current), to, newTimeLimit, newTravelledPath, timeFromStart);
             if (solution != null) {
                 quickestPath = solution;
                 quickestEdge = tryEdge;
@@ -73,7 +69,10 @@ public class PathFinder {
         if (quickestPaths.containsKey(key)) {
             return quickestPaths.get(key);
         }
-        Path quickest = quickest(from, to, timeLimit, new LinkedList<>());
+        long start = System.currentTimeMillis();
+        Map<String, Long> cacheMap = new HashMap<>();
+        Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap);
+        //System.out.println("path finding took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
         quickestPaths.put(key, quickest);
         String reverseKey = to.getParentStopId() + "|" + from.getParentStopId();
         quickestPaths.put(reverseKey, quickest.getReverse());
