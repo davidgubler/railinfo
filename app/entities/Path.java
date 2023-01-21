@@ -12,6 +12,14 @@ public class Path {
         edges = new LinkedList<>();
     }
 
+    public Path(Edge edge, Path path) {
+        List<Edge> edges = new LinkedList<>();
+        edges.add(edge);
+        edges.addAll(path.edges);
+        this.edges = Collections.unmodifiableList(edges);
+        duration = edge.getTypicalTime() + path.duration;
+    }
+
     public Path(Path path, Edge edge) {
         List<Edge> edges = new LinkedList<>();
         edges.addAll(path.edges);
