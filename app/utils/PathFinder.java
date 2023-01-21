@@ -31,35 +31,28 @@ public class PathFinder {
         timeFromStart.put(currentId, travelledPath.getDuration());
 
         if (current.getParentStopId().equals(to.getParentStopId()) && timeLimit >= 0) {
-            return new Path();
+            return travelledPath;
         }
         if (timeLimit <= 0) {
             return null;
         }
 
-        Edge quickestEdge = null;
-        Path quickestPath = null;
-
         List<? extends Edge> edges = edgesModel.getEdgesFrom(current);
         EdgeDirectionComparator comp = new EdgeDirectionComparator(current, to);
         edges.sort(comp);
 
+        Path quickestPath = null;
         for (Edge tryEdge : edges) {
             Path newTravelledPath = new Path(travelledPath, tryEdge);
             long newTimeLimit = timeLimit - tryEdge.getTypicalTime();
             Path solution = quickest(tryEdge.getDestination(current), to, newTimeLimit, newTravelledPath, timeFromStart);
             if (solution != null) {
                 quickestPath = solution;
-                quickestEdge = tryEdge;
                 timeLimit = quickestPath.getDuration() - 1; // we're only interested in quicker paths
             }
         }
 
-        if (quickestPath == null) {
-            return null;
-        }
-
-        return new Path(quickestEdge, quickestPath);
+        return quickestPath;
     }
 
     private ConcurrentHashMap<String, Path> quickestPaths = new ConcurrentHashMap<>();
