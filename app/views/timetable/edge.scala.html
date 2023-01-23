@@ -1,0 +1,43 @@
+@(	implicit request: Http.Request,
+    edge: entities.Edge,
+    passes: List[entities.realized.RealizedPass],
+    user: entities.User,
+)
+
+@template(request, "Trains between " + edge.getStop1 + " and " + edge.getStop2, user) {
+    <style>
+        td { padding-right: 20px; }
+    </style>
+} {
+    <table>
+        <thead>
+            <tr>
+                <th colspan="2">Train</th>
+                <th>@edge.getStop1</th>
+                <th></th>
+                <th>@edge.getStop2</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for(pass <- passes) {
+            <tr>
+                <td>
+                    @pass.getTrip.getRoute.getShortName
+                </td>
+                <td>
+                    @pass.getTrip.getBegins - @pass.getTrip.getEnds
+                </td>
+                <td>
+                    @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getDeparture)
+                </td>
+                <td>
+                    @if(pass.isForward(edge.getStop1)){ &rarr; }else{ &larr; }
+                </td>
+                <td>
+                    @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop2).getDeparture)
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

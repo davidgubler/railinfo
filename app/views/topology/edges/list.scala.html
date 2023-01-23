@@ -20,7 +20,7 @@
                 <td>@edge.getStop1</td>
                 <td>@edge.getStop2</td>
                 <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
-                <td><a href="@routes.TopologyController.edgeEdit(edge.getId())">edit</a> <a href="@routes.TopologyController.edgeDelete(edge.getId())">delete</a></td>
+                <td><a href="@routes.TopologyController.edgeEdit(edge.getId())">edit</a> <a href="@routes.TopologyController.edgeDelete(edge.getId())">delete</a> <a href="@routes.TimetableController.edge(edge.getId)">timetable</a></td>
             </tr>
         }
         </tbody>

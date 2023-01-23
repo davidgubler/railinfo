@@ -41,6 +41,10 @@ public class StringUtils {
         return hourMinuteFormatter.format(time) + (period.isZero() ? "" : "+" + period.getDays());
     }
 
+    public static String formatTimeSeconds(LocalDateTime dateTime) {
+        return hourMinuteSecondFormatter.format(dateTime);
+    }
+
     public static String formatWaypointTime(LocalDate startDate, LocalDateTime time) {
         if (time == null) {
             return "";

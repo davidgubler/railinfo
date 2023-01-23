@@ -2,6 +2,7 @@ package utils;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import controllers.routes;
 import entities.*;
 import entities.mongodb.MongoDbEdge;
 import entities.realized.RealizedWaypoint;
@@ -267,9 +268,18 @@ public class PathFinder {
     }
 
 
+    private volatile Map<Edge, Set<String>> routeIdsByEdge = null;
+
+    public Set<String> getRouteIdsByEdge(Edge edge) {
+        if (routeIdsByEdge == null) {
+            routeIdsByEdge = new HashMap<>();
+            recalculatePaths();
+        }
+        return routeIdsByEdge.get(edge);
+    }
 
     public void recalculatePaths() {
-        System.out.print("fetching rail routes... ");
+        Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
         List<Route> railRoutes = routesModel.getByType(100, 199);
 
         Map<Stop, List<Edge>> edgesLookupTable = new HashMap<>();
@@ -295,11 +305,16 @@ public class PathFinder {
                     Stop from = stopTimes.get(i-1).getStop();
                     Stop to = stopTimes.get(i).getStop();
                     long time = googleTransportTimeDiff(stopTimes.get(i-1).getDeparture(), stopTimes.get(i).getArrival());
-                    quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop));
+                    Path path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop));
+                    for (Edge edge : path.getEdges()) {
+                        if (!routeIdsByEdge.containsKey(edge)) {
+                            routeIdsByEdge.put(edge, new HashSet<>());
+                        }
+                        routeIdsByEdge.get(edge).add(route.getRouteId());
+                    }
                 }
             }
-            System.out.println("quickestPaths: " + quickestPaths.size());
         }
-        System.out.println("paths recalculated");
+        this.routeIdsByEdge = routeIdsByEdge;
     }
 }

@@ -66,18 +66,23 @@ public class RealizedTrip {
         return new LinkedList<>(this.realizedStopTimes);
     }
 
-    public List<RealizedLocation> getRealizedStopTimesWithIntermediate() {
-        List<RealizedStopTime> realizedStopTimes = getRealizedStopTimes();
+    private List<RealizedLocation> realizedStopTimesWithIntermediate = null;
 
-        List<RealizedLocation> complete = new LinkedList<>();
-        complete.add(realizedStopTimes.get(0));
-        for (int i = 1; i < realizedStopTimes.size(); i++) {
-            Stop from = realizedStopTimes.get(i-1).getStop();
-            Stop to = realizedStopTimes.get(i).getStop();
-            complete.addAll(pathFinder.getIntermediate(from, to, realizedStopTimes.get(i-1).getDeparture(), realizedStopTimes.get(i).getArrival()));
-            complete.add(realizedStopTimes.get(i));
+    public List<RealizedLocation> getRealizedStopTimesWithIntermediate() {
+        if (realizedStopTimesWithIntermediate == null) {
+            List<RealizedStopTime> realizedStopTimes = getRealizedStopTimes();
+
+            List<RealizedLocation> complete = new LinkedList<>();
+            complete.add(realizedStopTimes.get(0));
+            for (int i = 1; i < realizedStopTimes.size(); i++) {
+                Stop from = realizedStopTimes.get(i - 1).getStop();
+                Stop to = realizedStopTimes.get(i).getStop();
+                complete.addAll(pathFinder.getIntermediate(from, to, realizedStopTimes.get(i - 1).getDeparture(), realizedStopTimes.get(i).getArrival()));
+                complete.add(realizedStopTimes.get(i));
+            }
+            realizedStopTimesWithIntermediate = complete;
         }
-        return complete;
+        return realizedStopTimesWithIntermediate;
     }
 
     public String getTripHeadsign() {
@@ -94,5 +99,13 @@ public class RealizedTrip {
 
     public Route getRoute() {
         return trip.getRoute();
+    }
+
+    public Stop getBegins() {
+        return realizedStopTimesWithIntermediate.get(0).getStop();
+    }
+
+    public Stop getEnds() {
+        return realizedStopTimesWithIntermediate.get(realizedStopTimesWithIntermediate.size() - 1).getStop();
     }
 }

@@ -2,24 +2,18 @@ package controllers;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import entities.Stop;
-import entities.StopTime;
-import entities.Trip;
-import entities.User;
-import entities.realized.RealizedDeparture;
-import entities.realized.RealizedTrip;
+import entities.*;
+import entities.realized.*;
 import models.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.NotFoundException;
+import utils.PathFinder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TimetableController extends Controller {
@@ -40,7 +34,16 @@ public class TimetableController extends Controller {
     private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
 
     @Inject
+    private EdgesModel edgesModel;
+
+    @Inject
     private UsersModel usersModel;
+
+    @Inject
+    private PathFinder pathFinder;
+
+    @Inject
+    private RoutesModel routesModel;
 
     @Inject
     private Injector injector;
@@ -111,5 +114,61 @@ public class TimetableController extends Controller {
             throw new NotFoundException("Realized Trip");
         }
         return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user));
+    }
+
+    public Result edge(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
+        Edge edge = edgesModel.get(edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+
+        Set<String> routeIds = pathFinder.getRouteIdsByEdge(edge);
+        Set<Route> routes = new HashSet<>();
+        for (String routeId : routeIds) {
+            routes.add(routesModel.getByRouteId(routeId));
+        }
+
+        Set<Trip> trips = new HashSet<>();
+        for (Route route : routes) {
+            trips.addAll(tripsModel.getByRoute(route));
+        }
+
+        List<RealizedTrip> realizedTrips = new LinkedList<>();
+        LocalDateTime dateTime = LocalDateTime.now();
+        for (int i = -1; i <= 1; i++) {
+            LocalDate d = dateTime.toLocalDate().plusDays(i);
+            realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
+                RealizedTrip realizedTrip = new RealizedTrip(t, d);
+                injector.injectMembers(realizedTrip);
+                return realizedTrip;
+            }).collect(Collectors.toSet()));
+        }
+        System.out.println("realized trips: " + realizedTrips.size());
+
+        List<RealizedPass> realizedPasses = new LinkedList<>();
+        Set<String> edgeStops = Set.of(edge.getStop1().getParentStopId(), edge.getStop2().getParentStopId());
+        System.out.println("edge stops: " + edgeStops);
+
+        for (RealizedTrip realizedTrip : realizedTrips) {
+            RealizedLocation previousLocation = null;
+            List<RealizedLocation> realizedLocations = realizedTrip.getRealizedStopTimesWithIntermediate();
+            for (RealizedLocation realizedLocation : realizedLocations) {
+                if (previousLocation != null) {
+                    if (previousLocation.getDeparture().isAfter(dateTime)) {
+                        if (edgeStops.contains(previousLocation.getStop().getParentStopId()) && edgeStops.contains(realizedLocation.getStop().getParentStopId())) {
+                            realizedPasses.add(new RealizedPass(realizedTrip, previousLocation, realizedLocation));
+                        }
+                    }
+                }
+                previousLocation = realizedLocation;
+            }
+        }
+
+        System.out.println("realized passes: " + realizedPasses.size());
+        Collections.sort(realizedPasses);
+
+
+        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, user));
     }
 }
