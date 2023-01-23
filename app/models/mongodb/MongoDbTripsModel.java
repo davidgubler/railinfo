@@ -72,4 +72,9 @@ public class MongoDbTripsModel implements TripsModel {
         injector.injectMembers(realizedTrip);
         return realizedTrip;
     }
+
+    @Override
+    public List<? extends Trip> getAll() {
+        return query().asList();
+    }
 }

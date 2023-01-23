@@ -21,4 +21,6 @@ public interface TripsModel {
     List<Trip> getByRoute(Route route);
 
     RealizedTrip getRealizedTrip(String id, LocalDate date);
+
+    List<? extends Trip> getAll();
 }

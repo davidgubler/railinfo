@@ -24,7 +24,8 @@ POST    /admin/import/gtfs                      controllers.DataImportController
 
 GET     /topology/map                           controllers.TopologyController.map(request: Request)
 GET     /topology/recalculate                   controllers.TopologyController.recalculate(request: Request)
-POST    /topology/recalculatePost               controllers.TopologyController.recalculatePost(request: Request)
+POST    /topology/recalculateEdgesPost          controllers.TopologyController.recalculateEdgesPost(request: Request)
+POST    /topology/recalculatePathsPost          controllers.TopologyController.recalculatePathsPost(request: Request)
 GET     /topology/edges                         controllers.TopologyController.edgesList(request: Request)
 GET     /topology/edges/_create                 controllers.TopologyController.edgeCreate(request: Request)
 POST    /topology/edges/_create                 controllers.TopologyController.edgeCreatePost(request: Request)

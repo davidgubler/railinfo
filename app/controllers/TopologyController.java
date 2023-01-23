@@ -115,9 +115,15 @@ public class TopologyController extends Controller {
         return ok(views.html.topology.recalculate.render(request, user));
     }
 
-    public Result recalculatePost(Http.Request request) {
+    public Result recalculateEdgesPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        topology.recalculate(user);
+        topology.recalculateEdges(user);
+        return redirect(controllers.routes.TopologyController.recalculate());
+    }
+
+    public Result recalculatePathsPost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        topology.recalculatePaths(user);
         return redirect(controllers.routes.TopologyController.recalculate());
     }
 

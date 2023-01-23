@@ -5,7 +5,11 @@
 @template(request, "Recalculate", user) {
 
 } {
-    @form(request, routes.TopologyController.recalculatePost) {
+    @form(request, routes.TopologyController.recalculateEdgesPost) {
         @formButtons(submitLabel = "Recalculate Topology")
+    }
+
+    @form(request, routes.TopologyController.recalculatePathsPost) {
+        @formButtons(submitLabel = "Recalculate Paths")
     }
 }
