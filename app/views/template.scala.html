@@ -32,22 +32,12 @@
         <div class="row">
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse pt-3">
                 <ul class="nav flex-column">
-                    @if(user != null) {
                     <li class="nav-item has-submenu">
-                        <a href="#" class="nav-link dropdown-toggle" @if(!request.path.startsWith("/admin")){data-bs-toggle="collapse"} data-bs-target="ul#admin">
-                        Admin
-                        </a>
-                        <ul id="admin" class='submenu @if(!request.path.startsWith("/admin")){collapse}'>
-                            <li><a href="@routes.AdminController.usersList()" class="nav-link @if(request.path.startsWith("/admin/users")){active}">Users</a></li>
-                            <li><a href="@routes.DataImportController.index()" class="nav-link @if(request.path.startsWith("/admin/import")){active}">Data Import</a></li>
-                        </ul>
+                        <a href="@routes.TimetableController.index()" class="nav-link @if(request.path.startsWith("/timetable")){active}">Timetable</a>
                     </li>
-                    }
                     <li class="nav-item has-submenu">
-                        <a href="#" class="nav-link dropdown-toggle" @if(!request.path.startsWith("/topology")){data-bs-toggle="collapse"} data-bs-target="ul#topology">
-                            Topology
-                        </a>
-                        <ul id="topology" class="submenu @if(!request.path.startsWith("/topology")){collapse}">
+                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/topology")){active}" data-bs-toggle="collapse" data-bs-target="ul#topology">Topology</a>
+                        <ul id="topology" class="submenu collapse @if(request.path.startsWith("/topology")){show}">
                             <li><a href="@routes.TopologyController.map()" class="nav-link @if(request.path.startsWith("/topology/map")){active}">Map</a></li>
                             <li><a href="@routes.TopologyController.edgesList()" class="nav-link @if(request.path.startsWith("/topology/edges")){active}">Edges</a></li>
                             @if(user != null) {
@@ -55,15 +45,22 @@
                             }
                         </ul>
                     </li>
+                    @if(user != null) {
+                    <li class="nav-item has-submenu">
+                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/admin")){active}" data-bs-toggle="collapse" data-bs-target="ul#admin">
+                        Admin
+                        </a>
+                        <ul id="admin" class='submenu collapse @if(request.path.startsWith("/admin")){show}'>
+                            <li><a href="@routes.AdminController.usersList()" class="nav-link @if(request.path.startsWith("/admin/users")){active}">Users</a></li>
+                            <li><a href="@routes.DataImportController.index()" class="nav-link @if(request.path.startsWith("/admin/import")){active}">Data Import</a></li>
+                        </ul>
+                    </li>
+                    }
                     <li class="nav-item">
                         @if(user == null) {
-                        <a class="nav-link @if(request.path.startsWith("/login")){active}"" href="@routes.LoginController.login()">
-                            Log in
-                        </a>
+                        <a class="nav-link @if(request.path.startsWith("/login")){active}"" href="@routes.LoginController.login()">Log in</a>
                         } else {
-                        <a class="nav-link" href="@routes.LoginController.logout()">
-                            Log out
-                        </a>
+                        <a href="@routes.LoginController.logout()" class="nav-link">Log out</a>
                         }
                     </li>
                 </ul>

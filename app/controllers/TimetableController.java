@@ -48,6 +48,10 @@ public class TimetableController extends Controller {
     @Inject
     private Injector injector;
 
+    public Result index(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        return ok(views.html.timetable.index.render(request, user));
+    }
 
     public Result departures(Http.Request request, String stopStr)  {
         User user = usersModel.getFromRequest(request);
