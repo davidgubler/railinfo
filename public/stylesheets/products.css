@@ -5,9 +5,6 @@ span.product {
     width: 80px;
     line-height: 22px;
     font-weight: bold;
-}
-
-span.product.whitebg.s {
     border: 1px solid black;
 }
 
@@ -15,4 +12,5 @@ span.product.interregio, span.product.ir, span.product.intercity, span.product.i
     background-color: red;
     color: #ffffff;
     font-style:italic;
+    border: 1px solid red;
 }

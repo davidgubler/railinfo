@@ -67,18 +67,22 @@ public class TimetableController extends Controller {
             if (stopsModel.getByName(stop).isEmpty()) {
                 errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
             } else {
-                return redirect(routes.TimetableController.departures(stop));
+                return redirect(routes.TimetableController.stop(stop));
             }
         }
 
         return ok(views.html.timetable.index.render(request, stop, errors, user));
     }
 
-    public Result departures(Http.Request request, String stopStr)  {
+    public Result stop(Http.Request request, String stopName)  {
         User user = usersModel.getFromRequest(request);
+        Set<Stop> stops = stopsModel.getByName(stopName);
+        if (stops.isEmpty()) {
+            throw new NotFoundException("Stop");
+        }
+
         LocalDateTime dateTime = LocalDateTime.now();
 
-        Set<Stop> stops = stopsModel.getByName(stopStr);
         List<StopTime> stopTimes = stopTimesModel.getByStops(stops);
         List<Trip> trips = new LinkedList<>();
         for (StopTime stopTime : stopTimes) {
@@ -120,16 +124,8 @@ public class TimetableController extends Controller {
         }
         Collections.sort(departures);
 
-        return ok(views.html.timetable.stop.render(request, departures, user));
+        return ok(views.html.timetable.stop.render(request, stopName, departures, user));
     }
-
-    public Result movements(Http.Request request, String stopStr)  {
-        User user = usersModel.getFromRequest(request);
-        LocalDateTime dateTime = LocalDateTime.now();
-        Set<Stop> stops = stopsModel.getByName(stopStr);
-        return ok();
-    }
-
 
     public Result realizedTrip(Http.Request request, String tripId, String startDateStr)  {
         User user = usersModel.getFromRequest(request);

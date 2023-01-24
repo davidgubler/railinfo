@@ -88,6 +88,7 @@ public class MongoDbStopsModel implements StopsModel {
             for(Stop stop : stopsList) {
                 Stop alreadyInMap = stops.get(stop.getParentStopId());
                 if (alreadyInMap == null || alreadyInMap.getStopId().length() > stop.getStopId().length() ) {
+                    injector.injectMembers(stop);
                     stops.put(stop.getParentStopId(), stop);
                 }
             }

@@ -1,0 +1,38 @@
+.departureBoard {
+    background-color: #1a258f;
+    color: #ffffff;
+    font-weight: bold;
+    margin: 0px;
+}
+
+.departureBoard span.product {
+    color: #1a258f;
+}
+
+.departureBoard span.stop {
+    margin-right: 8px;
+}
+
+.departureBoard table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.departureBoard th {
+    text-align: left;
+    font-size: 16px;
+}
+
+.departureBoard td {
+    font-size: 20px;
+    border-top: 1px solid #ffffff;
+    padding: 2px;
+}
+
+span.product {
+    border: 1px solid #ffffff;
+}
+
+span.product.interregio, span.product.ir, span.product.intercity, span.product.ic, span.product.regioexpress, span.product.re, span.product.ec, span.product.eurocity, span.product.intercityexpress, span.product.ice, span.product.railjet {
+    color: #ffffff;
+}
