@@ -13,7 +13,6 @@ import utils.Config;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MongoDbStopsModel implements StopsModel {

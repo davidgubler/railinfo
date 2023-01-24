@@ -13,6 +13,6 @@
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputText("Name", "name", name, errors)
         @formInputPassword("Password", "password", password, errors)
-        @formButtons(routes.AdminController.usersList(), "Save")
+        @formButtons("Save", routes.AdminController.usersList())
     }
 }

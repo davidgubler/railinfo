@@ -7,6 +7,7 @@ POST    /login                                  controllers.LoginController.logi
 GET     /logout                                 controllers.LoginController.logout(request: Request)
 
 GET     /timetable                              controllers.TimetableController.index(request: Request)
+POST    /timetable                              controllers.TimetableController.indexPost(request: Request)
 GET     /timetable/departures/:stop             controllers.TimetableController.departures(request: Request, stop: String)
 GET     /timetable/movements/:stop              controllers.TimetableController.movements(request: Request, stop: String)
 GET     /timetable/realizedTrip/:tripId/:date   controllers.TimetableController.realizedTrip(request: Request, tripId: String, date: String)

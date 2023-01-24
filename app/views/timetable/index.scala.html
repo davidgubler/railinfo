@@ -1,9 +1,14 @@
 @(  implicit request: Http.Request,
+    stop: String,
+    errors: Map[String, String],
     user: entities.User,
 )
 
 @template(request, "Timetable", user) {
 
 } {
-
+    @form(request, routes.TimetableController.indexPost()) {
+        @formInputText("Stop", "stop", stop, errors)
+        @formButtons("Show Stop")
+    }
 }

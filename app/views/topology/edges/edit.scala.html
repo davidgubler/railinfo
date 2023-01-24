@@ -8,6 +8,6 @@
 } {
     @form(request, routes.TopologyController.edgeEditPost(edge.getId)) {
         @formInputText("Time", "typicalTime", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
-        @formButtons(routes.TopologyController.edgesList(), "Save")
+        @formButtons("Save", routes.TopologyController.edgesList())
     }
 }

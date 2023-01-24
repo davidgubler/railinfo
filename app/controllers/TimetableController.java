@@ -8,6 +8,8 @@ import models.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.ErrorMessages;
+import utils.InputUtils;
 import utils.NotFoundException;
 import utils.PathFinder;
 
@@ -50,7 +52,26 @@ public class TimetableController extends Controller {
 
     public Result index(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.timetable.index.render(request, user));
+        return ok(views.html.timetable.index.render(request, null, InputUtils.NOERROR, user));
+    }
+
+    public Result indexPost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String submit = InputUtils.trimToNull(data.get("submit"));
+        String stop = InputUtils.trimToNull(data.get("stop"));
+
+        Map<String, String> errors = new HashMap<>();
+        if ("Show Stop".equals(submit)) {
+            if (stopsModel.getByName(stop).isEmpty()) {
+                errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
+            } else {
+                return redirect(routes.TimetableController.departures(stop));
+            }
+        }
+
+        return ok(views.html.timetable.index.render(request, stop, errors, user));
     }
 
     public Result departures(Http.Request request, String stopStr)  {
