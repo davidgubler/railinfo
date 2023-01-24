@@ -49,3 +49,13 @@ h2 {
 h3 {
     font-size: 20px;
 }
+
+.tt-menu {
+    margin-top: 4px;
+    padding: 0px 12px 2px 12px;
+    background-color: #eff5fe;
+}
+
+.tt-suggestion {
+    cursor: pointer;
+}

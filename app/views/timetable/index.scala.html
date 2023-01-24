@@ -5,7 +5,7 @@
 )
 
 @template(request, "Timetable", user) {
-
+    <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
     @form(request, routes.TimetableController.indexPost()) {
         @formInputText("Stop", "stop", stop, errors)

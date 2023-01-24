@@ -37,4 +37,5 @@ POST    /topology/edges/:edge/edit              controllers.TopologyController.e
 GET     /topology/edges/:edge/delete            controllers.TopologyController.edgeDelete(request: Request, edge: String)
 POST    /topology/edges/:edge/delete            controllers.TopologyController.edgeDeletePost(request: Request, edge: String)
 
+GET     /data/stops.json                        controllers.DataController.stops(request: Request)
 

@@ -9,7 +9,6 @@ import entities.Route;
 import entities.StopTime;
 import entities.Trip;
 import models.*;
-import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.RequireCSRFCheck;
 import play.mvc.Controller;
 import play.mvc.Http;

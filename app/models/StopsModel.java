@@ -18,4 +18,6 @@ public interface StopsModel {
     Set<Stop> getByName(String name);
 
     void updateImportance(Set<Stop> stops, Integer importance);
+
+    List<Stop> getAll();
 }

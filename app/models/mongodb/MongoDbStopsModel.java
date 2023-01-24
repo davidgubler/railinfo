@@ -96,4 +96,9 @@ public class MongoDbStopsModel implements StopsModel {
         }
         return this.stops;
     }
+
+    @Override
+    public List<Stop> getAll() {
+        return getStops().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+    }
 }
