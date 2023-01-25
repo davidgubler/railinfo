@@ -50,6 +50,10 @@ h3 {
     font-size: 20px;
 }
 
+span.twitter-typeahead {
+    width: 100%;
+}
+
 .tt-menu {
     margin-top: 4px;
     padding: 0px 12px 2px 12px;

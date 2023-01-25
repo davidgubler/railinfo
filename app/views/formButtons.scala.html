@@ -2,9 +2,10 @@
     cancel: Call = null,
 )
 
-<div class="mt-4">
+
+<div class="col-12">
     @if(cancel != null){
-    <a href="@cancel" class="btn btn-link">Cancel</a>
+        <a href="@cancel" class="btn btn-link ps-0">Cancel</a>
     }
     <input class="btn btn-primary" type="submit" name="submit" value="@submitLabel">
 </div>

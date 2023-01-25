@@ -8,7 +8,13 @@
     <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
     @form(request, routes.TimetableController.indexPost()) {
-        @formInputText("Stop", "stop", stop, errors)
-        @formButtons("Show Stop")
+        <div class="row">
+            <div class="col-xl-4 col-lg-6 col-md-10">
+                @formInputText("Stop", "stop", stop, errors, xlWidth=10, lgWidth=8, mdWidth=6)
+            </div>
+            <div class="col-xl-8 col-lg-6 col-md-2">
+                @formButtons("Show Stop")
+            </div>
+        </div>
     }
 }
