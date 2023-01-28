@@ -3,7 +3,6 @@ package controllers;
 import com.google.inject.Inject;
 import entities.User;
 import models.*;
-import play.filters.csrf.AddCSRFToken;
 import play.mvc.*;
 
 import java.io.*;

@@ -100,4 +100,9 @@ public class MongoDbUser implements User {
     public boolean checkPassword(String password) {
         return SimplePBKDF2.hash(passwordSalt, password).equals(passwordHash);
     }
+
+    @Override
+    public String toString() {
+        return "user:" + email;
+    }
 }

@@ -1,6 +1,7 @@
 package controllers;
 
 import biz.Login;
+import biz.Users;
 import com.google.inject.Inject;
 import entities.Session;
 import entities.User;
@@ -17,6 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 public class LoginController extends Controller {
+
+    @Inject
+    private Users users;
+
     @Inject
     private UsersModel usersModel;
 
@@ -24,6 +29,7 @@ public class LoginController extends Controller {
     private Login login;
 
     public Result login(Http.Request request) {
+        users.ensureAdmin(request);
         return ok(views.html.login.login.render(request, null, null, InputUtils.NOERROR));
     }
 

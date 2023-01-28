@@ -12,7 +12,6 @@ GET     /timetable/stop/:stopName               controllers.TimetableController.
 GET     /timetable/realizedTrip/:tripId/:date   controllers.TimetableController.realizedTrip(request: Request, tripId: String, date: String)
 GET     /timetable/edge/:edgeId                 controllers.TimetableController.edge(request: Request, edgeId: String)
 
-GET     /admin                                  controllers.AdminController.admin(request: Request)
 GET     /admin/users                            controllers.AdminController.usersList(request: Request)
 GET     /admin/users/_create                    controllers.AdminController.usersCreate(request: Request)
 POST    /admin/users/_create                    controllers.AdminController.usersCreatePost(request: Request)
@@ -20,7 +19,6 @@ GET     /admin/users/:uid/edit                  controllers.AdminController.user
 POST    /admin/users/:uid/edit                  controllers.AdminController.usersEditPost(request: Request, uid: String)
 GET     /admin/users/:uid/delete                controllers.AdminController.usersDelete(request: Request, uid: String)
 POST    /admin/users/:uid/delete                controllers.AdminController.usersDeletePost(request: Request, uid: String)
-POST    /admin/recalculateEdges                 controllers.AdminController.recalculateEdgesPost(request: Request)
 GET     /admin/import                           controllers.DataImportController.index(request: Request)
 POST    /admin/import/gtfs                      controllers.DataImportController.importGtfsPost(request: Request)
 
