@@ -6,7 +6,7 @@
 @template(request, "Topology Map", user) {
 } {
     <div id='mapCanvas' style='height: calc(100vh - 140px);'></div>
-    <script src='https://maps.googleapis.com/maps/api/js?key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap' async></script>
+    <script src='https://maps.googleapis.com/maps/api/js?v=beta&key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap&libraries=marker' async></script>
     <script>
         var infowindow;
         var map;
@@ -14,32 +14,75 @@
         var markerCount = 0;
         var closeTimeout;
 
+        const clusterOptions = {
+            gridSize: 30,
+            maxZoom: 10,
+        };
+
+        const myRenderer = {
+            render: function() {
+                return null;
+            },
+        };
+
+
+
         var addMarker = function( lat, lng, pictureId ) {
             var marker = new google.maps.Marker({'position': new google.maps.LatLng(lat, lng)});
             markers[markerCount] = marker;
             markerCount++;
         };
 
-        var addEdge = function(map, lat1, lng1, lat2, lng2) {
-            new google.maps.Polyline({
+        var addEdge = function(map, lat1, lng1, lat2, lng2, label) {
+            var polyLine = new google.maps.Polyline({
                 path: [{lat: lat1, lng: lng1}, {lat: lat2, lng: lng2}],
                 strokeColor: "#ff0000",
                 strokeOpacity: 1.0,
                 strokeWeight: 2,
             }).setMap(map);
+
+
+            const labelHtml = document.createElement('div');
+            labelHtml.style.color = "red";
+            labelHtml.style.backgroundColor = "#ffffff";
+            labelHtml.style.fontSize = "16px";
+            labelHtml.style.border = "2px solid red";
+            labelHtml.style.padding = "2px";
+            labelHtml.style.marginBottom = "-14px";
+            labelHtml.textContent = label;
+
+            markers.push(new google.maps.marker.AdvancedMarkerView({
+                position: new google.maps.LatLng((lat1+lat2)/2, (lng1+lng2)/2),
+                content: labelHtml,
+            }));
         }
 
         var initMap = function() {
             var mapOptions = {
                 zoom: 8,
                 gestureHandling: 'greedy',
-                center: new google.maps.LatLng(47,8)
+                center: new google.maps.LatLng(47,8),
+                mapId: 'mymapid',
             }
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng);
+                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)");
             }
+
+            google.maps.event.addListener(map, "tilesloaded", () => {
+                for (var i = 0; i < markers.length; i++) {
+                    if(map.getZoom() > 11 && map.getBounds().contains(markers[i].position)) {
+                        //markers[i].setMap(map);
+                        markers[i].map = map;
+                    } else {
+                        //markers[i].setMap(null);
+                        markers[i].map = null;
+                    }
+                }
+            });
+
         };
+
     </script>
 
 }
