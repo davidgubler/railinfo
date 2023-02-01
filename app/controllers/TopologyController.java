@@ -63,11 +63,11 @@ public class TopologyController extends Controller {
 
     public Result edgeView(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        if (user == null) {
-            throw new NotAllowedException();
-        }
         Edge edge = edgesModel.get(edgeId);
-        return ok();
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+        return ok(views.html.topology.edges.view.render(request, edge, user));
     }
 
     public Result edgeEdit(Http.Request request, String edgeId) {

@@ -89,6 +89,10 @@ public class RealizedTrip {
         return trip.getTripHeadsign();
     }
 
+    public String getTripShortName() {
+        return trip.getTripShortName();
+    }
+
     public Trip getTrip() {
         return trip;
     }

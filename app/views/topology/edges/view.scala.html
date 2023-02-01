@@ -1,0 +1,29 @@
+@(  implicit request: Http.Request,
+    edge: entities.Edge,
+    user: entities.User,
+)
+
+@template(request, edge.getStop1 + " - " + edge.getStop2, user) {
+} {
+    <div class="col-12">
+        <table>
+            <tbody>
+                <tr>
+                    <td class="pe-4">
+                        Typical time
+                    </td>
+                    <td>
+                        @utils.StringUtils.formatSeconds(edge.getTypicalTime)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-12 mt-4">
+        @if(user != null) {
+        <a href="@routes.TopologyController.edgeEdit(edge.getId)" class="btn btn-warning">Edit</a>
+        <a href="@routes.TopologyController.edgeDelete(edge.getId)" class="btn btn-danger">Delete</a>
+        }
+        <a href="@routes.TimetableController.edge(edge.getId)" class="btn btn-primary">View all trains</a>
+    </div>
+}

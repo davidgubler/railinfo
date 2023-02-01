@@ -3,6 +3,7 @@ package entities.realized;
 import entities.Stop;
 import entities.StopTime;
 import models.StopsModel;
+import utils.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,8 @@ public class RealizedStopTime implements RealizedLocation {
     private LocalDateTime arrival;
 
     private LocalDateTime departure;
+
+    private LocalDate startDate;
 
     private String stopId;
 
@@ -32,6 +35,7 @@ public class RealizedStopTime implements RealizedLocation {
     }
 
     public RealizedStopTime(StopTime stopTime, LocalDate startDate, StopsModel stopsModel) {
+        this.startDate = startDate;
         arrival = realizeGoogleTransportTime(stopTime.getArrival(), startDate);
         departure = realizeGoogleTransportTime(stopTime.getDeparture(), startDate);
         stopId = stopTime.getStopId();
@@ -65,5 +69,10 @@ public class RealizedStopTime implements RealizedLocation {
     @Override
     public boolean stops() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return getStop() + " " + StringUtils.formatStopTime(startDate, arrival) + " -> " + StringUtils.formatStopTime(startDate, departure);
     }
 }
