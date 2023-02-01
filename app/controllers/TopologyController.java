@@ -61,6 +61,15 @@ public class TopologyController extends Controller {
         return ok();
     }
 
+    public Result edgeView(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+        Edge edge = edgesModel.get(edgeId);
+        return ok();
+    }
+
     public Result edgeEdit(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         if (user == null) {

@@ -29,6 +29,7 @@ POST    /topology/recalculatePathsPost          controllers.TopologyController.r
 GET     /topology/edges                         controllers.TopologyController.edgesList(request: Request)
 GET     /topology/edges/_create                 controllers.TopologyController.edgeCreate(request: Request)
 POST    /topology/edges/_create                 controllers.TopologyController.edgeCreatePost(request: Request)
+GET     /topology/edges/:edge                   controllers.TopologyController.edgeView(request: Request, edge: String)
 GET     /topology/edges/:edge/edit              controllers.TopologyController.edgeEdit(request: Request, edge: String)
 POST    /topology/edges/:edge/edit              controllers.TopologyController.edgeEditPost(request: Request, edge: String)
 GET     /topology/edges/:edge/delete            controllers.TopologyController.edgeDelete(request: Request, edge: String)

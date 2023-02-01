@@ -25,22 +25,19 @@
             },
         };
 
-
-
         var addMarker = function( lat, lng, pictureId ) {
             var marker = new google.maps.Marker({'position': new google.maps.LatLng(lat, lng)});
             markers[markerCount] = marker;
             markerCount++;
         };
 
-        var addEdge = function(map, lat1, lng1, lat2, lng2, label) {
+        var addEdge = function(map, lat1, lng1, lat2, lng2, label, url) {
             var polyLine = new google.maps.Polyline({
                 path: [{lat: lat1, lng: lng1}, {lat: lat2, lng: lng2}],
                 strokeColor: "#ff0000",
                 strokeOpacity: 1.0,
                 strokeWeight: 2,
             }).setMap(map);
-
 
             const labelHtml = document.createElement('div');
             labelHtml.style.color = "red";
@@ -49,33 +46,47 @@
             labelHtml.style.border = "2px solid red";
             labelHtml.style.padding = "2px";
             labelHtml.style.marginBottom = "-14px";
+            labelHtml.style.cursor = "pointer";
             labelHtml.textContent = label;
 
-            markers.push(new google.maps.marker.AdvancedMarkerView({
+            var marker = new google.maps.marker.AdvancedMarkerView({
                 position: new google.maps.LatLng((lat1+lat2)/2, (lng1+lng2)/2),
                 content: labelHtml,
-            }));
+            });
+            marker.addListener("click", function() { window.location.href=url; });
+            markers.push(marker);
         }
 
         var initMap = function() {
             var mapOptions = {
                 zoom: 8,
                 gestureHandling: 'greedy',
-                center: new google.maps.LatLng(47,8),
+                center: new google.maps.LatLng(47, 8),
                 mapId: 'mymapid',
             }
+            var zoom = parseInt(window.localStorage.getItem('topomap-zoom'));
+            if (zoom != null) {
+                mapOptions.zoom = zoom;
+            }
+            var lat = parseFloat(window.localStorage.getItem('topomap-lat'));
+            var lng = parseFloat(window.localStorage.getItem('topomap-lng'));
+            if (lat != null && lng != null) {
+                mapOptions.center = new google.maps.LatLng(lat, lng);
+            }
+
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)");
+                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgeView(edge.getId)");
             }
 
             google.maps.event.addListener(map, "tilesloaded", () => {
+                window.localStorage.setItem('topomap-zoom', map.getZoom());
+                window.localStorage.setItem('topomap-lat', map.getCenter().lat());
+                window.localStorage.setItem('topomap-lng', map.getCenter().lng());
                 for (var i = 0; i < markers.length; i++) {
                     if(map.getZoom() > 11 && map.getBounds().contains(markers[i].position)) {
-                        //markers[i].setMap(map);
                         markers[i].map = map;
                     } else {
-                        //markers[i].setMap(null);
                         markers[i].map = null;
                     }
                 }
