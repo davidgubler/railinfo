@@ -63,7 +63,7 @@ public class RealizedStopTime implements RealizedLocation {
     }
 
     public Stop getStop() {
-        return stopsModel.getById(stopId);
+        return stopsModel.getByStopId(stopId);
     }
 
     @Override

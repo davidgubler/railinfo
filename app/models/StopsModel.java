@@ -13,7 +13,11 @@ public interface StopsModel {
 
     List<Stop> create(List<Map<String, String>> dataBatch);
 
-    Stop getById(String stopId);
+    Stop create(String name, Double lat, Double lng);
+
+    Stop get(String id);
+
+    Stop getByStopId(String stopId);
 
     Set<Stop> getByName(String name);
 

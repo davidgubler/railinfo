@@ -1,7 +1,5 @@
 package utils;
 
-import play.mvc.Http;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,5 +52,34 @@ public class InputUtils {
             return null;
         }
         return input;
+    }
+
+    public static Double toDouble(String[] input) {
+        if (input == null || input.length == 0) {
+            return null;
+        }
+        return toDouble(input[0]);
+    }
+
+    public static Double toDouble(String input) {
+        if (input.isEmpty()) {
+            return null;
+        }
+        input = input.trim();
+        try {
+            return Double.parseDouble(input);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static void validateString(String input, String name, Map<String, String> errors) {
+        validateString(input, name, true, errors);
+    }
+
+    public static void validateString(String input, String name, boolean required, Map<String, String> errors) {
+        if (required && input == null || input.isBlank()) {
+            errors.put(name, ErrorMessages.PLEASE_ENTER_VALUE);
+        }
     }
 }

@@ -11,6 +11,7 @@ import entities.*;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import entities.mongodb.MongoDbEdge;
+import entities.mongodb.MongoDbStop;
 import entities.mongodb.MongoDbUser;
 
 import java.util.Arrays;
@@ -51,7 +52,7 @@ public class MongoDb {
         } else {
             // it is a timetable database
             morphia.map(MongoDbEdge.class);
-            morphia.map(Stop.class);
+            morphia.map(MongoDbStop.class);
             morphia.map(StopTime.class);
             morphia.map(Trip.class);
             morphia.map(Route.class);

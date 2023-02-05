@@ -1,0 +1,60 @@
+@(  implicit request: Http.Request,
+    partialName: String,
+    editStop: entities.Stop,
+    name: String,
+    lat: Double,
+    lng: Double,
+    errors: Map[String, String],
+    user: entities.User,
+)
+
+@template(request, if(editStop==null){"Create Stop"}else{"Edit Stop"}, user) {
+} {
+    <div class="row">
+        <div class="col-lg-6">
+            @form(request, if(editStop==null){routes.TopologyController.stopsCreatePost()}else{routes.TopologyController.stopsEditPost(partialName, editStop.getStopId)}) {
+                @formInputText("Name", "name", name, errors, 10, 12, 12)
+                @formInputText("Position", "latlng", if(lat != null && lng != null ){s"$lat,$lng"}else{""}, errors, 10, 12, 12)
+                <div class="mt-3"></div>
+                @formButtons(if(editStop==null){"Create"}else{"Save"}, if(editStop==null){routes.TopologyController.stopsSearch()}else{routes.TopologyController.stopsList(partialName)})
+                <div class="mt-3"></div>
+            }
+        </div>
+        <div class="col-lg-6">
+            <div id='mapCanvas' style='height: 600px;'></div>
+            <script src='https://maps.googleapis.com/maps/api/js?key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap' async></script>
+            <script>
+                var infowindow;
+                var map;
+                var marker;
+
+                var initMap = function() {
+                    var pos = new google.maps.LatLng(@if(lat==null||lng==null){47,8}else{@lat,@lng});
+                    var mapOptions = {
+                        zoom: @if(lat==null||lng==null){8}else{16},
+                        gestureHandling: 'greedy',
+                        center: pos,
+                        mapId: 'mymapid',
+                    };
+
+                    map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
+
+                    map.addListener("click", event => {
+                        console.log(event);
+                        if(marker) {
+                            marker.setMap(null);
+                        }
+                        marker = new google.maps.Marker({'position': event.latLng});
+                        marker.setMap(map);
+                        $("input[name=latlng]").val(event.latLng.lat() + "," + event.latLng.lng());
+                    });
+
+                    @if(lat != null && lng != null){
+                    marker = new google.maps.Marker({'position': pos});
+                    marker.setMap(map);
+                    }
+                };
+            </script>
+        </div>
+    </div>
+}

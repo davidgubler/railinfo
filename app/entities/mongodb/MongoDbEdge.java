@@ -43,6 +43,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         this.stop2Id = stop2Id;
     }
 
+    @Override
     public String getId() {
         return _id.toString();
     }
@@ -67,6 +68,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         typicalTime = calculateTypicalTime();
     }
 
+    @Override
     public Integer getTypicalTime() {
         return typicalTime;
     }
@@ -85,28 +87,33 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         return smallest < 30 ? 30 : smallest;
     }
 
+    @Override
     public String getStop1Id() {
         return stop1Id;
     }
 
+    @Override
     public Stop getStop1() {
         if (stop1 == null) {
-            stop1 = stopsModel.getById(stop1Id);
+            stop1 = stopsModel.getByStopId(stop1Id);
         }
         return stop1;
     }
 
+    @Override
     public String getStop2Id() {
         return stop2Id;
     }
 
+    @Override
     public Stop getStop2() {
         if (stop2 == null) {
-            stop2 = stopsModel.getById(stop2Id);
+            stop2 = stopsModel.getByStopId(stop2Id);
         }
         return stop2;
     }
 
+    @Override
     public Stop getDestination(Stop from) {
         if (getStop1Id().equals(from.getBaseId())) {
             return getStop2();
@@ -117,22 +124,27 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         return null;
     }
 
+    @Override
     public Double getStop1Lat() {
         return getStop1() == null ? null : getStop1().getLat();
     }
 
+    @Override
     public Double getStop1Lng() {
         return getStop1() == null ? null : getStop1().getLng();
     }
 
+    @Override
     public Double getStop2Lat() {
         return getStop2() == null ? null : getStop2().getLat();
     }
 
+    @Override
     public Double getStop2Lng() {
         return getStop2() == null ? null : getStop2().getLng();
     }
 
+    @Override
     public boolean isPrintable() {
         return getStop1Lat() != null && getStop1Lng() != null && getStop2Lat() != null && getStop2Lng() != null;
     }

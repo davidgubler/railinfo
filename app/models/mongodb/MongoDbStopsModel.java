@@ -6,8 +6,10 @@ import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
 import dev.morphia.query.UpdateOperations;
 import entities.Stop;
+import entities.mongodb.MongoDbStop;
 import models.StopsModel;
 import dev.morphia.query.Query;
+import org.bson.types.ObjectId;
 import services.MongoDb;
 import utils.Config;
 
@@ -23,12 +25,16 @@ public class MongoDbStopsModel implements StopsModel {
     @Inject
     private MongoDb mongoDb;
 
-    private Query<Stop> query() {
-        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(Stop.class);
+    private Query<MongoDbStop> query() {
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(MongoDbStop.class);
     }
 
-    private UpdateOperations<Stop> ops() {
-        return mongoDb.getDs(Config.TIMETABLE_DB).createUpdateOperations(Stop.class);
+    private Query<MongoDbStop> queryId(ObjectId objectId) {
+        return query().field("_id").equal(objectId);
+    }
+
+    private UpdateOperations<MongoDbStop> ops() {
+        return mongoDb.getDs(Config.TIMETABLE_DB).createUpdateOperations(MongoDbStop.class);
     }
 
 
@@ -36,23 +42,45 @@ public class MongoDbStopsModel implements StopsModel {
         mongoDb.get(Config.TIMETABLE_DB).getCollection("stops").drop();
     }
 
-    public Stop create(Map<String, String> data) {
-        Stop stop = new Stop(data);
+    public MongoDbStop create(Map<String, String> data) {
+        MongoDbStop stop = new MongoDbStop(data);
         mongoDb.getDs(Config.TIMETABLE_DB).save(stop);
         return stop;
     }
 
     @Override
     public List<Stop> create(List<Map<String, String>> dataBatch) {
-        List<Stop> serviceCalendarExceptions = dataBatch.stream().map(data -> new Stop(data)).collect(Collectors.toList());
+        List<Stop> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbStop(data)).collect(Collectors.toList());
         mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return serviceCalendarExceptions;
     }
 
-    private ConcurrentHashMap<String, Stop> stopsCache = new ConcurrentHashMap<>();
+    @Override
+    public Stop create(String name, Double lat, Double lng) {
+        MongoDbStop stop = new MongoDbStop(name, lat, lng);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(stop);
+        return stop;
+    }
 
     @Override
-    public Stop getById(String stopId) {
+    public Stop get(String id) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (Exception e) {
+            return null;
+        }
+        Stop stop = query().field("_id").equal(objectId).first();
+        if (stop != null) {
+            injector.injectMembers(stop);
+        }
+        return stop;
+    }
+
+    private ConcurrentHashMap<String, MongoDbStop> stopsCache = new ConcurrentHashMap<>();
+
+    @Override
+    public MongoDbStop getByStopId(String stopId) {
         if (stopId == null) {
             return null;
         }
@@ -72,8 +100,8 @@ public class MongoDbStopsModel implements StopsModel {
     }
 
     @Override
-    public List<? extends Stop> getByPartialName(String name) {
-        List<Stop> stops = query().search(name).find().toList();
+    public List<? extends MongoDbStop> getByPartialName(String name) {
+        List<MongoDbStop> stops = query().search(name).find().toList();
         stops.stream().forEach(s -> injector.injectMembers(s));
         return stops;
     }
@@ -81,19 +109,19 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public void updateImportance(Set<Stop> stops, Integer importance) {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
-        UpdateOperations<Stop> ops = ops().set("importance", importance);
+        UpdateOperations<MongoDbStop> ops = ops().set("importance", importance);
         mongoDb.getDs(Config.TIMETABLE_DB).update(query().field("stopId").in(stopIds), ops);
     }
 
-    private Map<String, Stop> stops = null;
+    private Map<String, MongoDbStop> stops = null;
 
-    private Map<String, Stop> getStops() {
+    private Map<String, MongoDbStop> getStops() {
         if (this.stops == null) {
-            List<Stop> stopsList = query().asList();
+            List<MongoDbStop> stopsList = query().asList();
 
-            Map<String, Stop> stops = new HashMap<>();
-            for(Stop stop : stopsList) {
-                Stop alreadyInMap = stops.get(stop.getBaseId());
+            Map<String, MongoDbStop> stops = new HashMap<>();
+            for(MongoDbStop stop : stopsList) {
+                MongoDbStop alreadyInMap = stops.get(stop.getBaseId());
                 if (alreadyInMap == null || alreadyInMap.getStopId().length() > stop.getStopId().length() ) {
                     injector.injectMembers(stop);
                     stops.put(stop.getBaseId(), stop);

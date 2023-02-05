@@ -1,0 +1,35 @@
+@(  request: Http.RequestHeader,
+    message: String,
+    user: entities.User,
+)
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="referrer" content="origin">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/bootstrap.min.css")'>
+        <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/main.css")'>
+        <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/jquery.dataTables.css")'>
+        <title>@message</title>
+    </head>
+    <body>
+        <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+            <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="/">railinfo @if(user != null){- @user.getEmail}</a>
+            <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </header>
+        <div class="container-fluid">
+            <div class="row">
+                <main class="col-12">
+                    <div class="container-fluid" style="text-align: center;">
+                        <h1 class="mt-5">@message</h1>
+                        <a href="/">Start over</a>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </body>
+</html>

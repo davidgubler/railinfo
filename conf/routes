@@ -36,7 +36,11 @@ GET     /topology/edges/:edge/delete            controllers.TopologyController.e
 POST    /topology/edges/:edge/delete            controllers.TopologyController.edgeDeletePost(request: Request, edge: String)
 GET     /topology/stops                         controllers.TopologyController.stopsSearch(request: Request)
 POST    /topology/stops                         controllers.TopologyController.stopsSearchPost(request: Request)
-GET     /topology/stops/:name                   controllers.TopologyController.stopsList(request: Request, name: String)
+GET     /topology/stops/_create                 controllers.TopologyController.stopsCreate(request: Request)
+POST    /topology/stops/_create                 controllers.TopologyController.stopsCreatePost(request: Request)
+GET     /topology/stops/:partial                controllers.TopologyController.stopsList(request: Request, partial: String)
+GET     /topology/stops/:partial/:stopId/_edit  controllers.TopologyController.stopsEdit(request: Request, partial: String, stopId: String)
+POST    /topology/stops/:partial/:stopId/_edit  controllers.TopologyController.stopsEditPost(request: Request, partial: String, stopId: String)
 
 GET     /data/stops.json                        controllers.DataController.stops(request: Request)
 

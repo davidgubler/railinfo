@@ -53,8 +53,16 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public Edge get(String id) {
-        Edge edge = queryId(new ObjectId(id)).first();
-        injector.injectMembers(edge);
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (Exception e) {
+            return null;
+        }
+        Edge edge = query().field("_id").equal(objectId).first();
+        if (edge != null) {
+            injector.injectMembers(edge);
+        }
         return edge;
     }
 

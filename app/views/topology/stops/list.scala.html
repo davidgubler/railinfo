@@ -32,6 +32,7 @@
                     @if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat, @stop.getLng</a>}
                 </td>
                 <td>
+                    @if(user!=null){<a href="@routes.TopologyController.stopsEdit(partialName, stop.getId)">edit</a>}
                 </td>
             </tr>
             }

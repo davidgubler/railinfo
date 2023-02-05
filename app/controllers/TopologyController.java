@@ -4,12 +4,8 @@ import biz.Topology;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.*;
-import entities.Edge;
 import models.*;
-import utils.ErrorMessages;
-import utils.InputUtils;
-import utils.NotAllowedException;
-import utils.NotFoundException;
+import utils.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -91,7 +87,7 @@ public class TopologyController extends Controller {
         }
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         int typicalTime = InputUtils.parseDuration(data.get("typicalTime"));
-        topology.edgeUpdate(edge, typicalTime, user);
+        topology.edgeUpdate(request, edge, typicalTime, user);
         return redirect(controllers.routes.TopologyController.edgesList());
     }
 
@@ -113,7 +109,7 @@ public class TopologyController extends Controller {
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
-        topology.edgeDelete(edge, user);
+        topology.edgeDelete(request, edge, user);
         return redirect(controllers.routes.TopologyController.edgesList());
     }
 
@@ -127,13 +123,13 @@ public class TopologyController extends Controller {
 
     public Result recalculateEdgesPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        topology.recalculateEdges(user);
+        topology.recalculateEdges(request, user);
         return redirect(controllers.routes.TopologyController.recalculate());
     }
 
     public Result recalculatePathsPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        topology.recalculatePaths(user);
+        topology.recalculatePaths(request, user);
         return redirect(controllers.routes.TopologyController.recalculate());
     }
 
@@ -163,5 +159,59 @@ public class TopologyController extends Controller {
         List<? extends Stop> stops = stopsModel.getByPartialName(partialName);
         Collections.sort(stops);
         return ok(views.html.topology.stops.list.render(request, partialName, stops, user));
+    }
+
+    public Result stopsCreate(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+        return ok(views.html.topology.stops.edit.render(request, null, null, null, null, null, InputUtils.NOERROR, user));
+    }
+
+    public Result stopsCreatePost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String name = InputUtils.trimToNull(data.get("name"));
+        String[] latlng = InputUtils.trimToNull(data.get("latlng")).split(",");
+        Double lat = InputUtils.toDouble(latlng.length >= 2 ? latlng[0] : null);
+        Double lng = InputUtils.toDouble(latlng.length >= 2 ? latlng[1] : null);
+        try {
+            topology.stopCreate(request, name, lat, lng, user);
+        } catch (InputValidationException e) {
+            return ok(views.html.topology.stops.edit.render(request, null, null, name, lat, lng, e.getErrors(), user));
+        }
+        return redirect(controllers.routes.TopologyController.stopsList(name));
+    }
+
+    public Result stopsEdit(Http.Request request, String partialName, String editStopId) {
+        User user = usersModel.getFromRequest(request);
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+        Stop editStop = stopsModel.get(editStopId);
+        if (editStop == null) {
+            throw new NotFoundException("Stop");
+        }
+        return ok(views.html.topology.stops.edit.render(request, partialName, editStop, editStop.getName(), editStop.getLat(), editStop.getLng(), InputUtils.NOERROR, user));
+    }
+
+    public Result stopsEditPost(Http.Request request, String partialName, String editStopId) {
+        User user = usersModel.getFromRequest(request);
+        Stop editStop = stopsModel.get(editStopId);
+        if (editStop == null) {
+            throw new NotFoundException("Stop");
+        }
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String name = InputUtils.trimToNull(data.get("name"));
+        String[] latlng = InputUtils.trimToNull(data.get("latlng")).split(",");
+        Double lat = InputUtils.toDouble(latlng.length >= 2 ? latlng[0] : null);
+        Double lng = InputUtils.toDouble(latlng.length >= 2 ? latlng[1] : null);
+        try {
+            topology.stopUpdate(request, editStop, name, lat, lng, user);
+        } catch (InputValidationException e) {
+            return ok(views.html.topology.stops.edit.render(request, partialName, editStop, name, lat, lng, e.getErrors(), user));
+        }
+        return redirect(controllers.routes.TopologyController.stopsList(partialName));
     }
 }

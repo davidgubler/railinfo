@@ -3,7 +3,6 @@ package models.mongodb;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
-import com.mongodb.client.MongoCursor;
 import dev.morphia.InsertOptions;
 import entities.Stop;
 import entities.StopTime;

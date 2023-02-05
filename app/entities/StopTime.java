@@ -63,7 +63,7 @@ public class StopTime implements Comparable<StopTime> {
     }
 
     public Stop getStop() {
-        return stopsModel.getById(stopId);
+        return stopsModel.getByStopId(stopId);
     }
 
     public Integer getStopSequence() {

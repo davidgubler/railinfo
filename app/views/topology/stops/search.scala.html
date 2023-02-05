@@ -6,6 +6,7 @@
 
 @template(request, "Stops", user) {
 } {
+    <a href="@routes.TopologyController.stopsCreate()">Create new stop...</a>
     @form(request, routes.TopologyController.stopsSearchPost()) {
     <div class="row mt-4">
         <div class="col-xl-4 col-lg-6 col-md-10">
