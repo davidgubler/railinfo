@@ -41,6 +41,7 @@
                         <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/topology")){active}" data-bs-toggle="collapse" data-bs-target="ul#topology">Topology</a>
                         <ul id="topology" class="submenu collapse @if(request.path.startsWith("/topology")){show}">
                             <li><a href="@routes.TopologyController.map()" class="nav-link @if(request.path.startsWith("/topology/map")){active}">Map</a></li>
+                            <li><a href="@routes.TopologyController.stopsSearch()" class="nav-link @if(request.path.startsWith("/topology/stops")){active}">Stops</a></li>
                             <li><a href="@routes.TopologyController.edgesList()" class="nav-link @if(request.path.startsWith("/topology/edges")){active}">Edges</a></li>
                             @if(user != null) {
                             <li><a href="@routes.TopologyController.recalculate()" class="nav-link @if(request.path.startsWith("/topology/recalculate")){active}">Recalculate</a></li>

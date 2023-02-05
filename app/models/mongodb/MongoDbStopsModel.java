@@ -72,6 +72,13 @@ public class MongoDbStopsModel implements StopsModel {
     }
 
     @Override
+    public List<? extends Stop> getByPartialName(String name) {
+        List<Stop> stops = query().search(name).find().toList();
+        stops.stream().forEach(s -> injector.injectMembers(s));
+        return stops;
+    }
+
+    @Override
     public void updateImportance(Set<Stop> stops, Integer importance) {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
         UpdateOperations<Stop> ops = ops().set("importance", importance);
@@ -86,10 +93,10 @@ public class MongoDbStopsModel implements StopsModel {
 
             Map<String, Stop> stops = new HashMap<>();
             for(Stop stop : stopsList) {
-                Stop alreadyInMap = stops.get(stop.getParentStopId());
+                Stop alreadyInMap = stops.get(stop.getBaseId());
                 if (alreadyInMap == null || alreadyInMap.getStopId().length() > stop.getStopId().length() ) {
                     injector.injectMembers(stop);
-                    stops.put(stop.getParentStopId(), stop);
+                    stops.put(stop.getBaseId(), stop);
                 }
             }
             System.out.println("found " + stopsList.size() + " stops, combined into " + stops.keySet().size());

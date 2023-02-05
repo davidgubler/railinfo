@@ -17,6 +17,8 @@ public interface StopsModel {
 
     Set<Stop> getByName(String name);
 
+    List<? extends Stop> getByPartialName(String name);
+
     void updateImportance(Set<Stop> stops, Integer importance);
 
     List<Stop> getAll();

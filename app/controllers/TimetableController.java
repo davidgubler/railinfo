@@ -168,7 +168,7 @@ public class TimetableController extends Controller {
         System.out.println("realized trips: " + realizedTrips.size());
 
         List<RealizedPass> realizedPasses = new LinkedList<>();
-        Set<String> edgeStops = Set.of(edge.getStop1().getParentStopId(), edge.getStop2().getParentStopId());
+        Set<String> edgeStops = Set.of(edge.getStop1().getBaseId(), edge.getStop2().getBaseId());
         System.out.println("edge stops: " + edgeStops);
 
         for (RealizedTrip realizedTrip : realizedTrips) {
@@ -177,7 +177,7 @@ public class TimetableController extends Controller {
             for (RealizedLocation realizedLocation : realizedLocations) {
                 if (previousLocation != null) {
                     if (previousLocation.getDeparture().isAfter(dateTime)) {
-                        if (edgeStops.contains(previousLocation.getStop().getParentStopId()) && edgeStops.contains(realizedLocation.getStop().getParentStopId())) {
+                        if (edgeStops.contains(previousLocation.getStop().getBaseId()) && edgeStops.contains(realizedLocation.getStop().getBaseId())) {
                             realizedPasses.add(new RealizedPass(realizedTrip, previousLocation, realizedLocation));
                         }
                     }

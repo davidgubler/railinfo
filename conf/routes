@@ -34,6 +34,9 @@ GET     /topology/edges/:edge/edit              controllers.TopologyController.e
 POST    /topology/edges/:edge/edit              controllers.TopologyController.edgeEditPost(request: Request, edge: String)
 GET     /topology/edges/:edge/delete            controllers.TopologyController.edgeDelete(request: Request, edge: String)
 POST    /topology/edges/:edge/delete            controllers.TopologyController.edgeDeletePost(request: Request, edge: String)
+GET     /topology/stops                         controllers.TopologyController.stopsSearch(request: Request)
+POST    /topology/stops                         controllers.TopologyController.stopsSearchPost(request: Request)
+GET     /topology/stops/:name                   controllers.TopologyController.stopsList(request: Request, name: String)
 
 GET     /data/stops.json                        controllers.DataController.stops(request: Request)
 

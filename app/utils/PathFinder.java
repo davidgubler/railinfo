@@ -2,7 +2,6 @@ package utils;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import controllers.routes;
 import entities.*;
 import entities.mongodb.MongoDbEdge;
 import entities.realized.RealizedWaypoint;
@@ -37,7 +36,7 @@ public class PathFinder {
     private Injector injector;
 
     private Path quickest(Stop current, Stop to, long timeLimit, Path travelledPath, Map<String, Long> timeFromStart, Function<Stop, List<? extends Edge>> f) {
-        String currentId = current.getParentStopId();
+        String currentId = current.getBaseId();
         if (timeFromStart.containsKey(currentId) && timeFromStart.get(currentId) <= travelledPath.getDuration()) {
             // the current stop has already been reached via a quicker path, thus we abort
             return null;
@@ -46,7 +45,7 @@ public class PathFinder {
         // we've reached the current stop quicker than before
         timeFromStart.put(currentId, travelledPath.getDuration());
 
-        if (current.getParentStopId().equals(to.getParentStopId()) && travelledPath.getDuration() <= timeLimit) {
+        if (current.getBaseId().equals(to.getBaseId()) && travelledPath.getDuration() <= timeLimit) {
             return travelledPath;
         }
         if (travelledPath.getDuration() > timeLimit) {
@@ -73,7 +72,7 @@ public class PathFinder {
     private ConcurrentHashMap<String, Path> quickestPaths = new ConcurrentHashMap<>();
 
     private Path quickest(Stop from, Stop to, long timeLimit, Function<Stop, List<? extends Edge>> f) {
-        String key = from.getParentStopId() + "|" + to.getParentStopId();
+        String key = from.getBaseId() + "|" + to.getBaseId();
         if (quickestPaths.containsKey(key)) {
             return quickestPaths.get(key);
         }
@@ -101,7 +100,7 @@ public class PathFinder {
             return null;
         }
         quickestPaths.put(key, quickest);
-        String reverseKey = to.getParentStopId() + "|" + from.getParentStopId();
+        String reverseKey = to.getBaseId() + "|" + from.getBaseId();
         quickestPaths.put(reverseKey, quickest.getReverse());
         return quickest;
     }

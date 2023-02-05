@@ -73,7 +73,7 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public List<? extends Edge> getEdgesFrom(Stop stop) {
-        String stopId = stop.getParentStopId();
+        String stopId = stop.getBaseId();
 
         Query<MongoDbEdge> query = query();
         query.or(query.or(query.criteria("stop1Id").equal(stopId), query.criteria("stop2Id").equal(stopId)));

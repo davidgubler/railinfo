@@ -1,6 +1,7 @@
 package entities;
 
 import com.google.inject.Inject;
+import dev.morphia.utils.IndexType;
 import models.StopTimesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
@@ -11,7 +12,8 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity(value = "stops", noClassnameStored = true)
-public class Stop {
+@Indexes(@Index(fields = @Field(value = "name", type = IndexType.TEXT)))
+public class Stop implements Comparable<Stop> {
     @Id
     private ObjectId _id;
 
@@ -77,11 +79,15 @@ public class Stop {
         return type;
     }
 
-    public String getParentStopId() {
+    public String getBaseId() {
         String parentId = stopId.split(":")[0];
         if (parentId.endsWith("P")) {
             parentId = parentId.substring(0, parentId.length() -1);
         }
+        return parentId;
+    }
+
+    public String getParentId() {
         return parentId;
     }
 
@@ -109,5 +115,10 @@ public class Stop {
     @Override
     public int hashCode() {
         return Objects.hash(stopId);
+    }
+
+    @Override
+    public int compareTo(Stop stop) {
+        return name.compareTo(stop.name);
     }
 }

@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import entities.*;
 import entities.Edge;
 import models.*;
+import utils.ErrorMessages;
 import utils.InputUtils;
 import utils.NotAllowedException;
 import utils.NotFoundException;
@@ -139,5 +140,28 @@ public class TopologyController extends Controller {
     public Result map(Http.Request request) {
         User user = usersModel.getFromRequest(request);
         return ok(views.html.topology.map.render(request, edgesModel.getAll(), user));
+    }
+
+    public Result stopsSearch(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        return ok(views.html.topology.stops.search.render(request, null, InputUtils.NOERROR, user));
+    }
+
+    public Result stopsSearchPost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String partialName = InputUtils.trimToNull(data.get("partialName"));
+        List<? extends Stop> stops = stopsModel.getByPartialName(partialName);
+        if (stops.isEmpty()) {
+            return ok(views.html.topology.stops.search.render(request, partialName, Map.of("partialName", ErrorMessages.STOP_NOT_FOUND), user));
+        }
+        return redirect(controllers.routes.TopologyController.stopsList(partialName));
+    }
+
+    public Result stopsList(Http.Request request, String partialName) {
+        User user = usersModel.getFromRequest(request);
+        List<? extends Stop> stops = stopsModel.getByPartialName(partialName);
+        Collections.sort(stops);
+        return ok(views.html.topology.stops.list.render(request, partialName, stops, user));
     }
 }

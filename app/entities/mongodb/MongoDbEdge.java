@@ -108,10 +108,10 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     }
 
     public Stop getDestination(Stop from) {
-        if (getStop1Id().equals(from.getParentStopId())) {
+        if (getStop1Id().equals(from.getBaseId())) {
             return getStop2();
         }
-        if (getStop2Id().equals(from.getParentStopId())) {
+        if (getStop2Id().equals(from.getBaseId())) {
             return getStop1();
         }
         return null;
@@ -157,11 +157,11 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
 
     @Override
     public String toString() {
-        return getStop1().getName() + "[" + getStop1().getParentStopId() + "] ---" + getTypicalTime() + "s--> " + getStop2().getName() + "[" + getStop2().getParentStopId() + "]";
+        return getStop1().getName() + "[" + getStop1().getBaseId() + "] ---" + getTypicalTime() + "s--> " + getStop2().getName() + "[" + getStop2().getBaseId() + "]";
     }
 
     @Override
     public String toString(Stop from) {
-        return from.getName() + "[" + from.getParentStopId() + "] ---" + getTypicalTime() + "s--> " + getDestination(from).getName() + "[" + getDestination(from).getParentStopId() + "]";
+        return from.getName() + "[" + from.getBaseId() + "] ---" + getTypicalTime() + "s--> " + getDestination(from).getName() + "[" + getDestination(from).getBaseId() + "]";
     }
 }

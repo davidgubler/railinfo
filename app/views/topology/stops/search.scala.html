@@ -1,0 +1,19 @@
+@(	request: Http.Request,
+    partialName: String,
+    errors: Map[String, String],
+    user: entities.User,
+)
+
+@template(request, "Stops", user) {
+} {
+    @form(request, routes.TopologyController.stopsSearchPost()) {
+    <div class="row mt-4">
+        <div class="col-xl-4 col-lg-6 col-md-10">
+            @formInputText("Name", "partialName", partialName, errors, xlWidth=10, lgWidth=8, mdWidth=6)
+        </div>
+        <div class="col-xl-8 col-lg-6 col-md-2">
+            @formButtons("Search")
+        </div>
+    </div>
+    }
+}

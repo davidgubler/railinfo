@@ -1,0 +1,41 @@
+@(	request: Http.Request,
+    partialName: String,
+    stops: List[_ <: entities.Stop],
+    user: entities.User,
+)
+
+@template(request, "Stops containing \"" + partialName + "\"", user) {
+} {
+    <table class="dataTable" data-paging="false" data-ordering="false">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Parent ID</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for(stop <- stops) {
+            <tr>
+                <td>
+                    @stop.getName
+                </td>
+                <td>
+                    @stop.getStopId
+                </td>
+                <td>
+                    @stop.getParentId
+                </td>
+                <td>
+                    @if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat, @stop.getLng</a>}
+                </td>
+                <td>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+
+}
