@@ -1,0 +1,17 @@
+@(  label: String,
+    name: String,
+    value: String,
+    errors: Map[String, String],
+    xlWidth: Integer = 4,
+    lgWidth: Integer = 8,
+    mdWidth: Integer = 12,
+)(options: Html)
+
+<div class="form-group row mb-1">
+    <label for="@name" class="col-xl-2 col-lg-4 col-md-6 col-form-label">@label</label>
+    <div class="col-xl-@xlWidth col-lg-@lgWidth col-md-@mdWidth">
+        <select class="form-control @if(errors.containsKey(name)){is-invalid} select2" id="@name" name="@name" value="@value">
+            @options
+        </select>
+    </div>
+</div>

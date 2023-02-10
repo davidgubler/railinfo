@@ -9,6 +9,7 @@
     @form(request, routes.LoginController.loginPost()) {
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputPassword("Password", "password", password, errors)
+        <div class="mt-3"></div>
         @formButtons("Log in", routes.HomeController.index())
     }
 }

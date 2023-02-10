@@ -15,7 +15,9 @@ public interface EdgesModel {
 
     Edge get(String id);
 
-    void update(Edge edge, int typicalTime);
+    Edge create(Stop stop1, Stop stop2, Integer typicalTime);
+
+    void update(Edge edge, Integer typicalTime);
 
     void delete(Edge edge);
 

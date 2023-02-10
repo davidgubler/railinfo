@@ -73,6 +73,44 @@ public class InputUtils {
         }
     }
 
+    public static Long toLong(String[] input) {
+        if (input == null || input.length == 0) {
+            return null;
+        }
+        return toLong(input[0]);
+    }
+
+    public static Long toLong(String input) {
+        if (input.isEmpty()) {
+            return null;
+        }
+        input = input.trim();
+        try {
+            return Long.parseLong(input);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Integer toInt(String[] input) {
+        if (input == null || input.length == 0) {
+            return null;
+        }
+        return toInt(input[0]);
+    }
+
+    public static Integer toInt(String input) {
+        if (input.isEmpty()) {
+            return null;
+        }
+        input = input.trim();
+        try {
+            return Integer.parseInt(input);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static void validateString(String input, String name, Map<String, String> errors) {
         validateString(input, name, true, errors);
     }
@@ -80,6 +118,29 @@ public class InputUtils {
     public static void validateString(String input, String name, boolean required, Map<String, String> errors) {
         if (required && input == null || input.isBlank()) {
             errors.put(name, ErrorMessages.PLEASE_ENTER_VALUE);
+        }
+    }
+
+    public static void validateObject(Object object, String name, boolean required, Map<String, String> errors) {
+        if (required && object == null) {
+            errors.put(name, ErrorMessages.PLEASE_ENTER_VALUE);
+        }
+    }
+
+    public static void validateInt(Integer integer, String name, boolean required, Integer minValue, Integer maxValue, Map<String, String> errors) {
+        if (integer == null) {
+            if (required) {
+                errors.put(name, ErrorMessages.PLEASE_ENTER_VALUE);
+            }
+            return;
+        }
+        if (minValue != null && integer < minValue) {
+            errors.put(name, ErrorMessages.MIN_VALUE_IS("" + minValue));
+            return;
+        }
+        if (maxValue != null && integer > maxValue) {
+            errors.put(name, ErrorMessages.MAX_VALUE_IS("" + maxValue));
+            return;
         }
     }
 }

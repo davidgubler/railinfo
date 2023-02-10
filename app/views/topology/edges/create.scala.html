@@ -1,0 +1,20 @@
+@(  implicit request: Http.Request,
+    stop1: entities.Stop,
+    stop2: entities.Stop,
+    time: Integer,
+    allStops: List[entities.Stop],
+    errors: Map[String, String],
+    user: entities.User,
+)
+
+@template(request, "Create Edge", user) {
+    <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
+} {
+    @form(request, routes.TopologyController.edgesCreatePost()) {
+        @formInputText("Stop 1", "stop1", if(stop1!=null){stop1.getName}else{""}, errors)
+        @formInputText("Stop 2", "stop2", if(stop2!=null){stop2.getName}else{""}, errors)
+        @formInputText("Time", "time", utils.StringUtils.formatSeconds(time), errors)
+        <div class="mt-3"></div>
+        @formButtons("Save", routes.TopologyController.edgesList())
+    }
+}

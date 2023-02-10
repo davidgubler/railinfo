@@ -108,11 +108,10 @@ public class MongoDbStop implements Stop {
     }
 
     public String getBaseId() {
-        String parentId = stopId.split(":")[0];
-        if (parentId.endsWith("P")) {
-            parentId = parentId.substring(0, parentId.length() -1);
-        }
-        return parentId;
+        String baseId = stopId.split(":")[0];
+        // base ID can contain stuff like "Parent" or "P"
+        baseId = baseId.replaceAll("[^0-9]", "");
+        return baseId;
     }
 
     public String getParentId() {

@@ -67,7 +67,15 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
-    public void update(Edge edge, int typicalTime) {
+    public Edge create(Stop stop1, Stop stop2, Integer typicalTime) {
+        MongoDbEdge edge = new MongoDbEdge(stop1.getBaseId(), stop2.getBaseId(), typicalTime, true);
+        mongoDb.getDs(Config.TIMETABLE_DB).save(edge);
+        injector.injectMembers(edge);
+        return edge;
+    }
+
+    @Override
+    public void update(Edge edge, Integer typicalTime) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDbEdge.setTypicalTime(typicalTime);
         mongoDbEdge.setModified(true);

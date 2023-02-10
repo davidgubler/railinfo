@@ -274,7 +274,8 @@ public class PathFinder {
             routeIdsByEdge = new HashMap<>();
             recalculatePaths();
         }
-        return routeIdsByEdge.get(edge);
+        Set<String> routes = routeIdsByEdge.get(edge);
+        return routes == null ? Collections.emptySet() : routes;
     }
 
     public void recalculatePaths() {
@@ -315,5 +316,9 @@ public class PathFinder {
             }
         }
         this.routeIdsByEdge = routeIdsByEdge;
+    }
+
+    public void clearCache() {
+        routeIdsByEdge = null;
     }
 }

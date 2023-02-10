@@ -4,7 +4,7 @@
     user: entities.User,
 )
 
-@template(request, "Trains between " + edge.getStop1 + " and " + edge.getStop2, user) {
+@template(request, "Trains between " + edge.getStop1.getName + " and " + edge.getStop2.getName, user) {
     <style>
         td { padding-right: 20px; }
     </style>
@@ -13,9 +13,9 @@
         <thead>
             <tr>
                 <th colspan="3">Train</th>
-                <th>@edge.getStop1</th>
+                <th>@edge.getStop1.getName</th>
                 <th></th>
-                <th>@edge.getStop2</th>
+                <th>@edge.getStop2.getName</th>
             </tr>
         </thead>
         <tbody>
@@ -28,7 +28,7 @@
                     @pass.getTrip.getTripShortName
                 </td>
                 <td>
-                    @pass.getTrip.getBegins - @pass.getTrip.getEnds
+                    @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName
                 </td>
                 <td>
                     @if(pass.isForward(edge.getStop1)){ <b>@utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getDeparture)</b> } else { @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getArrival) }

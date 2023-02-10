@@ -3,7 +3,7 @@
     user: entities.User,
 )
 
-@template(request, edge.getStop1 + " - " + edge.getStop2, user) {
+@template(request, edge.getStop1.getName + " - " + edge.getStop2.getName, user) {
 } {
     <div class="col-12">
         <table>
@@ -21,8 +21,8 @@
     </div>
     <div class="col-12 mt-4">
         @if(user != null) {
-        <a href="@routes.TopologyController.edgeEdit(edge.getId)" class="btn btn-warning">Edit</a>
-        <a href="@routes.TopologyController.edgeDelete(edge.getId)" class="btn btn-danger">Delete</a>
+        <a href="@routes.TopologyController.edgesEdit(edge.getId)" class="btn btn-warning">Edit</a>
+        <a href="@routes.TopologyController.edgesDelete(edge.getId)" class="btn btn-danger">Delete</a>
         }
         <a href="@routes.TimetableController.edge(edge.getId)" class="btn btn-primary">View all trains</a>
     </div>

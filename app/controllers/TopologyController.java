@@ -50,15 +50,29 @@ public class TopologyController extends Controller {
         return ok(views.html.topology.edges.list.render(request, edges, user));
     }
 
-    public Result edgeCreate(Http.Request request) {
-        return ok();
+    public Result edgesCreate(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+        return ok(views.html.topology.edges.create.render(request, null, null, null, stopsModel.getAll(), InputUtils.NOERROR, user));
     }
 
-    public Result edgeCreatePost(Http.Request request) {
-        return ok();
+    public Result edgesCreatePost(Http.Request request) {
+        User user = usersModel.getFromRequest(request);
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        Stop stop1 = stopsModel.getPrimaryByName(InputUtils.trimToNull(data.get("stop1")));
+        Stop stop2 = stopsModel.getPrimaryByName(InputUtils.trimToNull(data.get("stop2")));
+        Integer time = InputUtils.parseDuration(data.get("time"));
+        try {
+            topology.edgeCreate(request, stop1, stop2, time, user);
+        } catch (InputValidationException e) {
+            return ok(views.html.topology.edges.create.render(request, stop1, stop2, time, stopsModel.getAll(), e.getErrors(), user));
+        }
+        return redirect(controllers.routes.TopologyController.edgesList());
     }
 
-    public Result edgeView(Http.Request request, String edgeId) {
+    public Result edgesView(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         Edge edge = edgesModel.get(edgeId);
         if (edge == null) {
@@ -67,7 +81,7 @@ public class TopologyController extends Controller {
         return ok(views.html.topology.edges.view.render(request, edge, user));
     }
 
-    public Result edgeEdit(Http.Request request, String edgeId) {
+    public Result edgesEdit(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         if (user == null) {
             throw new NotAllowedException();
@@ -79,19 +93,23 @@ public class TopologyController extends Controller {
         return ok(views.html.topology.edges.edit.render(request, edge, InputUtils.NOERROR, user));
     }
 
-    public Result edgeEditPost(Http.Request request, String edgeId) {
+    public Result edgesEditPost(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         Edge edge = edgesModel.get(edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
         Map<String, String[]> data = request.body().asFormUrlEncoded();
-        int typicalTime = InputUtils.parseDuration(data.get("typicalTime"));
-        topology.edgeUpdate(request, edge, typicalTime, user);
+        Integer time = InputUtils.parseDuration(data.get("time"));
+        try {
+            topology.edgeUpdate(request, edge, time, user);
+        } catch (InputValidationException e) {
+            return ok(views.html.topology.edges.edit.render(request, edge, e.getErrors(), user));
+        }
         return redirect(controllers.routes.TopologyController.edgesList());
     }
 
-    public Result edgeDelete(Http.Request request, String edgeId) {
+    public Result edgesDelete(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         if (user == null) {
             throw new NotAllowedException();
@@ -103,7 +121,7 @@ public class TopologyController extends Controller {
         return ok(views.html.topology.edges.delete.render(request, edge, user));
     }
 
-    public Result edgeDeletePost(Http.Request request, String edgeId) {
+    public Result edgesDeletePost(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
         Edge edge = edgesModel.get(edgeId);
         if (edge == null) {

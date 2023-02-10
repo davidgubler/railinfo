@@ -5,6 +5,7 @@
 
 @template(request, "Edges", user) {
 } {
+    <a href="@routes.TopologyController.edgesCreate()">Create new edge...</a>
     <table class="dataTable" data-paging="false" data-ordering="false">
         <thead>
             <tr>
@@ -20,7 +21,7 @@
                 <td>@edge.getStop1.getName</td>
                 <td>@edge.getStop2.getName</td>
                 <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
-                <td><a href="@routes.TopologyController.edgeView(edge.getId)">view</a> @if(user!=null){<a href="@routes.TopologyController.edgeEdit(edge.getId())">edit</a> <a href="@routes.TopologyController.edgeDelete(edge.getId())">delete</a>}</td>
+                <td><a href="@routes.TopologyController.edgesView(edge.getId)">view</a> @if(user!=null){<a href="@routes.TopologyController.edgesEdit(edge.getId())">edit</a> <a href="@routes.TopologyController.edgesDelete(edge.getId())">delete</a>}</td>
             </tr>
         }
         </tbody>

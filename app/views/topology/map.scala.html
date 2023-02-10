@@ -76,7 +76,7 @@
 
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgeView(edge.getId)");
+                addEdge(map, @edge.getStop1Lat, @edge.getStop1Lng, @edge.getStop2Lat, @edge.getStop2Lng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgesView(edge.getId)");
             }
 
             google.maps.event.addListener(map, "tilesloaded", () => {

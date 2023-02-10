@@ -12,6 +12,7 @@
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputText("Name", "name", name, errors)
         @formInputPassword("Password", "password", password, errors)
+        <div class="mt-3"></div>
         @formButtons("Create", routes.AdminController.usersList())
     }
 }

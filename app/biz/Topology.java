@@ -32,16 +32,45 @@ public class Topology {
     @Inject
     private PathFinder pathFinder;
 
-    public void edgeUpdate(Http.RequestHeader request, Edge edge, int time, User user) {
+    public void edgeCreate(Http.RequestHeader request, Stop stop1, Stop stop2, Integer time, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
         }
 
         // INPUT
+        Map<String, String> errors = new HashMap<>();
+        InputUtils.validateObject(stop1, "stop1", true, errors);
+        InputUtils.validateObject(stop2, "stop2", true, errors);
+        InputUtils.validateInt(time, "time", true, 1, null, errors);
+        if (!errors.isEmpty()) {
+            throw new InputValidationException(errors);
+        }
+
+        // BUSINESS
+        Edge edge = edgesModel.create(stop1, stop2, time);
+        pathFinder.clearCache();
+
+        // LOG
+        RailinfoLogger.info(request, user + " created " + edge);
+    }
+
+    public void edgeUpdate(Http.RequestHeader request, Edge edge, Integer time, User user) throws InputValidationException {
+        // ACCESS
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+
+        // INPUT
+        Map<String, String> errors = new HashMap<>();
+        InputUtils.validateInt(time, "time", true, 1, null, errors);
+        if (!errors.isEmpty()) {
+            throw new InputValidationException(errors);
+        }
 
         // BUSINESS
         edgesModel.update(edge, time);
+        pathFinder.clearCache();
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + edge);
@@ -57,6 +86,7 @@ public class Topology {
 
         // BUSINESS
         edgesModel.delete(edge);
+        pathFinder.clearCache();
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + edge);

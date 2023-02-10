@@ -1,7 +1,5 @@
 package entities;
 
-import entities.mongodb.MongoDbStop;
-
 public interface Edge extends Comparable<Edge> {
     String getId();
 

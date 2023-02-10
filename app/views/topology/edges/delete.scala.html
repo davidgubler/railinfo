@@ -6,8 +6,8 @@
 @template(request, "Delete Edge", user) {
 
 } {
-    @form(request, routes.TopologyController.edgeDeletePost(edge.getId)) {
-        @edge.getStop1() - @edge.getStop2() in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
+    @form(request, routes.TopologyController.edgesDeletePost(edge.getId)) {
+        @edge.getStop1().getName - @edge.getStop2().getName in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
         @formButtons("Delete Edge", routes.TopologyController.edgesList())
     }
 }

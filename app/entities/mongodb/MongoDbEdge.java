@@ -45,6 +45,13 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         this.stop2Id = stop2Id;
     }
 
+    public MongoDbEdge(String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
+        this.stop1Id = stop1Id;
+        this.stop2Id = stop2Id;
+        this.typicalTime = typicalTime;
+        setModified(modified);
+    }
+
     @Override
     public String getId() {
         return _id.toString();

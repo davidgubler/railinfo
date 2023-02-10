@@ -13,9 +13,7 @@ import org.bson.types.ObjectId;
 import services.MongoDb;
 import utils.Config;
 
-import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class MongoDbStopsModel implements StopsModel {
@@ -50,6 +48,7 @@ public class MongoDbStopsModel implements StopsModel {
     public MongoDbStop create(Map<String, String> data) {
         MongoDbStop stop = new MongoDbStop(data);
         mongoDb.getDs(Config.TIMETABLE_DB).save(stop);
+        stops = null;
         return stop;
     }
 
@@ -57,6 +56,7 @@ public class MongoDbStopsModel implements StopsModel {
     public List<Stop> create(List<Map<String, String>> dataBatch) {
         List<Stop> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbStop(data)).collect(Collectors.toList());
         mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        stops = null;
         return serviceCalendarExceptions;
     }
 
@@ -71,6 +71,7 @@ public class MongoDbStopsModel implements StopsModel {
 
         MongoDbStop stop = new MongoDbStop(stopId, name, lat, lng);
         mongoDb.getDs(Config.TIMETABLE_DB).save(stop);
+        stops = null;
         return stop;
     }
 
@@ -88,8 +89,6 @@ public class MongoDbStopsModel implements StopsModel {
         }
         return stop;
     }
-
-    private ConcurrentHashMap<String, MongoDbStop> stopsCache = new ConcurrentHashMap<>();
 
     @Override
     public MongoDbStop getByStopId(String stopId) {
@@ -112,6 +111,29 @@ public class MongoDbStopsModel implements StopsModel {
     }
 
     @Override
+    public Stop getPrimaryByName(String name) {
+        Set<Stop> stops = getByName(name);
+        if (stops.size() <= 1) {
+            return stops.stream().findFirst().orElse(null);
+        }
+        Map<String, Stop> stopsById = new HashMap<>();
+        for (Stop stop : stops) {
+            stopsById.put(stop.getStopId(), stop);
+        }
+        Stop stop = stops.stream().findAny().get();
+        // we try to find the parent twice, just in case somebody has double-nested stops
+        Stop parent = stopsById.get(stop.getParentId());
+        if (parent != null) {
+            stop = parent;
+        }
+        parent = stopsById.get(stop.getParentId());
+        if (parent != null) {
+            stop = parent;
+        }
+        return stop;
+    }
+
+    @Override
     public List<? extends MongoDbStop> getByPartialName(String name) {
         List<MongoDbStop> stops = query().search(name).find().toList();
         stops.stream().forEach(s -> injector.injectMembers(s));
@@ -123,6 +145,7 @@ public class MongoDbStopsModel implements StopsModel {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
         UpdateOperations<MongoDbStop> ops = ops().set("importance", importance);
         mongoDb.getDs(Config.TIMETABLE_DB).update(query().field("stopId").in(stopIds), ops);
+        stops = null;
     }
 
     private Map<String, MongoDbStop> stops = null;
@@ -159,11 +182,13 @@ public class MongoDbStopsModel implements StopsModel {
         mongoDbStop.setModified(true);
         UpdateOperations<MongoDbStop> ops = ops().set("name", name).set("lat", lat).set("lng", lng).set("modified", Boolean.TRUE);
         mongoDb.getDs(Config.TIMETABLE_DB).update(query(mongoDbStop), ops);
+        stops = null;
     }
 
     @Override
     public void delete(Stop stop) {
         MongoDbStop mongoDbStop = (MongoDbStop)stop;
         mongoDb.getDs(Config.TIMETABLE_DB).delete(query(mongoDbStop));
+        stops = null;
     }
 }
