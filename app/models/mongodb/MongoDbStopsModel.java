@@ -13,6 +13,7 @@ import org.bson.types.ObjectId;
 import services.MongoDb;
 import utils.Config;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -27,6 +28,10 @@ public class MongoDbStopsModel implements StopsModel {
 
     private Query<MongoDbStop> query() {
         return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(MongoDbStop.class);
+    }
+
+    private Query<MongoDbStop> query(MongoDbStop stop) {
+        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(MongoDbStop.class).field("_id").equal(stop.getObjectId());
     }
 
     private Query<MongoDbStop> queryId(ObjectId objectId) {
@@ -57,7 +62,14 @@ public class MongoDbStopsModel implements StopsModel {
 
     @Override
     public Stop create(String name, Double lat, Double lng) {
-        MongoDbStop stop = new MongoDbStop(name, lat, lng);
+        Random rand = new Random();
+
+        String stopId;
+        do {
+            stopId = "" + (Math.abs(rand.nextLong()) % 90000000000l + 10000000000l);
+        } while (getByStopId(stopId) != null);
+
+        MongoDbStop stop = new MongoDbStop(stopId, name, lat, lng);
         mongoDb.getDs(Config.TIMETABLE_DB).save(stop);
         return stop;
     }
@@ -136,5 +148,22 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public List<Stop> getAll() {
         return getStops().entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    public void update(Stop stop, String name, Double lat, Double lng) {
+        MongoDbStop mongoDbStop = (MongoDbStop)stop;
+        mongoDbStop.setName(name);
+        mongoDbStop.setLat(lat);
+        mongoDbStop.setLng(lng);
+        mongoDbStop.setModified(true);
+        UpdateOperations<MongoDbStop> ops = ops().set("name", name).set("lat", lat).set("lng", lng).set("modified", Boolean.TRUE);
+        mongoDb.getDs(Config.TIMETABLE_DB).update(query(mongoDbStop), ops);
+    }
+
+    @Override
+    public void delete(Stop stop) {
+        MongoDbStop mongoDbStop = (MongoDbStop)stop;
+        mongoDb.getDs(Config.TIMETABLE_DB).delete(query(mongoDbStop));
     }
 }

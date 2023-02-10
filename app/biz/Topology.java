@@ -130,7 +130,7 @@ public class Topology {
         }
 
         // BUSINESS
-        //edgesModel.update(edge, time);
+        stopsModel.update(stop, name, lat, lng);
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + stop);
@@ -138,14 +138,15 @@ public class Topology {
 
     public void stopDelete(Http.RequestHeader request, Stop stop, User user) {
         // ACCESS
-        if (user == null) {
+        if (user == null || !edgesModel.getEdgesFrom(stop).isEmpty()) {
             throw new NotAllowedException();
         }
 
         // INPUT
+        // nothing
 
         // BUSINESS
-        //edgesModel.delete(edge);
+        stopsModel.delete(stop);
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + stop);

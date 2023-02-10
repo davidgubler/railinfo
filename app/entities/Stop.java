@@ -18,4 +18,6 @@ public interface Stop extends Comparable<Stop> {
     String getParentId();
 
     Integer getImportance();
+
+    boolean isModified();
 }

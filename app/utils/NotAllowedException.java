@@ -5,6 +5,6 @@ public class NotAllowedException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return "Operaton not allowed";
+        return "Not allowed";
     }
 }

@@ -1,0 +1,33 @@
+@(  implicit request: Http.Request,
+    partialName: String,
+    stop: entities.Stop,
+    user: entities.User,
+)
+
+@template(request, "Delete Stop", user) {
+
+} {
+    @form(request, routes.TopologyController.stopsDeletePost(partialName, stop.getId)) {
+        <table class="mb-4">
+            <tbody>
+                <tr>
+                    <th>Name</th>
+                    <td>@stop.getName</td>
+                </tr>
+                <tr>
+                    <th>ID</th>
+                    <td>@stop.getStopId</td>
+                </tr>
+                <tr>
+                    <th>Parent ID</th>
+                    <td>@stop.getParentId</td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>@if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat,@stop.getLng</a>}</td>
+                </tr>
+            </tbody>
+        </table>
+        @formButtons("Delete Stop", routes.TopologyController.stopsList(partialName))
+    }
+}

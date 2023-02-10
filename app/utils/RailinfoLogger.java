@@ -8,8 +8,19 @@ import java.time.format.DateTimeFormatter;
 public class RailinfoLogger {
     private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-mm-dd HH:mm:ss");
 
+    private static void log(Http.RequestHeader request, String message, String level, String callerClass) {
+        System.out.println(dateTimeFormatter.format(LocalDateTime.now()) + " " + request.remoteAddress() + " " + level + " " + callerClass + " " + message);
+    }
+
     public static void info(Http.RequestHeader request, String message) {
         String callerClass = Thread.currentThread().getStackTrace()[2].getClassName();
-        System.out.println(dateTimeFormatter.format(LocalDateTime.now()) + " " + request.remoteAddress() + " " + callerClass + " " + message);
+        log(request, message, "INFO", callerClass);
+    }
+
+    public static void error(Http.RequestHeader request, Throwable e) {
+        String callerClass = Thread.currentThread().getStackTrace()[2].getClassName();
+        String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+        log(request, message, "ERROR", callerClass);
+        e.printStackTrace();
     }
 }

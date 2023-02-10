@@ -12,7 +12,7 @@
 } {
     <div class="row">
         <div class="col-lg-6">
-            @form(request, if(editStop==null){routes.TopologyController.stopsCreatePost()}else{routes.TopologyController.stopsEditPost(partialName, editStop.getStopId)}) {
+            @form(request, if(editStop==null){routes.TopologyController.stopsCreatePost()}else{routes.TopologyController.stopsEditPost(partialName, editStop.getId)}) {
                 @formInputText("Name", "name", name, errors, 10, 12, 12)
                 @formInputText("Position", "latlng", if(lat != null && lng != null ){s"$lat,$lng"}else{""}, errors, 10, 12, 12)
                 <div class="mt-3"></div>

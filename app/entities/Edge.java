@@ -29,5 +29,7 @@ public interface Edge extends Comparable<Edge> {
 
     boolean isPrintable();
 
+    boolean isModified();
+
     String toString(Stop from);
 }

@@ -33,6 +33,8 @@ public class MongoDbStop implements Stop {
 
     private Integer importance = null;
 
+    private Boolean modified = null;
+
     @Indexed
     private String parentId;
 
@@ -48,10 +50,12 @@ public class MongoDbStop implements Stop {
         // dummy constructor for Morphia
     }
 
-    public MongoDbStop(String name, Double lat, Double lng) {
+    public MongoDbStop(String stopId, String name, Double lat, Double lng) {
+        this.stopId = stopId;
         this.name = name;
         this.lat = lat;
         this.lng = lng;
+        this.modified = true;
     }
 
     public MongoDbStop(Map<String, String> data) {
@@ -79,12 +83,24 @@ public class MongoDbStop implements Stop {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Double getLat() {
         return lat;
     }
 
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
     public Double getLng() {
         return lng;
+    }
+
+    public void setLng(Double lng) {
+        this.lng = lng;
     }
 
     public String getType() {
@@ -113,7 +129,16 @@ public class MongoDbStop implements Stop {
     }
 
     public String toString() {
-        return name;
+        return "stop:" + name;
+    }
+
+    @Override
+    public boolean isModified() {
+        return modified != null && modified;
+    }
+
+    public void setModified(Boolean modified) {
+        this.modified = modified != null && modified ? true : null;
     }
 
     @Override

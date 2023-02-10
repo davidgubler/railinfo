@@ -41,6 +41,8 @@ POST    /topology/stops/_create                 controllers.TopologyController.s
 GET     /topology/stops/:partial                controllers.TopologyController.stopsList(request: Request, partial: String)
 GET     /topology/stops/:partial/:stopId/_edit  controllers.TopologyController.stopsEdit(request: Request, partial: String, stopId: String)
 POST    /topology/stops/:partial/:stopId/_edit  controllers.TopologyController.stopsEditPost(request: Request, partial: String, stopId: String)
+GET     /topology/stops/:partial/:stopId/_delete controllers.TopologyController.stopsDelete(request: Request, partial: String, stopId: String)
+POST    /topology/stops/:partial/:stopId/_delete controllers.TopologyController.stopsDeletePost(request: Request, partial: String, stopId: String)
 
 GET     /data/stops.json                        controllers.DataController.stops(request: Request)
 

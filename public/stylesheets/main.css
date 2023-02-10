@@ -63,3 +63,7 @@ span.twitter-typeahead {
 .tt-suggestion {
     cursor: pointer;
 }
+
+tr.modified {
+    background-color: #fff3cd !important;
+}

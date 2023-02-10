@@ -22,6 +22,8 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     private String stop2Id;
     private Integer typicalTime = 0;
 
+    private Boolean modified = null;
+
     @Transient
     private Stop stop1;
     @Transient
@@ -147,6 +149,15 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public boolean isPrintable() {
         return getStop1Lat() != null && getStop1Lng() != null && getStop2Lat() != null && getStop2Lng() != null;
+    }
+
+    @Override
+    public boolean isModified() {
+        return modified != null && modified;
+    }
+
+    public void setModified(Boolean modified) {
+        this.modified = modified != null && modified ? true : null;
     }
 
     @Override

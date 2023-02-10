@@ -70,7 +70,8 @@ public class MongoDbEdgesModel implements EdgesModel {
     public void update(Edge edge, int typicalTime) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDbEdge.setTypicalTime(typicalTime);
-        mongoDb.getDs(Config.TIMETABLE_DB).update(queryId(mongoDbEdge.getObjectId()), ops().set("typicalTime", mongoDbEdge.getTypicalTime()));
+        mongoDbEdge.setModified(true);
+        mongoDb.getDs(Config.TIMETABLE_DB).update(queryId(mongoDbEdge.getObjectId()), ops().set("typicalTime", mongoDbEdge.getTypicalTime()).set("modified", Boolean.TRUE));
     }
 
     @Override

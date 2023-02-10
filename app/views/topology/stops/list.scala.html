@@ -18,7 +18,7 @@
         </thead>
         <tbody>
             @for(stop <- stops) {
-            <tr>
+            <tr class="@if(stop.isModified){modified}">
                 <td>
                     @stop.getName
                 </td>
@@ -29,10 +29,13 @@
                     @stop.getParentId
                 </td>
                 <td>
-                    @if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat, @stop.getLng</a>}
+                    @if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat,@stop.getLng</a>}
                 </td>
                 <td>
-                    @if(user!=null){<a href="@routes.TopologyController.stopsEdit(partialName, stop.getId)">edit</a>}
+                    @if(user!=null){
+                        <a href="@routes.TopologyController.stopsEdit(partialName, stop.getId)">edit</a>
+                        <a href="@routes.TopologyController.stopsDelete(partialName, stop.getId)">delete</a>
+                    }
                 </td>
             </tr>
             }

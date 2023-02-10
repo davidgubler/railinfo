@@ -16,9 +16,9 @@
         </thead>
         <tbody>
         @for(edge <- edges) {
-            <tr>
-                <td>@edge.getStop1</td>
-                <td>@edge.getStop2</td>
+            <tr class="@if(edge.isModified){modified}">
+                <td>@edge.getStop1.getName</td>
+                <td>@edge.getStop2.getName</td>
                 <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
                 <td><a href="@routes.TopologyController.edgeView(edge.getId)">view</a> @if(user!=null){<a href="@routes.TopologyController.edgeEdit(edge.getId())">edit</a> <a href="@routes.TopologyController.edgeDelete(edge.getId())">delete</a>}</td>
             </tr>

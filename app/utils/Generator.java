@@ -17,9 +17,9 @@ public class Generator {
 
     public static String generateSessionId() {
         try {
-            byte[] salt = new byte[64];
-            SecureRandom.getInstance("SHA1PRNG").nextBytes(salt);
-            return Hex.encodeHexString(salt);
+            byte[] sessionId = new byte[64];
+            SecureRandom.getInstance("SHA1PRNG").nextBytes(sessionId);
+            return Hex.encodeHexString(sessionId);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

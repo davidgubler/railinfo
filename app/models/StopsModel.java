@@ -26,4 +26,8 @@ public interface StopsModel {
     void updateImportance(Set<Stop> stops, Integer importance);
 
     List<Stop> getAll();
+
+    void update(Stop stop, String name, Double lat, Double lng);
+
+    void delete(Stop stop);
 }

@@ -214,4 +214,29 @@ public class TopologyController extends Controller {
         }
         return redirect(controllers.routes.TopologyController.stopsList(partialName));
     }
+
+    public Result stopsDelete(Http.Request request, String partialName, String stopId) {
+        User user = usersModel.getFromRequest(request);
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+        Stop stop = stopsModel.get(stopId);
+        if (stop == null) {
+            throw new NotFoundException("Stop");
+        }
+        if (!edgesModel.getEdgesFrom(stop).isEmpty()) {
+            throw new NotAllowedException();
+        }
+        return ok(views.html.topology.stops.delete.render(request, partialName, stop, user));
+    }
+
+    public Result stopsDeletePost(Http.Request request, String partialName, String stopId) {
+        User user = usersModel.getFromRequest(request);
+        Stop stop = stopsModel.get(stopId);
+        if (stop == null) {
+            throw new NotFoundException("Stop");
+        }
+        topology.stopDelete(request, stop, user);
+        return redirect(controllers.routes.TopologyController.stopsList(partialName));
+    }
 }
