@@ -65,14 +65,18 @@
                 mapId: 'mymapid',
             }
             var zoom = parseInt(window.localStorage.getItem('topomap-zoom'));
-            if (zoom != null) {
-                mapOptions.zoom = zoom;
+            if (isNaN(zoom)) {
+                zoom = 10;
             }
+            mapOptions.zoom = zoom;
             var lat = parseFloat(window.localStorage.getItem('topomap-lat'));
             var lng = parseFloat(window.localStorage.getItem('topomap-lng'));
-            if (!isNaN(lat) && !isNaN(lng)) {
-                mapOptions.center = new google.maps.LatLng(lat, lng);
+            if (isNaN(lat) || isNaN(lng)) {
+                lat = 47;
+                lng = 8;
             }
+
+            mapOptions.center = new google.maps.LatLng(lat, lng);
 
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {

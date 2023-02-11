@@ -198,7 +198,7 @@ public class TimetableController extends Controller {
 
         System.out.println("realized passes: " + realizedPasses.size());
         Collections.sort(realizedPasses);
-        
+
         return ok(views.html.timetable.edge.render(request, edge, realizedPasses, user));
     }
 }
