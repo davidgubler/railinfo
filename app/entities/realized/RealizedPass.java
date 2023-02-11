@@ -14,17 +14,17 @@ public class RealizedPass implements Comparable<RealizedPass> {
     }
 
     public RealizedLocation get(Stop stop) {
-        if (startEdge.getStop().equals(stop)) {
+        if (startEdge.getStop().getBaseId().equals(stop.getBaseId())) {
             return startEdge;
         }
-        if (endEdge.getStop().equals(stop)) {
+        if (endEdge.getStop().getBaseId().equals(stop.getBaseId())) {
             return endEdge;
         }
         return null;
     }
 
     public boolean isForward(Stop stop) {
-        return startEdge.getStop().equals(stop);
+        return startEdge.getStop().getBaseId().equals(stop.getBaseId());
     }
 
     public RealizedTrip getTrip() {

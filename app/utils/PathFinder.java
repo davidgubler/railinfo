@@ -54,7 +54,7 @@ public class PathFinder {
 
         Path quickestPath = null;
 
-        List<? extends Edge> edges = f.apply(current); //edgesModel.getEdgesFrom(current);
+        List<? extends Edge> edges = f.apply(current);
         EdgeDirectionComparator comp = new EdgeDirectionComparator(current, to);
         edges.sort(comp);
 
@@ -122,10 +122,6 @@ public class PathFinder {
         int second2 = Integer.parseInt(split2[2]);
         return ((hour2 - hour1) * 60 + (minute2 - minute1)) * 60 + (second2 - second1);
     }
-
-
-
-
 
     private boolean possibleWithExistingEdges(Edge e, Map<Stop, Set<Edge>> existingTopology) {
         Path quickest = quickest(e.getStop1(), e.getStop2(), e.getTypicalTime(), stop -> { Set<Edge> edges = existingTopology.get(stop); return edges != null ? new LinkedList<>(edges) : Collections.emptyList(); });
@@ -278,16 +274,16 @@ public class PathFinder {
         Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
         List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
 
-        Map<Stop, List<Edge>> edgesLookupTable = new HashMap<>();
+        Map<String, List<Edge>> edgesLookupTable = new HashMap<>();
         for (Edge edge : edgesModel.getAll(databaseName)) {
-            if (!edgesLookupTable.containsKey(edge.getStop1())) {
-                edgesLookupTable.put(edge.getStop1(), new LinkedList<>());
+            if (!edgesLookupTable.containsKey(edge.getStop1Id())) {
+                edgesLookupTable.put(edge.getStop1Id(), new LinkedList<>());
             }
-            if (!edgesLookupTable.containsKey(edge.getStop2())) {
-                edgesLookupTable.put(edge.getStop2(), new LinkedList<>());
+            if (!edgesLookupTable.containsKey(edge.getStop2Id())) {
+                edgesLookupTable.put(edge.getStop2Id(), new LinkedList<>());
             }
-            edgesLookupTable.get(edge.getStop1()).add(edge);
-            edgesLookupTable.get(edge.getStop2()).add(edge);
+            edgesLookupTable.get(edge.getStop1Id()).add(edge);
+            edgesLookupTable.get(edge.getStop2Id()).add(edge);
         }
 
         int done = 0;
@@ -301,7 +297,7 @@ public class PathFinder {
                     Stop from = stopTimes.get(i-1).getStop();
                     Stop to = stopTimes.get(i).getStop();
                     long time = googleTransportTimeDiff(stopTimes.get(i-1).getDeparture(), stopTimes.get(i).getArrival());
-                    Path path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop));
+                    Path path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()));
                     for (Edge edge : path.getEdges()) {
                         if (!routeIdsByEdge.containsKey(edge)) {
                             routeIdsByEdge.put(edge, new HashSet<>());
