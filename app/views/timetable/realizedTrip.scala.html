@@ -20,13 +20,13 @@
         @for(realizedStopTime <- realizedTrip.getRealizedStopTimesWithIntermediate) {
             @if(realizedStopTime.stops) {
                 <tr>
-                    <td>@realizedStopTime.getStop</td>
+                    <td>@realizedStopTime.getStop.getName</td>
                     <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getArrival)</td>
                     <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
                 </tr>
             } else {
                 <tr class="waypoint">
-                    <td>@realizedStopTime.getStop</td>
+                    <td>@realizedStopTime.getStop.getName</td>
                     <td colspan="2">@utils.StringUtils.formatWaypointTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
                 </tr>
             }
