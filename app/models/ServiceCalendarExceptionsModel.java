@@ -11,7 +11,7 @@ public interface ServiceCalendarExceptionsModel {
 
     ServiceCalendarException create(String databaseName, Map<String, String> data);
 
-    List<ServiceCalendarException> create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(String databaseName, List<Map<String, String>> dataBatch);
 
     List<ServiceCalendarException> getByServiceId(String databaseName, String serviceId);
 }

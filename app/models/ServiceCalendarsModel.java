@@ -11,7 +11,7 @@ public interface ServiceCalendarsModel {
 
     ServiceCalendar create(String databaseName, Map<String, String> data);
 
-    List<ServiceCalendar> create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(String databaseName, List<Map<String, String>> dataBatch);
 
     ServiceCalendar getByServiceId(String databaseName, String serviceId);
 }

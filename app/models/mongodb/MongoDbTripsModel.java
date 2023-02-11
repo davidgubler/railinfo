@@ -41,10 +41,9 @@ public class MongoDbTripsModel implements TripsModel {
     }
 
     @Override
-    public List<Trip> create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
         List<Trip> trips = dataBatch.stream().map(data -> new Trip(data)).collect(Collectors.toList());
         mongoDb.getDs(databaseName).save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return trips;
     }
 
     @Override

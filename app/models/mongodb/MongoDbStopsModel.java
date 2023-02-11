@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
 import dev.morphia.query.UpdateOperations;
+import dev.morphia.query.internal.MorphiaCursor;
 import entities.Stop;
 import entities.mongodb.MongoDbStop;
 import models.StopsModel;
@@ -15,6 +16,7 @@ import services.MongoDb;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MongoDbStopsModel implements StopsModel {
 
@@ -40,36 +42,41 @@ public class MongoDbStopsModel implements StopsModel {
         return mongoDb.getDs(databaseName).createUpdateOperations(MongoDbStop.class);
     }
 
-
     public void drop(String databaseName) {
         mongoDb.get(databaseName).getCollection("stops").drop();
     }
 
     public MongoDbStop create(String databaseName, Map<String, String> data) {
         MongoDbStop stop = new MongoDbStop(data);
+        injector.injectMembers(stop);
+        stop.setDatabaseName(databaseName);
         mongoDb.getDs(databaseName).save(stop);
         stops.remove(databaseName);
         return stop;
     }
 
     @Override
-    public List<Stop> create(String databaseName, List<Map<String, String>> dataBatch) {
-        List<Stop> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbStop(data)).collect(Collectors.toList());
-        mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
+        List<MongoDbStop> stops = dataBatch.stream().map(data -> new MongoDbStop(data)).collect(Collectors.toList());
+        mongoDb.getDs(databaseName).save(stops, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         stops.remove(databaseName);
-        return serviceCalendarExceptions;
     }
 
     @Override
     public Stop create(String databaseName, String name, Double lat, Double lng) {
         Random rand = new Random();
-
         String stopId;
         do {
             stopId = "" + (Math.abs(rand.nextLong()) % 90000000000l + 10000000000l);
-        } while (getByStopId(databaseName, stopId) != null);
+        } while (getByStopIdUncached(databaseName, stopId) != null);
+        return create(databaseName, stopId, name, lat, lng);
+    }
 
+    @Override
+    public Stop create(String databaseName, String stopId, String name, Double lat, Double lng) {
         MongoDbStop stop = new MongoDbStop(stopId, name, lat, lng);
+        injector.injectMembers(stop);
+        stop.setDatabaseName(databaseName);
         mongoDb.getDs(databaseName).save(stop);
         stops.remove(databaseName);
         return stop;
@@ -96,11 +103,21 @@ public class MongoDbStopsModel implements StopsModel {
         if (stopId == null) {
             return null;
         }
-        stopId = stopId.split(":")[0];
-        if (stopId.endsWith("P")) {
-            stopId = stopId.substring(0, stopId.length() - 1);
-        }
         return getStops(databaseName).get(stopId);
+    }
+
+    @Override
+    public Stop getByStopIdUncached(String databaseName, String stopId) {
+        if (stopId == null) {
+            return null;
+        }
+        MongoDbStop stop = query(databaseName).field("stopId").equal(stopId).first();
+        if (stop == null) {
+            return null;
+        }
+        injector.injectMembers(stop);
+        stop.setDatabaseName(databaseName);
+        return stop;
     }
 
     @Override
@@ -153,18 +170,24 @@ public class MongoDbStopsModel implements StopsModel {
 
     private Map<String, MongoDbStop> getStops(String databaseName) {
         if (!stops.containsKey(databaseName)) {
-            List<MongoDbStop> stopsList = query(databaseName).asList();
-
             Map<String, MongoDbStop> stops = new HashMap<>();
-            for(MongoDbStop stop : stopsList) {
-                MongoDbStop alreadyInMap = stops.get(stop.getBaseId());
-                if (alreadyInMap == null || alreadyInMap.getStopId().length() > stop.getStopId().length() ) {
-                    injector.injectMembers(stop);
-                    stop.setDatabaseName(databaseName);
-                    stops.put(stop.getBaseId(), stop);
+            MorphiaCursor<MongoDbStop> stopsCursor = query(databaseName).find();
+            while (stopsCursor.hasNext()) {
+                MongoDbStop stop = stopsCursor.next();
+                injector.injectMembers(stop);
+                stop.setDatabaseName(databaseName);
+                
+                stops.put(stop.getStopId(), stop);
+
+                // We have some applications (edges in particular) that use the baseId. It is important to make
+                // stops available via baseId as well.
+                String baseId = stop.getBaseId();
+                if (!stops.containsKey(baseId) || stop.getParentId() == null) {
+                    // we try to have the baseId point to the parent
+                    stops.put(baseId, stop);
                 }
             }
-            System.out.println("found " + stopsList.size() + " stops, combined into " + stops.keySet().size());
+            stopsCursor.close();
             this.stops.put(databaseName, Collections.unmodifiableMap(stops));
         }
         return stops.get(databaseName);
@@ -173,6 +196,11 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public List<Stop> getAll(String databaseName) {
         return getStops(databaseName).entrySet().stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<Stop> getModified(String databaseName) {
+        return getAll(databaseName).stream().filter(Stop::isModified);
     }
 
     @Override

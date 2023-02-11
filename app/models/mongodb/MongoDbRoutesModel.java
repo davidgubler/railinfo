@@ -38,10 +38,9 @@ public class MongoDbRoutesModel implements RoutesModel {
     }
 
     @Override
-    public List<Route> create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
         List<Route> routes = dataBatch.stream().map(data -> new Route(data)).collect(Collectors.toList());
         mongoDb.getDs(databaseName).save(routes, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return routes;
     }
 
     @Override

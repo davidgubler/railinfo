@@ -14,7 +14,7 @@ public interface TripsModel {
 
     Trip create(String databaseName, Map<String, String> data);
 
-    List<Trip> create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(String databaseName, List<Map<String, String>> dataBatch);
 
     Trip getByTripId(String databaseName, String id);
 

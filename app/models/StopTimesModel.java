@@ -13,7 +13,7 @@ public interface StopTimesModel {
 
     StopTime create(String databaseName, Map<String, String> data);
 
-    List<StopTime> create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(String databaseName, List<Map<String, String>> dataBatch);
 
     List<StopTime> getByStops(String databaseName, Collection<? extends Stop> stops);
 

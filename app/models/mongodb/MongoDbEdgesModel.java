@@ -75,7 +75,12 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public Edge create(String databaseName, Stop stop1, Stop stop2, Integer typicalTime) {
-        MongoDbEdge edge = new MongoDbEdge(stop1.getBaseId(), stop2.getBaseId(), typicalTime, true);
+        return create(databaseName, stop1.getBaseId(), stop2.getBaseId(), typicalTime);
+    }
+
+    @Override
+    public Edge create(String databaseName, String stop1Id, String stop2Id, Integer typicalTime) {
+        MongoDbEdge edge = new MongoDbEdge(stop1Id, stop2Id, typicalTime, true);
         mongoDb.getDs(databaseName).save(edge);
         injector.injectMembers(edge);
         edge.setDatabaseName(databaseName);

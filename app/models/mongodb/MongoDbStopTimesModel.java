@@ -39,10 +39,9 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     }
 
     @Override
-    public List<StopTime> create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
         List<StopTime> serviceCalendarExceptions = dataBatch.stream().map(data -> new StopTime(data)).collect(Collectors.toList());
         mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return serviceCalendarExceptions;
     }
 
     @Override

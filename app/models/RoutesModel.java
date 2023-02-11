@@ -11,7 +11,7 @@ public interface RoutesModel {
 
     Route create(String databaseName, Map<String, String> data);
 
-    List<Route> create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(String databaseName, List<Map<String, String>> dataBatch);
 
     Route getByRouteId(String databaseName, String id);
 

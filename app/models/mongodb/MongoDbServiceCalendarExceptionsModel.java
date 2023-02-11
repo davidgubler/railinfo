@@ -34,10 +34,9 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
     }
 
     @Override
-    public List<ServiceCalendarException> create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
         List<ServiceCalendarException> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendarException(data)).collect(Collectors.toList());
         mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return serviceCalendarExceptions;
     }
 
     @Override

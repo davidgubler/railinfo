@@ -19,6 +19,8 @@ public interface EdgesModel {
 
     Edge create(String databaseName, Stop stop1, Stop stop2, Integer typicalTime);
 
+    Edge create(String databaseName, String stop1Id, String stop2Id, Integer typicalTime);
+
     void update(String databaseName, Edge edge, Integer typicalTime);
 
     void delete(String databaseName, Edge edge);

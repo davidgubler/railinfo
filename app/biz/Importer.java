@@ -1,6 +1,8 @@
 package biz;
 
 import com.google.inject.Inject;
+import entities.Edge;
+import entities.Stop;
 import entities.User;
 import models.*;
 import services.MongoDb;
@@ -14,6 +16,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,6 +25,9 @@ public class Importer {
 
     @Inject
     private StopsModel stopsModel;
+
+    @Inject
+    private EdgesModel edgesModel;
 
     @Inject
     private StopTimesModel stopTimesModel;
@@ -62,9 +69,10 @@ public class Importer {
             throw new InputValidationException(errors);
         }
 
+        // BUSINESS
+        String oldDb = mongoDb.getTimetableDatabases("ch").stream().findFirst().orElse(null);
         new Thread(() -> {
             try {
-                // BUSINESS
                 long start = System.currentTimeMillis();
                 URL url = new URL(urlStr);
                 ZipInputStream zipIn = new ZipInputStream(url.openStream());
@@ -81,22 +89,22 @@ public class Importer {
 
                     if ("stops.txt".equals(entry.getName())) {
                         stopsModel.drop(databaseName);
-                        stops = parseFile(zipIn, dataMap -> stopsModel.create(databaseName, dataMap));
+                        stops = parseFile(zipIn, dataMap -> { stopsModel.create(databaseName, dataMap); return null; });
                     } else if ("trips.txt".equals(entry.getName())) {
                         tripsModel.drop(databaseName);
-                        trips = parseFile(zipIn, dataMap -> tripsModel.create(databaseName, dataMap));
+                        trips = parseFile(zipIn, dataMap -> { tripsModel.create(databaseName, dataMap); return null; });
                     } else if ("routes.txt".equals(entry.getName())) {
                         routesModel.drop(databaseName);
-                        routes = parseFile(zipIn, dataMap -> routesModel.create(databaseName, dataMap));
+                        routes = parseFile(zipIn, dataMap -> { routesModel.create(databaseName, dataMap); return null; });
                     } else if ("stop_times.txt".equals(entry.getName())) {
                         stopTimesModel.drop(databaseName);
-                        stopTimes = parseFile(zipIn, dataMap -> stopTimesModel.create(databaseName, dataMap));
+                        stopTimes = parseFile(zipIn, dataMap -> { stopTimesModel.create(databaseName, dataMap); return null; });
                     } else if ("calendar.txt".equals(entry.getName())) {
                         serviceCalendarsModel.drop(databaseName);
-                        serviceCalendars = parseFile(zipIn, dataMap -> serviceCalendarsModel.create(databaseName, dataMap));
+                        serviceCalendars = parseFile(zipIn, dataMap -> { serviceCalendarsModel.create(databaseName, dataMap); return null; });
                     } else if ("calendar_dates.txt".equals(entry.getName())) {
                         serviceCalendarExceptionsModel.drop(databaseName);
-                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> serviceCalendarExceptionsModel.create(databaseName, dataMap));
+                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> { serviceCalendarExceptionsModel.create(databaseName, dataMap); return null; });
                     } else {
                         String line;
                         while ((line = reader.readLine()) != null) {
@@ -107,19 +115,48 @@ public class Importer {
                     entry = zipIn.getNextEntry();
                 }
                 zipIn.close();
+                RailinfoLogger.info(request, "importing stops from previous DB");
+                migrateModifiedStops(oldDb, databaseName);
+                RailinfoLogger.info(request, "importing edges from previous DB");
+                migrateModifiedEdges(oldDb, databaseName);
+                RailinfoLogger.info(request, "rebuilding indexes on " + databaseName);
+                mongoDb.getDs(databaseName).ensureIndexes();
+                mongoDb.getDs(databaseName).ensureCaps();
 
                 // LOG
-                RailinfoLogger.info(request, user + " imported database " + databaseName + " in " + (System.currentTimeMillis() - start) + " ms");
                 RailinfoLogger.info(request, "found " + stops + " stops");
                 RailinfoLogger.info(request, "found " + trips + " trips");
                 RailinfoLogger.info(request, "found " + routes + " routes");
                 RailinfoLogger.info(request, "found " + stopTimes + " stopTimes");
                 RailinfoLogger.info(request, "found " + serviceCalendars + " serviceCalendars");
                 RailinfoLogger.info(request, "found " + serviceCalendarExceptions + " serviceCalendarExceptions");
+                RailinfoLogger.info(request, user + " imported database " + databaseName + " in " + (System.currentTimeMillis() - start) + " ms");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private void migrateModifiedStops(String oldDb, String newDb) {
+        if (oldDb == null) {
+            return;
+        }
+        // only add stop if no stop with the same name exists
+        Stream<Stop> stops = stopsModel.getModified(oldDb).filter(s -> stopsModel.getByName(newDb, s.getName()).isEmpty());
+        stops.forEach(s -> {
+            stopsModel.create(newDb, s.getStopId(), s.getName(), s.getLat(), s.getLng());
+        });
+    }
+
+    private void migrateModifiedEdges(String oldDb, String newDb) {
+        if (oldDb == null) {
+            return;
+        }
+        // only add edge if it references valid stops
+        Stream<? extends Edge> edges = edgesModel.getModified(oldDb).stream().filter(e -> stopsModel.getByStopId(newDb, e.getStop1Id()) != null && stopsModel.getByStopId(newDb, e.getStop2Id()) != null);
+        edges.forEach(edge -> {
+            edgesModel.create(newDb, edge.getStop1Id(), edge.getStop2Id(), edge.getTypicalTime());
+        });
     }
 
     private String[] parseLine(String line, int length) {

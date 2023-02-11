@@ -127,7 +127,7 @@ public class MongoDbStop implements Stop {
 
     public Integer getImportance() {
         if (importance == null) {
-            Set<Stop> stops = new HashSet<>(stopsModel.getByName(databaseName, this.getName()));
+            Set<Stop> stops = new HashSet<>(stopsModel.getByName(databaseName, getName()));
             importance = stopTimesModel.getByStops(databaseName, stops).size();
             stopsModel.updateImportance(databaseName, stops, importance);
         }

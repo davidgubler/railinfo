@@ -35,10 +35,9 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
     }
 
     @Override
-    public List<ServiceCalendar> create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(String databaseName, List<Map<String, String>> dataBatch) {
         List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendar(data)).collect(Collectors.toList());
         mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
-        return serviceCalendarExceptions;
     }
 
     @Override
