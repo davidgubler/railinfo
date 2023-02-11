@@ -46,7 +46,14 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public List<? extends Edge> getAll() {
-        List<? extends MongoDbEdge> edges = query().asList();
+        List<? extends MongoDbEdge> edges = query().find().toList();
+        edges.stream().forEach(edge -> injector.injectMembers(edge));
+        return edges;
+    }
+
+    @Override
+    public List<? extends Edge> getModified() {
+        List<? extends MongoDbEdge> edges = query().field("modified").equal(true).find().toList();
         edges.stream().forEach(edge -> injector.injectMembers(edge));
         return edges;
     }

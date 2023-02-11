@@ -76,27 +76,9 @@ public class PathFinder {
         if (quickestPaths.containsKey(key)) {
             return quickestPaths.get(key);
         }
-        long start = System.currentTimeMillis();
         Map<String, Long> cacheMap = new HashMap<>();
         Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap, f);
-
-        /*
-        System.out.println("path finding from " + from + " to " + to + " in " + StringUtils.formatSeconds((int)timeLimit) + " took " + (System.currentTimeMillis() - start) + " ms and visited " + cacheMap.size() + " stations");
-        Map<Long, List<Stop>> inverted = new HashMap<>();
-        for (Map.Entry<String, Long> entry : cacheMap.entrySet()) {
-            if (!inverted.containsKey(entry.getValue())) {
-                inverted.put(entry.getValue(), new LinkedList<>());
-            }
-            inverted.get(entry.getValue()).add(stopsModel.getById(entry.getKey()));
-        }
-        List<Long> travelTimes = new LinkedList<>(inverted.keySet());
-        Collections.sort(travelTimes);
-        for (Long time : travelTimes) {
-            System.out.println(StringUtils.formatSeconds(time.intValue()) + ": "  + inverted.get(time));
-        }*/
-
         if (quickest == null) {
-            System.out.println("XXX no path found from " + from + " to " + to + " in " + timeLimit + " seconds");
             return null;
         }
         quickestPaths.put(key, quickest);
@@ -190,6 +172,18 @@ public class PathFinder {
 
         List<Edge> requiredEdges = new LinkedList<>();
         Map<Stop, Set<Edge>> topology = new HashMap<>();
+        // we want to keep all edges that have been manually modified
+        for (Edge edge : edgesModel.getModified()) {
+            if (!topology.containsKey(edge.getStop1())) {
+                topology.put(edge.getStop1(), new HashSet<>());
+            }
+            if (!topology.containsKey(edge.getStop2())) {
+                topology.put(edge.getStop2(), new HashSet<>());
+            }
+            topology.get(edge.getStop1()).add(edge);
+            topology.get(edge.getStop2()).add(edge);
+            requiredEdges.add(edge);
+        }
         for (Edge edge : allEdges) {
             if (!possibleWithExistingEdges(edge, topology)) {
                 if (!topology.containsKey(edge.getStop1())) {

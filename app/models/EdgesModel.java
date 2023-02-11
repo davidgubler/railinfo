@@ -13,6 +13,8 @@ public interface EdgesModel {
 
     List<? extends Edge> getAll();
 
+    List<? extends Edge> getModified();
+
     Edge get(String id);
 
     Edge create(Stop stop1, Stop stop2, Integer typicalTime);
