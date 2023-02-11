@@ -13,37 +13,58 @@ import dev.morphia.Morphia;
 import entities.mongodb.MongoDbEdge;
 import entities.mongodb.MongoDbStop;
 import entities.mongodb.MongoDbUser;
+import utils.Config;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MongoDb {
     private static final int TIMEOUT_CONNECT = 15 * 1000; // 15 seconds
 
-    private final Map<String, DatabaseConnection> connections = new HashMap<>();
+    private final Map<String, DatabaseConnection> connections = new ConcurrentHashMap<>();
+
+    private MongoClient client;
 
     private final ActorSystem actorSystem;
 
+    private MongoClient getClient() {
+        if (client == null) {
+            boolean tls = false;
+            String hostname = "localhost";
+            String username = null;
+            String password = null;
+            MongoClientOptions options = MongoClientOptions.builder().connectTimeout(TIMEOUT_CONNECT).sslEnabled(tls).build();
+            if (username != null && password != null) {
+                MongoCredential credential = MongoCredential.createCredential(username, Config.GLOBAL_DB, password.toCharArray());
+                new ServerAddress(hostname);
+                client = new MongoClient(new ServerAddress(hostname), Arrays.asList(credential), options);
+            } else {
+                client = new MongoClient(hostname, options);
+            }
+            actorSystem.registerOnTermination(() -> client.close());
+        }
+        return client;
+    }
+
+    public List<String> getTimetableDatabases(String countryCode) {
+        List<String> databases = new LinkedList<>();
+        Iterator<String> i = getClient().listDatabaseNames().iterator();
+        while (i.hasNext()) {
+            String dbName = i.next();
+            if (dbName.startsWith("railinfo-" + countryCode + "-")) {
+                databases.add(dbName);
+            }
+        }
+        Collections.sort(databases);
+        Collections.reverse(databases);
+        return databases;
+    }
+
     private void connect(String databaseName) {
-        // Don't use TLS by default for local development environments and for MongoDBs in OpenShift containers
-        boolean tls = false;
-        String hostname = "localhost";
-        String username = null;
-        String password = null;
-        MongoClient mongoClient;
+        MongoClient client = getClient();
         Morphia morphia;
         Datastore ds;
-        MongoClientOptions options = MongoClientOptions.builder().connectTimeout(TIMEOUT_CONNECT).sslEnabled(tls).build();
-        if (username != null && password != null) {
-            MongoCredential credential = MongoCredential.createCredential(username, databaseName, password.toCharArray());
-            new ServerAddress(hostname);
-            mongoClient = new MongoClient(new ServerAddress(hostname), Arrays.asList(credential), options);
-        } else {
-            mongoClient = new MongoClient(hostname, options);
-        }
-
-        MongoDatabase db = mongoClient.getDatabase(databaseName);
+        MongoDatabase db = client.getDatabase(databaseName);
 
         morphia = new Morphia();
         if (!databaseName.contains("-")) {
@@ -60,13 +81,11 @@ public class MongoDb {
             morphia.map(ServiceCalendarException.class);
         }
 
-        ds = morphia.createDatastore(mongoClient, databaseName);
+        ds = morphia.createDatastore(client, databaseName);
         ds.ensureIndexes();
         ds.ensureCaps();
 
-        actorSystem.registerOnTermination(() -> mongoClient.close());
-
-        connections.put(databaseName, new DatabaseConnection(mongoClient, db, morphia, ds));
+        connections.put(databaseName, new DatabaseConnection(client, db, morphia, ds));
     }
 
     @Inject

@@ -7,29 +7,29 @@ import java.util.Map;
 import java.util.Set;
 
 public interface StopsModel {
-    void drop();
+    void drop(String databaseName);
 
-    Stop create(Map<String, String> data);
+    Stop create(String databaseName, Map<String, String> data);
 
-    List<Stop> create(List<Map<String, String>> dataBatch);
+    List<Stop> create(String databaseName, List<Map<String, String>> dataBatch);
 
-    Stop create(String name, Double lat, Double lng);
+    Stop create(String databaseName, String name, Double lat, Double lng);
 
-    Stop get(String id);
+    Stop get(String databaseName, String id);
 
-    Stop getByStopId(String stopId);
+    Stop getByStopId(String databaseName, String stopId);
 
-    Set<Stop> getByName(String name);
+    Set<? extends Stop> getByName(String databaseName, String name);
 
-    Stop getPrimaryByName(String name);
+    Stop getPrimaryByName(String databaseName, String name);
 
-    List<? extends Stop> getByPartialName(String name);
+    List<? extends Stop> getByPartialName(String databaseName, String name);
 
-    void updateImportance(Set<Stop> stops, Integer importance);
+    void updateImportance(String databaseName, Set<Stop> stops, Integer importance);
 
-    List<Stop> getAll();
+    List<Stop> getAll(String databaseName);
 
-    void update(Stop stop, String name, Double lat, Double lng);
+    void update(String databaseName, Stop stop, String name, Double lat, Double lng);
 
-    void delete(Stop stop);
+    void delete(String databaseName, Stop stop);
 }

@@ -7,13 +7,13 @@ import java.util.Map;
 
 public interface RoutesModel {
 
-    void drop();
+    void drop(String databaseName);
 
-    Route create(Map<String, String> data);
+    Route create(String databaseName, Map<String, String> data);
 
-    List<Route> create(List<Map<String, String>> dataBatch);
+    List<Route> create(String databaseName, List<Map<String, String>> dataBatch);
 
-    Route getByRouteId(String id);
+    Route getByRouteId(String databaseName, String id);
 
-    List<Route> getByType(int from, int to);
+    List<Route> getByType(String databaseName, int from, int to);
 }

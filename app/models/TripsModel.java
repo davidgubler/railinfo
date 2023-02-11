@@ -10,17 +10,17 @@ import java.util.Map;
 
 public interface TripsModel {
 
-    void drop();
+    void drop(String databaseName);
 
-    Trip create(Map<String, String> data);
+    Trip create(String databaseName, Map<String, String> data);
 
-    List<Trip> create(List<Map<String, String>> dataBatch);
+    List<Trip> create(String databaseName, List<Map<String, String>> dataBatch);
 
-    Trip getByTripId(String id);
+    Trip getByTripId(String databaseName, String id);
 
-    List<Trip> getByRoute(Route route);
+    List<Trip> getByRoute(String databaseName, Route route);
 
-    RealizedTrip getRealizedTrip(String id, LocalDate date);
+    RealizedTrip getRealizedTrip(String databaseName, String id, LocalDate date);
 
-    List<? extends Trip> getAll();
+    List<? extends Trip> getAll(String databaseName);
 }

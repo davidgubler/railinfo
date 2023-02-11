@@ -1,5 +1,6 @@
 package utils;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -124,6 +125,17 @@ public class InputUtils {
     public static void validateObject(Object object, String name, boolean required, Map<String, String> errors) {
         if (required && object == null) {
             errors.put(name, ErrorMessages.PLEASE_ENTER_VALUE);
+        }
+    }
+
+    public static void validateUrl(String url, String name, boolean required, Map<String, String> errors) {
+        if (!required && url.isBlank()) {
+            return;
+        }
+        try {
+            new URL(url);
+        } catch (Exception e) {
+            errors.put(name, ErrorMessages.PLEASE_ENTER_VALID_URL);
         }
     }
 

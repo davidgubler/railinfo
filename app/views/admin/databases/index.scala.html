@@ -1,0 +1,12 @@
+@(  implicit request: Http.Request,
+    databases: List[String],
+    user: entities.User,
+)
+
+@template(request, "Databases", user) {
+
+} {
+    @for(database <- databases) {
+        @database<br />
+    }
+}

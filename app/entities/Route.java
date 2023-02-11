@@ -1,10 +1,6 @@
 package entities;
 
-import com.google.inject.Inject;
 import dev.morphia.annotations.*;
-import models.ServiceCalendarExceptionsModel;
-import models.ServiceCalendarsModel;
-import models.StopTimesModel;
 import org.bson.types.ObjectId;
 
 import java.util.Map;
@@ -26,18 +22,6 @@ public class Route {
     private String desc;
 
     private Integer type;
-
-    @Transient
-    @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Transient
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Transient
-    @Inject
-    private StopTimesModel stopTimesModel;
 
     public Route() {
         // dummy constructor for morphia

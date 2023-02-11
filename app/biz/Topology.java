@@ -8,6 +8,7 @@ import models.RoutesModel;
 import models.StopsModel;
 import models.TripsModel;
 import play.mvc.Http;
+import services.MongoDb;
 import utils.*;
 
 import java.util.HashMap;
@@ -32,7 +33,10 @@ public class Topology {
     @Inject
     private PathFinder pathFinder;
 
-    public void edgeCreate(Http.RequestHeader request, Stop stop1, Stop stop2, Integer time, User user) throws InputValidationException {
+    @Inject
+    private MongoDb mongoDb;
+
+    public void edgeCreate(Http.RequestHeader request, String databaseName, Stop stop1, Stop stop2, Integer time, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -48,14 +52,14 @@ public class Topology {
         }
 
         // BUSINESS
-        Edge edge = edgesModel.create(stop1, stop2, time);
+        Edge edge = edgesModel.create(databaseName, stop1, stop2, time);
         pathFinder.clearCache();
 
         // LOG
         RailinfoLogger.info(request, user + " created " + edge);
     }
 
-    public void edgeUpdate(Http.RequestHeader request, Edge edge, Integer time, User user) throws InputValidationException {
+    public void edgeUpdate(Http.RequestHeader request, String databaseName, Edge edge, Integer time, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -69,14 +73,14 @@ public class Topology {
         }
 
         // BUSINESS
-        edgesModel.update(edge, time);
+        edgesModel.update(databaseName, edge, time);
         pathFinder.clearCache();
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + edge);
     }
 
-    public void edgeDelete(Http.RequestHeader request, Edge edge, User user) {
+    public void edgeDelete(Http.RequestHeader request, String databaseName, Edge edge, User user) {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -85,14 +89,14 @@ public class Topology {
         // INPUT
 
         // BUSINESS
-        edgesModel.delete(edge);
+        edgesModel.delete(databaseName, edge);
         pathFinder.clearCache();
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + edge);
     }
 
-    public void recalculateEdges(Http.RequestHeader request, User user) {
+    public void recalculateEdges(Http.RequestHeader request, String databaseName, User user) {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -102,14 +106,14 @@ public class Topology {
 
         // BUSINESS
         new Thread(() -> {
-            pathFinder.recalculateEdges();
+            pathFinder.recalculateEdges(databaseName);
         }).start();
 
         // LOG
         RailinfoLogger.info(request, user + " recalculated edges");
     }
 
-    public void recalculatePaths(Http.RequestHeader request, User user) {
+    public void recalculatePaths(Http.RequestHeader request, String databaseName, User user) {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -119,14 +123,14 @@ public class Topology {
 
         // BUSINESS
         new Thread(() -> {
-            pathFinder.recalculatePaths();
+            pathFinder.recalculatePaths(databaseName);
         }).start();
 
         // LOG
         RailinfoLogger.info(request, user + " recalculated paths");
     }
 
-    public void stopCreate(Http.RequestHeader request, String name, Double lat, Double lng, User user) throws InputValidationException {
+    public void stopCreate(Http.RequestHeader request, String databaseName, String name, Double lat, Double lng, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -140,13 +144,13 @@ public class Topology {
         }
 
         // BUSINESS
-        Stop stop = stopsModel.create(name, lat, lng);
+        Stop stop = stopsModel.create(databaseName, name, lat, lng);
 
         // LOG
         RailinfoLogger.info(request, user + " created " + stop);
     }
 
-    public void stopUpdate(Http.RequestHeader request, Stop stop, String name, Double lat, Double lng, User user) throws InputValidationException {
+    public void stopUpdate(Http.RequestHeader request, String databaseName, Stop stop, String name, Double lat, Double lng, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -160,15 +164,15 @@ public class Topology {
         }
 
         // BUSINESS
-        stopsModel.update(stop, name, lat, lng);
+        stopsModel.update(databaseName, stop, name, lat, lng);
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + stop);
     }
 
-    public void stopDelete(Http.RequestHeader request, Stop stop, User user) {
+    public void stopDelete(Http.RequestHeader request, String databaseName, Stop stop, User user) {
         // ACCESS
-        if (user == null || !edgesModel.getEdgesFrom(stop).isEmpty()) {
+        if (user == null || !edgesModel.getEdgesFrom(databaseName, stop).isEmpty()) {
             throw new NotAllowedException();
         }
 
@@ -176,7 +180,7 @@ public class Topology {
         // nothing
 
         // BUSINESS
-        stopsModel.delete(stop);
+        stopsModel.delete(databaseName, stop);
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + stop);

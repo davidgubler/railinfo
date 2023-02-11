@@ -3,8 +3,10 @@ package biz;
 import com.google.inject.Inject;
 import entities.User;
 import models.UsersModel;
+import play.mvc.Http;
 import utils.ErrorMessages;
 import utils.InputValidationException;
+import utils.RailinfoLogger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +15,7 @@ public class Login {
     @Inject
     private UsersModel usersModel;
 
-    public User login(String email, String password) throws InputValidationException {
+    public User login(Http.RequestHeader request, String email, String password) throws InputValidationException {
         // ACCESS
         // nothing
 
@@ -32,12 +34,12 @@ public class Login {
         usersModel.startSession(user);
 
         // LOG
-        // TODO
+        RailinfoLogger.info(request, user + " logged in");
 
         return user;
     }
 
-    public void logout(User user) {
+    public void logout(Http.RequestHeader request, User user) {
         // ACCESS
         // nothing
 
@@ -48,6 +50,6 @@ public class Login {
         usersModel.killSessions(user);
 
         // LOG
-        // TODO
+        RailinfoLogger.info(request, user + " logged out");
     }
 }

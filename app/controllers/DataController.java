@@ -8,6 +8,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import services.MongoDb;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,8 +18,12 @@ public class DataController extends Controller {
     @Inject
     private StopsModel stopsModel;
 
+    @Inject
+    private MongoDb mongoDb;
+
     public Result stops(Http.Request request) {
-        List<String> stops = stopsModel.getAll().stream().map(Stop::getName).collect(Collectors.toList());
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        List<String> stops = stopsModel.getAll(databaseName).stream().map(Stop::getName).collect(Collectors.toList());
         Collections.sort(stops);
         ArrayNode stopsArray = Json.newArray();
         stops.forEach(s -> stopsArray.add(s));

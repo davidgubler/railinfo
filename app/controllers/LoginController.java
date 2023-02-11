@@ -38,7 +38,7 @@ public class LoginController extends Controller {
         String email = InputUtils.trimToNull(data.get("email"));
         String password = InputUtils.trimToNull(data.get("password"));
         try {
-            User user = login.login(email, password);
+            User user = login.login(request, email, password);
             List<? extends Session> sessions = user.getSessions();
             Session session = sessions.get(sessions.size() - 1);
             Http.Cookie sessionCookie = Http.Cookie.builder("sessionId", session.getSessionId()).withMaxAge(Duration.ofDays(365)).build();
@@ -52,7 +52,7 @@ public class LoginController extends Controller {
     public Result logout(Http.Request request) {
         User user = usersModel.getFromRequest(request);
         if (user != null) {
-            usersModel.killSessions(user);
+            login.logout(request, user);
         }
         Http.Cookie sessionCookie = Http.Cookie.builder("sessionId", "").withMaxAge(Duration.ZERO).build();
         Http.Cookie csrfTokenCookie = Http.Cookie.builder("csrfToken", "").withMaxAge(Duration.ZERO).build();

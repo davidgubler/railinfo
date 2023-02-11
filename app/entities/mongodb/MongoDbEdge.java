@@ -25,6 +25,9 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     private Boolean modified = null;
 
     @Transient
+    private String databaseName;
+
+    @Transient
     private Stop stop1;
     @Transient
     private Stop stop2;
@@ -50,6 +53,10 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         this.stop2Id = stop2Id;
         this.typicalTime = typicalTime;
         setModified(modified);
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     @Override
@@ -104,7 +111,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop1() {
         if (stop1 == null) {
-            stop1 = stopsModel.getByStopId(stop1Id);
+            stop1 = stopsModel.getByStopId(databaseName, stop1Id);
         }
         return stop1;
     }
@@ -117,7 +124,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop2() {
         if (stop2 == null) {
-            stop2 = stopsModel.getByStopId(stop2Id);
+            stop2 = stopsModel.getByStopId(databaseName, stop2Id);
         }
         return stop2;
     }

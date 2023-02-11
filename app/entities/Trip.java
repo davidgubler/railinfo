@@ -36,6 +36,9 @@ public class Trip implements Comparable<Trip> {
     private String directionId;
 
     @Transient
+    private String databaseName;
+
+    @Transient
     @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
 
@@ -62,6 +65,10 @@ public class Trip implements Comparable<Trip> {
         this.tripHeadsign = data.get("trip_headsign");
         this.tripShortName = data.get("trip_short_name");
         this.directionId = data.get("direction_id");
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public String routeId() {
@@ -93,13 +100,13 @@ public class Trip implements Comparable<Trip> {
     }
 
     public boolean isActive(LocalDate date) {
-        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(serviceId);
+        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(databaseName, serviceId);
         List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> date.equals(s.getDate())).collect(Collectors.toList());
         if (todaysExceptions.size() == 1) {
             return todaysExceptions.get(0).getActive();
         }
 
-        ServiceCalendar cal = serviceCalendarsModel.getByServiceId(serviceId);
+        ServiceCalendar cal = serviceCalendarsModel.getByServiceId(databaseName, serviceId);
         if (date.isBefore(cal.getStart()) || date.isAfter(cal.getEnd())) {
             return false;
         }
@@ -130,11 +137,11 @@ public class Trip implements Comparable<Trip> {
     }
 
     public List<StopTime> getStopTimes() {
-        return stopTimesModel.getByTrip(this);
+        return stopTimesModel.getByTrip(databaseName, this);
     }
 
     public Route getRoute() {
-        return routesModel.getByRouteId(routeId);
+        return routesModel.getByRouteId(databaseName, routeId);
     }
 
     @Override

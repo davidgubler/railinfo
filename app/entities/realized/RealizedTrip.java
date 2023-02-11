@@ -19,6 +19,8 @@ public class RealizedTrip {
 
     private List<RealizedStopTime> realizedStopTimes;
 
+    private String databaseName;
+
     @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
 
@@ -45,7 +47,11 @@ public class RealizedTrip {
         this.startDate = startDate;
     }
 
-    public RealizedDeparture getDeparture(Collection<Stop> stops) {
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public RealizedDeparture getDeparture(Collection<? extends Stop> stops) {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
         int i = 0;
         for (RealizedStopTime realizedStopTime : getRealizedStopTimes()) {
@@ -59,7 +65,7 @@ public class RealizedTrip {
 
     public List<RealizedStopTime> getRealizedStopTimes() {
         if (realizedStopTimes == null) {
-            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel)).collect(Collectors.toList()));
+            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel, databaseName)).collect(Collectors.toList()));
             // At least in some cases the first and last stop have invalid arrivals/departures, fix this
             this.realizedStopTimes.get(0).setArrival(null);
             this.realizedStopTimes.get(realizedStopTimes.size()-1).setDeparture(null);
@@ -78,7 +84,7 @@ public class RealizedTrip {
             for (int i = 1; i < realizedStopTimes.size(); i++) {
                 Stop from = realizedStopTimes.get(i - 1).getStop();
                 Stop to = realizedStopTimes.get(i).getStop();
-                complete.addAll(pathFinder.getIntermediate(from, to, realizedStopTimes.get(i - 1).getDeparture(), realizedStopTimes.get(i).getArrival()));
+                complete.addAll(pathFinder.getIntermediate(databaseName, from, to, realizedStopTimes.get(i - 1).getDeparture(), realizedStopTimes.get(i).getArrival()));
                 complete.add(realizedStopTimes.get(i));
             }
             realizedStopTimesWithIntermediate = complete;

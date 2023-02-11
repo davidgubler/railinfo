@@ -8,6 +8,7 @@ import models.*;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import services.MongoDb;
 import utils.ErrorMessages;
 import utils.InputUtils;
 import utils.NotFoundException;
@@ -50,6 +51,9 @@ public class TimetableController extends Controller {
     @Inject
     private Injector injector;
 
+    @Inject
+    private MongoDb mongoDb;
+
     public Result index(Http.Request request) {
         User user = usersModel.getFromRequest(request);
         return ok(views.html.timetable.index.render(request, null, InputUtils.NOERROR, user));
@@ -57,6 +61,7 @@ public class TimetableController extends Controller {
 
     public Result indexPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
 
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String submit = InputUtils.trimToNull(data.get("submit"));
@@ -64,7 +69,7 @@ public class TimetableController extends Controller {
 
         Map<String, String> errors = new HashMap<>();
         if ("Show Stop".equals(submit)) {
-            if (stopsModel.getByName(stop).isEmpty()) {
+            if (stopsModel.getByName(databaseName, stop).isEmpty()) {
                 errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
             } else {
                 return redirect(routes.TimetableController.stop(stop));
@@ -76,17 +81,18 @@ public class TimetableController extends Controller {
 
     public Result stop(Http.Request request, String stopName)  {
         User user = usersModel.getFromRequest(request);
-        Set<Stop> stops = stopsModel.getByName(stopName);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Set<? extends Stop> stops = stopsModel.getByName(databaseName, stopName);
         if (stops.isEmpty()) {
             throw new NotFoundException("Stop");
         }
 
         LocalDateTime dateTime = LocalDateTime.now();
 
-        List<StopTime> stopTimes = stopTimesModel.getByStops(stops);
+        List<StopTime> stopTimes = stopTimesModel.getByStops(databaseName, stops);
         List<Trip> trips = new LinkedList<>();
         for (StopTime stopTime : stopTimes) {
-            Trip trip = tripsModel.getByTripId(stopTime.getTripId());
+            Trip trip = tripsModel.getByTripId(databaseName, stopTime.getTripId());
             if (trip != null) {
                 trips.add(trip);
             }
@@ -100,6 +106,7 @@ public class TimetableController extends Controller {
             realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
                 RealizedTrip realizedTrip = new RealizedTrip(t, d);
                 injector.injectMembers(realizedTrip);
+                realizedTrip.setDatabaseName(databaseName);
                 return realizedTrip;
             }).collect(Collectors.toSet()));
         }
@@ -129,8 +136,9 @@ public class TimetableController extends Controller {
 
     public Result realizedTrip(Http.Request request, String tripId, String startDateStr)  {
         User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
         LocalDate startDate = LocalDate.parse(startDateStr);
-        RealizedTrip realizedTrip = tripsModel.getRealizedTrip(tripId, startDate);
+        RealizedTrip realizedTrip = tripsModel.getRealizedTrip(databaseName, tripId, startDate);
         if (realizedTrip == null) {
             throw new NotFoundException("Realized Trip");
         }
@@ -139,20 +147,21 @@ public class TimetableController extends Controller {
 
     public Result edge(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
 
-        Set<String> routeIds = pathFinder.getRouteIdsByEdge(edge);
+        Set<String> routeIds = pathFinder.getRouteIdsByEdge(databaseName, edge);
         Set<Route> routes = new HashSet<>();
         for (String routeId : routeIds) {
-            routes.add(routesModel.getByRouteId(routeId));
+            routes.add(routesModel.getByRouteId(databaseName, routeId));
         }
 
         Set<Trip> trips = new HashSet<>();
         for (Route route : routes) {
-            trips.addAll(tripsModel.getByRoute(route));
+            trips.addAll(tripsModel.getByRoute(databaseName, route));
         }
 
         List<RealizedTrip> realizedTrips = new LinkedList<>();
@@ -162,6 +171,7 @@ public class TimetableController extends Controller {
             realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
                 RealizedTrip realizedTrip = new RealizedTrip(t, d);
                 injector.injectMembers(realizedTrip);
+                realizedTrip.setDatabaseName(databaseName);
                 return realizedTrip;
             }).collect(Collectors.toSet()));
         }

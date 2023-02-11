@@ -29,6 +29,9 @@ public class StopTime implements Comparable<StopTime> {
     private String dropoffType;
 
     @Transient
+    private String databaseName;
+
+    @Transient
     @Inject
     private StopsModel stopsModel;
 
@@ -44,6 +47,10 @@ public class StopTime implements Comparable<StopTime> {
         this.stopSequence = Integer.parseInt(data.get("stop_sequence"));
         this.pickupType = data.get("pickup_type");
         this.dropoffType = data.get("drop_off_type");
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public String getTripId() {
@@ -63,7 +70,7 @@ public class StopTime implements Comparable<StopTime> {
     }
 
     public Stop getStop() {
-        return stopsModel.getByStopId(stopId);
+        return stopsModel.getByStopId(databaseName, stopId);
     }
 
     public Integer getStopSequence() {

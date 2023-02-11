@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import entities.*;
 import models.*;
+import services.MongoDb;
 import utils.*;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -44,9 +45,13 @@ public class TopologyController extends Controller {
     @Inject
     private Injector injector;
 
+    @Inject
+    private MongoDb mongoDb;
+
     public Result edgesList(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        List<? extends Edge> edges = edgesModel.getAll();
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        List<? extends Edge> edges = edgesModel.getAll(databaseName);
         return ok(views.html.topology.edges.list.render(request, edges, user));
     }
 
@@ -55,26 +60,29 @@ public class TopologyController extends Controller {
         if (user == null) {
             throw new NotAllowedException();
         }
-        return ok(views.html.topology.edges.create.render(request, null, null, null, stopsModel.getAll(), InputUtils.NOERROR, user));
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        return ok(views.html.topology.edges.create.render(request, null, null, null, stopsModel.getAll(databaseName), InputUtils.NOERROR, user));
     }
 
     public Result edgesCreatePost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
         Map<String, String[]> data = request.body().asFormUrlEncoded();
-        Stop stop1 = stopsModel.getPrimaryByName(InputUtils.trimToNull(data.get("stop1")));
-        Stop stop2 = stopsModel.getPrimaryByName(InputUtils.trimToNull(data.get("stop2")));
+        Stop stop1 = stopsModel.getPrimaryByName(databaseName, InputUtils.trimToNull(data.get("stop1")));
+        Stop stop2 = stopsModel.getPrimaryByName(databaseName, InputUtils.trimToNull(data.get("stop2")));
         Integer time = InputUtils.parseDuration(data.get("time"));
         try {
-            topology.edgeCreate(request, stop1, stop2, time, user);
+            topology.edgeCreate(request, databaseName, stop1, stop2, time, user);
         } catch (InputValidationException e) {
-            return ok(views.html.topology.edges.create.render(request, stop1, stop2, time, stopsModel.getAll(), e.getErrors(), user));
+            return ok(views.html.topology.edges.create.render(request, stop1, stop2, time, stopsModel.getAll(databaseName), e.getErrors(), user));
         }
         return redirect(controllers.routes.TopologyController.edgesList());
     }
 
     public Result edgesView(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
@@ -86,7 +94,8 @@ public class TopologyController extends Controller {
         if (user == null) {
             throw new NotAllowedException();
         }
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
@@ -95,14 +104,15 @@ public class TopologyController extends Controller {
 
     public Result edgesEditPost(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         Integer time = InputUtils.parseDuration(data.get("time"));
         try {
-            topology.edgeUpdate(request, edge, time, user);
+            topology.edgeUpdate(request, databaseName, edge, time, user);
         } catch (InputValidationException e) {
             return ok(views.html.topology.edges.edit.render(request, edge, e.getErrors(), user));
         }
@@ -114,7 +124,8 @@ public class TopologyController extends Controller {
         if (user == null) {
             throw new NotAllowedException();
         }
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
@@ -123,11 +134,12 @@ public class TopologyController extends Controller {
 
     public Result edgesDeletePost(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        Edge edge = edgesModel.get(edgeId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
-        topology.edgeDelete(request, edge, user);
+        topology.edgeDelete(request, databaseName, edge, user);
         return redirect(controllers.routes.TopologyController.edgesList());
     }
 
@@ -141,19 +153,22 @@ public class TopologyController extends Controller {
 
     public Result recalculateEdgesPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        topology.recalculateEdges(request, user);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        topology.recalculateEdges(request, databaseName, user);
         return redirect(controllers.routes.TopologyController.recalculate());
     }
 
     public Result recalculatePathsPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        topology.recalculatePaths(request, user);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        topology.recalculatePaths(request, databaseName, user);
         return redirect(controllers.routes.TopologyController.recalculate());
     }
 
     public Result map(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.topology.map.render(request, edgesModel.getAll(), user));
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        return ok(views.html.topology.map.render(request, edgesModel.getAll(databaseName), user));
     }
 
     public Result stopsSearch(Http.Request request) {
@@ -163,9 +178,10 @@ public class TopologyController extends Controller {
 
     public Result stopsSearchPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String partialName = InputUtils.trimToNull(data.get("partialName"));
-        List<? extends Stop> stops = stopsModel.getByPartialName(partialName);
+        List<? extends Stop> stops = stopsModel.getByPartialName(databaseName, partialName);
         if (stops.isEmpty()) {
             return ok(views.html.topology.stops.search.render(request, partialName, Map.of("partialName", ErrorMessages.STOP_NOT_FOUND), user));
         }
@@ -174,7 +190,8 @@ public class TopologyController extends Controller {
 
     public Result stopsList(Http.Request request, String partialName) {
         User user = usersModel.getFromRequest(request);
-        List<? extends Stop> stops = stopsModel.getByPartialName(partialName);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        List<? extends Stop> stops = stopsModel.getByPartialName(databaseName, partialName);
         Collections.sort(stops);
         return ok(views.html.topology.stops.list.render(request, partialName, stops, user));
     }
@@ -189,13 +206,14 @@ public class TopologyController extends Controller {
 
     public Result stopsCreatePost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String name = InputUtils.trimToNull(data.get("name"));
         String[] latlng = InputUtils.trimToNull(data.get("latlng")).split(",");
         Double lat = InputUtils.toDouble(latlng.length >= 2 ? latlng[0] : null);
         Double lng = InputUtils.toDouble(latlng.length >= 2 ? latlng[1] : null);
         try {
-            topology.stopCreate(request, name, lat, lng, user);
+            topology.stopCreate(request, databaseName, name, lat, lng, user);
         } catch (InputValidationException e) {
             return ok(views.html.topology.stops.edit.render(request, null, null, name, lat, lng, e.getErrors(), user));
         }
@@ -207,7 +225,8 @@ public class TopologyController extends Controller {
         if (user == null) {
             throw new NotAllowedException();
         }
-        Stop editStop = stopsModel.get(editStopId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Stop editStop = stopsModel.get(databaseName, editStopId);
         if (editStop == null) {
             throw new NotFoundException("Stop");
         }
@@ -216,7 +235,8 @@ public class TopologyController extends Controller {
 
     public Result stopsEditPost(Http.Request request, String partialName, String editStopId) {
         User user = usersModel.getFromRequest(request);
-        Stop editStop = stopsModel.get(editStopId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Stop editStop = stopsModel.get(databaseName, editStopId);
         if (editStop == null) {
             throw new NotFoundException("Stop");
         }
@@ -226,7 +246,7 @@ public class TopologyController extends Controller {
         Double lat = InputUtils.toDouble(latlng.length >= 2 ? latlng[0] : null);
         Double lng = InputUtils.toDouble(latlng.length >= 2 ? latlng[1] : null);
         try {
-            topology.stopUpdate(request, editStop, name, lat, lng, user);
+            topology.stopUpdate(request, databaseName, editStop, name, lat, lng, user);
         } catch (InputValidationException e) {
             return ok(views.html.topology.stops.edit.render(request, partialName, editStop, name, lat, lng, e.getErrors(), user));
         }
@@ -238,11 +258,12 @@ public class TopologyController extends Controller {
         if (user == null) {
             throw new NotAllowedException();
         }
-        Stop stop = stopsModel.get(stopId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Stop stop = stopsModel.get(databaseName, stopId);
         if (stop == null) {
             throw new NotFoundException("Stop");
         }
-        if (!edgesModel.getEdgesFrom(stop).isEmpty()) {
+        if (!edgesModel.getEdgesFrom(databaseName, stop).isEmpty()) {
             throw new NotAllowedException();
         }
         return ok(views.html.topology.stops.delete.render(request, partialName, stop, user));
@@ -250,11 +271,12 @@ public class TopologyController extends Controller {
 
     public Result stopsDeletePost(Http.Request request, String partialName, String stopId) {
         User user = usersModel.getFromRequest(request);
-        Stop stop = stopsModel.get(stopId);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Stop stop = stopsModel.get(databaseName, stopId);
         if (stop == null) {
             throw new NotFoundException("Stop");
         }
-        topology.stopDelete(request, stop, user);
+        topology.stopDelete(request, databaseName, stop, user);
         return redirect(controllers.routes.TopologyController.stopsList(partialName));
     }
 }

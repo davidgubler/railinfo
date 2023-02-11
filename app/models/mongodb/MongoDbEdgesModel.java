@@ -10,7 +10,6 @@ import entities.mongodb.MongoDbEdge;
 import models.EdgesModel;
 import org.bson.types.ObjectId;
 import services.MongoDb;
-import utils.Config;
 
 import java.util.List;
 
@@ -21,89 +20,92 @@ public class MongoDbEdgesModel implements EdgesModel {
     @Inject
     private MongoDb mongoDb;
 
-    private Query<MongoDbEdge> query() {
-        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(MongoDbEdge.class);
+    private Query<MongoDbEdge> query(String databaseName) {
+        return mongoDb.getDs(databaseName).createQuery(MongoDbEdge.class);
     }
 
-    private Query<MongoDbEdge> queryId(ObjectId objectId) {
-        return query().field("_id").equal(objectId);
+    private Query<MongoDbEdge> queryId(String databaseName, ObjectId objectId) {
+        return query(databaseName).field("_id").equal(objectId);
     }
 
-    private UpdateOperations<MongoDbEdge> ops() {
-        return mongoDb.getDs(Config.TIMETABLE_DB).createUpdateOperations(MongoDbEdge.class);
-    }
-
-    @Override
-    public void drop() {
-        mongoDb.get(Config.TIMETABLE_DB).getCollection("edges").drop();
+    private UpdateOperations<MongoDbEdge> ops(String databaseName) {
+        return mongoDb.getDs(databaseName).createUpdateOperations(MongoDbEdge.class);
     }
 
     @Override
-    public Edge save(Edge edge) {
-        mongoDb.getDs(Config.TIMETABLE_DB).save(edge);
+    public void drop(String databaseName) {
+        mongoDb.get(databaseName).getCollection("edges").drop();
+    }
+
+    @Override
+    public Edge save(String databaseName, Edge edge) {
+        mongoDb.getDs(databaseName).save(edge);
         return edge;
     }
 
     @Override
-    public List<? extends Edge> getAll() {
-        List<? extends MongoDbEdge> edges = query().find().toList();
-        edges.stream().forEach(edge -> injector.injectMembers(edge));
+    public List<? extends Edge> getAll(String databaseName) {
+        List<? extends MongoDbEdge> edges = query(databaseName).find().toList();
+        edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setDatabaseName(databaseName); });
         return edges;
     }
 
     @Override
-    public List<? extends Edge> getModified() {
-        List<? extends MongoDbEdge> edges = query().field("modified").equal(true).find().toList();
-        edges.stream().forEach(edge -> injector.injectMembers(edge));
+    public List<? extends Edge> getModified(String databaseName) {
+        List<? extends MongoDbEdge> edges = query(databaseName).field("modified").equal(true).find().toList();
+        edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setDatabaseName(databaseName); });
         return edges;
     }
 
     @Override
-    public Edge get(String id) {
+    public Edge get(String databaseName, String id) {
         ObjectId objectId;
         try {
             objectId = new ObjectId(id);
         } catch (Exception e) {
             return null;
         }
-        Edge edge = query().field("_id").equal(objectId).first();
+        MongoDbEdge edge = query(databaseName).field("_id").equal(objectId).first();
         if (edge != null) {
             injector.injectMembers(edge);
+            edge.setDatabaseName(databaseName);
         }
         return edge;
     }
 
     @Override
-    public Edge create(Stop stop1, Stop stop2, Integer typicalTime) {
+    public Edge create(String databaseName, Stop stop1, Stop stop2, Integer typicalTime) {
         MongoDbEdge edge = new MongoDbEdge(stop1.getBaseId(), stop2.getBaseId(), typicalTime, true);
-        mongoDb.getDs(Config.TIMETABLE_DB).save(edge);
+        mongoDb.getDs(databaseName).save(edge);
         injector.injectMembers(edge);
+        edge.setDatabaseName(databaseName);
         return edge;
     }
 
     @Override
-    public void update(Edge edge, Integer typicalTime) {
+    public void update(String databaseName, Edge edge, Integer typicalTime) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDbEdge.setTypicalTime(typicalTime);
         mongoDbEdge.setModified(true);
-        mongoDb.getDs(Config.TIMETABLE_DB).update(queryId(mongoDbEdge.getObjectId()), ops().set("typicalTime", mongoDbEdge.getTypicalTime()).set("modified", Boolean.TRUE));
+        mongoDb.getDs(databaseName).update(queryId(databaseName, mongoDbEdge.getObjectId()), ops(databaseName).set("typicalTime", mongoDbEdge.getTypicalTime()).set("modified", Boolean.TRUE));
     }
 
     @Override
-    public void delete(Edge edge) {
+    public void delete(String databaseName, Edge edge) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
-        mongoDb.getDs(Config.TIMETABLE_DB).delete(queryId(mongoDbEdge.getObjectId()));
+        mongoDb.getDs(databaseName).delete(queryId(databaseName, mongoDbEdge.getObjectId()));
     }
 
     @Override
-    public List<? extends Edge> getEdgesFrom(Stop stop) {
+    public List<? extends Edge> getEdgesFrom(String databaseName, Stop stop) {
         String stopId = stop.getBaseId();
 
-        Query<MongoDbEdge> query = query();
+        Query<MongoDbEdge> query = query(databaseName);
         query.or(query.or(query.criteria("stop1Id").equal(stopId), query.criteria("stop2Id").equal(stopId)));
         List<MongoDbEdge> edges = query.asList();
-        for(Edge edge : edges) {
+        for(MongoDbEdge edge : edges) {
             injector.injectMembers(edge);
+            edge.setDatabaseName(databaseName);
         }
         return edges;
     }

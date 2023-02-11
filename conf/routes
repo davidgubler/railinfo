@@ -19,6 +19,7 @@ GET     /admin/users/:uid/edit                  controllers.AdminController.user
 POST    /admin/users/:uid/edit                  controllers.AdminController.usersEditPost(request: Request, uid: String)
 GET     /admin/users/:uid/delete                controllers.AdminController.usersDelete(request: Request, uid: String)
 POST    /admin/users/:uid/delete                controllers.AdminController.usersDeletePost(request: Request, uid: String)
+GET     /admin/databases                        controllers.DataImportController.listDatabases(request: Request)
 GET     /admin/import                           controllers.DataImportController.index(request: Request)
 POST    /admin/import/gtfs                      controllers.DataImportController.importGtfsPost(request: Request)
 

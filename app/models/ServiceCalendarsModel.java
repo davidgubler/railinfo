@@ -1,18 +1,17 @@
 package models;
 
 import entities.ServiceCalendar;
-import entities.ServiceCalendarException;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ServiceCalendarsModel {
 
-    void drop();
+    void drop(String databaseName);
 
-    ServiceCalendar create(Map<String, String> data);
+    ServiceCalendar create(String databaseName, Map<String, String> data);
 
-    List<ServiceCalendar> create(List<Map<String, String>> dataBatch);
+    List<ServiceCalendar> create(String databaseName, List<Map<String, String>> dataBatch);
 
-    ServiceCalendar getByServiceId(String serviceId);
+    ServiceCalendar getByServiceId(String databaseName, String serviceId);
 }

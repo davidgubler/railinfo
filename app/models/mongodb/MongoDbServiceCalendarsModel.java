@@ -8,7 +8,6 @@ import entities.ServiceCalendar;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
-import utils.Config;
 
 import java.util.List;
 import java.util.Map;
@@ -17,36 +16,33 @@ import java.util.stream.Collectors;
 public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
 
     @Inject
-    private Injector injector;
-
-    @Inject
     private MongoDb mongoDb;
 
-    private Query<ServiceCalendar> query() {
-        return mongoDb.getDs(Config.TIMETABLE_DB).createQuery(ServiceCalendar.class);
+    private Query<ServiceCalendar> query(String databaseName) {
+        return mongoDb.getDs(databaseName).createQuery(ServiceCalendar.class);
     }
 
     @Override
-    public void drop() {
-        mongoDb.get(Config.TIMETABLE_DB).getCollection("serviceCalendars").drop();
+    public void drop(String databaseName) {
+        mongoDb.get(databaseName).getCollection("serviceCalendars").drop();
     }
 
     @Override
-    public ServiceCalendar create(Map<String, String> data) {
+    public ServiceCalendar create(String databaseName, Map<String, String> data) {
         ServiceCalendar serviceCalendar = new ServiceCalendar(data);
-        mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendar);
+        mongoDb.getDs(databaseName).save(serviceCalendar);
         return serviceCalendar;
     }
 
     @Override
-    public List<ServiceCalendar> create(List<Map<String, String>> dataBatch) {
+    public List<ServiceCalendar> create(String databaseName, List<Map<String, String>> dataBatch) {
         List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendar(data)).collect(Collectors.toList());
-        mongoDb.getDs(Config.TIMETABLE_DB).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         return serviceCalendarExceptions;
     }
 
     @Override
-    public ServiceCalendar getByServiceId(String serviceId) {
-        return query().field("serviceId").equal(serviceId).get();
+    public ServiceCalendar getByServiceId(String databaseName, String serviceId) {
+        return query(databaseName).field("serviceId").equal(serviceId).get();
     }
 }

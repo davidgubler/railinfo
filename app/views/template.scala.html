@@ -58,6 +58,7 @@
                         </a>
                         <ul id="admin" class='submenu collapse @if(request.path.startsWith("/admin")){show}'>
                             <li><a href="@routes.AdminController.usersList()" class="nav-link @if(request.path.startsWith("/admin/users")){active}">Users</a></li>
+                            <li><a href="@routes.DataImportController.listDatabases()" class="nav-link @if(request.path.startsWith("/admin/databases")){active}">Databases</a></li>
                             <li><a href="@routes.DataImportController.index()" class="nav-link @if(request.path.startsWith("/admin/import")){active}">Data Import</a></li>
                         </ul>
                     </li>

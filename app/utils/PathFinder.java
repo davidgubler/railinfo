@@ -88,10 +88,10 @@ public class PathFinder {
     }
 
 
-    public List<RealizedWaypoint> getIntermediate(Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
+    public List<RealizedWaypoint> getIntermediate(String databaseName, Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(stop));
+        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(databaseName, stop));
 
         if (quickest == null) {
             return new LinkedList<>();
@@ -132,17 +132,17 @@ public class PathFinder {
         return quickest != null;
     }
 
-    public void recalculateEdges() {
+    public void recalculateEdges(String databaseName) {
         Map<String, Edge> edges = new HashMap<>();
         long start = System.currentTimeMillis();
         System.out.print("fetching rail routes... ");
-        List<Route> railRoutes = routesModel.getByType(100, 199);
+        List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
         System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
 
         System.out.print("extracting edges... ");
         for (Route route : railRoutes) {
             System.out.println(route + " " + route.getShortName());
-            List<Trip> trips = tripsModel.getByRoute(route);
+            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
 
             for (Trip trip : trips) {
                 String depTime = null;
@@ -151,7 +151,7 @@ public class PathFinder {
                 for (StopTime stopTime : stopTimes) {
                     if (lastStopId != null) {
                         int seconds = googleTransportTimeDiff(depTime, stopTime.getArrival());
-                        addJourney(edges, lastStopId, stopTime.getParentStopId(), seconds);
+                        addJourney(databaseName, edges, lastStopId, stopTime.getParentStopId(), seconds);
                     }
                     lastStopId = stopTime.getParentStopId();
                     depTime = stopTime.getDeparture();
@@ -173,7 +173,7 @@ public class PathFinder {
         List<Edge> requiredEdges = new LinkedList<>();
         Map<Stop, Set<Edge>> topology = new HashMap<>();
         // we want to keep all edges that have been manually modified
-        for (Edge edge : edgesModel.getModified()) {
+        for (Edge edge : edgesModel.getModified(databaseName)) {
             if (!topology.containsKey(edge.getStop1())) {
                 topology.put(edge.getStop1(), new HashSet<>());
             }
@@ -199,9 +199,9 @@ public class PathFinder {
         }
 
         System.out.println("saving edges...");
-        edgesModel.drop();
+        edgesModel.drop(databaseName);
         for (Edge edge: requiredEdges) {
-            edgesModel.save(edge);
+            edgesModel.save(databaseName, edge);
         }
         System.out.println("edges saved");
     }
@@ -244,7 +244,7 @@ public class PathFinder {
         return null;
     }
 
-    private void addJourney(Map<String, Edge> edges, String from, String to, int seconds) {
+    private void addJourney(String databaseName, Map<String, Edge> edges, String from, String to, int seconds) {
         if (from.compareTo(to) > 0) {
             String tmp = to;
             to = from;
@@ -253,8 +253,10 @@ public class PathFinder {
         String key = from + "|" + to;
         Edge edge = edges.get(key);
         if (edge == null) {
-            edge = new MongoDbEdge(from, to);
-            injector.injectMembers(edge);
+            MongoDbEdge mongoDbEdge = new MongoDbEdge(from, to);
+            injector.injectMembers(mongoDbEdge);
+            mongoDbEdge.setDatabaseName(databaseName);
+            edge = mongoDbEdge;
             edges.put(key, edge);
         }
         edge.addJourney(seconds);
@@ -263,21 +265,21 @@ public class PathFinder {
 
     private volatile Map<Edge, Set<String>> routeIdsByEdge = null;
 
-    public Set<String> getRouteIdsByEdge(Edge edge) {
+    public Set<String> getRouteIdsByEdge(String databaseName, Edge edge) {
         if (routeIdsByEdge == null) {
             routeIdsByEdge = new HashMap<>();
-            recalculatePaths();
+            recalculatePaths(databaseName);
         }
         Set<String> routes = routeIdsByEdge.get(edge);
         return routes == null ? Collections.emptySet() : routes;
     }
 
-    public void recalculatePaths() {
+    public void recalculatePaths(String databaseName) {
         Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
-        List<Route> railRoutes = routesModel.getByType(100, 199);
+        List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
 
         Map<Stop, List<Edge>> edgesLookupTable = new HashMap<>();
-        for (Edge edge : edgesModel.getAll()) {
+        for (Edge edge : edgesModel.getAll(databaseName)) {
             if (!edgesLookupTable.containsKey(edge.getStop1())) {
                 edgesLookupTable.put(edge.getStop1(), new LinkedList<>());
             }
@@ -292,7 +294,7 @@ public class PathFinder {
         for (Route route : railRoutes) {
             System.out.println((100 * done / railRoutes.size()) + "% " + route + " " + route.getShortName());
             done++;
-            List<Trip> trips = tripsModel.getByRoute(route);
+            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
             for (Trip trip : trips) {
                 List<StopTime> stopTimes = trip.getStopTimes();
                 for (int i = 1; i < stopTimes.size(); i++) {

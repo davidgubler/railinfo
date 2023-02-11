@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface StopTimesModel {
-    void drop();
+    void drop(String databaseName);
 
-    StopTime create(Map<String, String> data);
+    StopTime create(String databaseName, Map<String, String> data);
 
-    List<StopTime> create(List<Map<String, String>> dataBatch);
+    List<StopTime> create(String databaseName, List<Map<String, String>> dataBatch);
 
-    List<StopTime> getByStops(Collection<Stop> stops);
+    List<StopTime> getByStops(String databaseName, Collection<? extends Stop> stops);
 
-    List<StopTime> getByTrip(Trip trip);
+    List<StopTime> getByTrip(String databaseName, Trip trip);
 }

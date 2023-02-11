@@ -39,6 +39,9 @@ public class MongoDbStop implements Stop {
     private String parentId;
 
     @Transient
+    private String databaseName;
+
+    @Transient
     @Inject
     private StopsModel stopsModel;
 
@@ -65,6 +68,10 @@ public class MongoDbStop implements Stop {
         this.lng = data.get("stop_lon").isBlank() ? null : Double.parseDouble(data.get("stop_lon"));
         this.type = data.get("location_type").isBlank() ? null : data.get("location_type");
         this.parentId = data.get("parent_station").isBlank() ? null : data.get("parent_station");
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public String getId() {
@@ -120,9 +127,9 @@ public class MongoDbStop implements Stop {
 
     public Integer getImportance() {
         if (importance == null) {
-            Set<Stop> stops = new HashSet<>(stopsModel.getByName(this.getName()));
-            importance = stopTimesModel.getByStops(stops).size();
-            stopsModel.updateImportance(stops, importance);
+            Set<Stop> stops = new HashSet<>(stopsModel.getByName(databaseName, this.getName()));
+            importance = stopTimesModel.getByStops(databaseName, stops).size();
+            stopsModel.updateImportance(databaseName, stops, importance);
         }
         return importance;
     }
