@@ -2,6 +2,8 @@ package entities;
 
 import geometry.Point;
 
+import java.util.List;
+
 public interface Edge extends Comparable<Edge> {
     String getId();
 
@@ -26,6 +28,8 @@ public interface Edge extends Comparable<Edge> {
     boolean isPrintable();
 
     boolean isModified();
+
+    List<Point> getBoundingBox();
 
     String toString(Stop from);
 }

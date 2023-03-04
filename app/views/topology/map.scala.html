@@ -81,6 +81,19 @@
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
                 addEdge(map, @edge.getStop1Coordinates.getLat, @edge.getStop1Coordinates.getLng, @edge.getStop2Coordinates.getLat, @edge.getStop2Coordinates.getLng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgesView(edge.getId)");
+
+                var polyLine = new google.maps.Polyline({
+                    path: [
+                        {lat: @edge.getBoundingBox().get(0).getLat, lng: @edge.getBoundingBox().get(0).getLng},
+                        {lat: @edge.getBoundingBox().get(1).getLat, lng: @edge.getBoundingBox().get(1).getLng},
+                        {lat: @edge.getBoundingBox().get(2).getLat, lng: @edge.getBoundingBox().get(2).getLng},
+                        {lat: @edge.getBoundingBox().get(3).getLat, lng: @edge.getBoundingBox().get(3).getLng},
+                        {lat: @edge.getBoundingBox().get(0).getLat, lng: @edge.getBoundingBox().get(0).getLng},
+                    ],
+                    strokeColor: "#0000ff",
+                    strokeOpacity: 1,
+                    strokeWeight: 1,
+                }).setMap(map);
             }
 
             google.maps.event.addListener(map, "tilesloaded", () => {

@@ -1,6 +1,8 @@
 package geometry;
 
 public class PolarCoordinates {
+    private static final double R = 6371.0088;
+
     public static double bearingDegrees(Point point1, Point point2) {
         double lng1 = Math.toRadians(point1.getLng());
         double lat1 = Math.toRadians(point1.getLat());
@@ -18,4 +20,22 @@ public class PolarCoordinates {
         return t > 180 ? 360 - t : t;
     }
 
+    public static double distanceKm(Point point1, Point point2) {
+        Double latDistance = Math.toRadians(point2.getLat()-point1.getLat());
+        Double lonDistance = Math.toRadians(point2.getLng()-point1.getLng());
+        Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+            Math.cos(Math.toRadians(point1.getLat())) * Math.cos(Math.toRadians(point2.getLat())) * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    public static Point goNorth(Point startingPoint, double distanceKm) {
+        double newLat = startingPoint.getLat() + 180 * distanceKm / (Math.PI * R);
+        return new Point.PointBuilder().withLat(newLat).withLng(startingPoint.getLng()).build();
+    }
+
+    public static Point goEast(Point startingPoint, double distanceKm) {
+        double newLng = startingPoint.getLng() + 180 * distanceKm / (Math.PI * R * Math.cos(Math.toRadians(startingPoint.getLat())));
+        return new Point.PointBuilder().withLat(startingPoint.getLat()).withLng(newLng).build();
+    }
 }

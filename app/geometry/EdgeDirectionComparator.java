@@ -12,7 +12,7 @@ public class EdgeDirectionComparator implements Comparator<Edge> {
 
     public EdgeDirectionComparator(Stop from, Stop to) {
         this.from = from;
-        if (from.getLng() != null && from.getLng() != null && to.getLng() != null && to.getLat() != null) {
+        if (from.getCoordinates() != null && to.getCoordinates() != null) {
             targetBearing = getBearing(from, to);
         }
     }

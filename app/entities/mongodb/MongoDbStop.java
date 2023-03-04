@@ -112,6 +112,9 @@ public class MongoDbStop implements Stop {
     }
 
     public Point getCoordinates() {
+        if (lat == null || lng == null) {
+            return null;
+        }
         return new Point.PointBuilder().withLat(lat).withLng(lng).build();
     }
 

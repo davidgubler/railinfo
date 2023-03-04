@@ -5,12 +5,11 @@ import dev.morphia.annotations.*;
 import entities.Edge;
 import entities.Stop;
 import geometry.Point;
+import geometry.PolarCoordinates;
 import models.StopsModel;
 import org.bson.types.ObjectId;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Entity(value = "edges", noClassnameStored = true)
 public class MongoDbEdge implements Edge, Comparable<Edge> {
@@ -163,6 +162,35 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
 
     public void setModified(Boolean modified) {
         this.modified = modified != null && modified ? true : null;
+    }
+
+    public List<Point> getBoundingBox() {
+        Point p1 = getStop1Coordinates();
+        Point p2 = getStop2Coordinates();
+        if (p1 == null || p2 == null) {
+            return Collections.emptyList();
+        }
+        List<Point> box = new LinkedList<>();
+        double distance = PolarCoordinates.distanceKm(getStop1Coordinates(), getStop2Coordinates());
+        double extraDistance = Math.min(distance / 3, 3);
+
+        double maxLat = Math.max(p1.getLat(), p2.getLat());
+        double minLat = Math.min(p1.getLat(), p2.getLat());
+        double maxLng = Math.max(p1.getLng(), p2.getLng());
+        double minLng = Math.min(p1.getLng(), p2.getLng());
+        Point northEast = new Point.PointBuilder().withLat(maxLat).withLng(maxLng).build();
+        box.add(PolarCoordinates.goNorth(PolarCoordinates.goEast(northEast, extraDistance), extraDistance));
+
+        Point southEast = new Point.PointBuilder().withLat(minLat).withLng(maxLng).build();
+        box.add(PolarCoordinates.goNorth(PolarCoordinates.goEast(southEast, extraDistance), -extraDistance));
+
+        Point southWest = new Point.PointBuilder().withLat(minLat).withLng(minLng).build();
+        box.add(PolarCoordinates.goNorth(PolarCoordinates.goEast(southWest, -extraDistance), -extraDistance));
+
+        Point northWest = new Point.PointBuilder().withLat(maxLat).withLng(minLng).build();
+        box.add(PolarCoordinates.goNorth(PolarCoordinates.goEast(northWest, -extraDistance), extraDistance));
+
+        return box;
     }
 
     @Override
