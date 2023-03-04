@@ -3,6 +3,7 @@ package entities.mongodb;
 import com.google.inject.Inject;
 import dev.morphia.utils.IndexType;
 import entities.Stop;
+import geometry.Point;
 import models.StopTimesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
@@ -108,6 +109,10 @@ public class MongoDbStop implements Stop {
 
     public void setLng(Double lng) {
         this.lng = lng;
+    }
+
+    public Point getCoordinates() {
+        return new Point.PointBuilder().withLat(lat).withLng(lng).build();
     }
 
     public String getType() {

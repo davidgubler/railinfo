@@ -1,5 +1,7 @@
 package entities;
 
+import geometry.Point;
+
 public interface Stop extends Comparable<Stop> {
     String getId();
 
@@ -10,6 +12,8 @@ public interface Stop extends Comparable<Stop> {
     Double getLat();
 
     Double getLng();
+
+    Point getCoordinates();
 
     String getType();
 

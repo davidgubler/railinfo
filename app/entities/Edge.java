@@ -1,5 +1,7 @@
 package entities;
 
+import geometry.Point;
+
 public interface Edge extends Comparable<Edge> {
     String getId();
 
@@ -17,13 +19,9 @@ public interface Edge extends Comparable<Edge> {
 
     Stop getDestination(Stop from);
 
-    Double getStop1Lat();
+    Point getStop1Coordinates();
 
-    Double getStop1Lng();
-
-    Double getStop2Lat();
-
-    Double getStop2Lng();
+    Point getStop2Coordinates();
 
     boolean isPrintable();
 

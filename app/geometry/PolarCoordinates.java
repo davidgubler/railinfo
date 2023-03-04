@@ -1,11 +1,11 @@
 package geometry;
 
 public class PolarCoordinates {
-    public static double bearingDegrees(double longitude1, double latitude1, double longitude2, double latitude2) {
-        double lng1 = Math.toRadians(longitude1);
-        double lat1 = Math.toRadians(latitude1);
-        double lng2 = Math.toRadians(longitude2);
-        double lat2 = Math.toRadians(latitude2);
+    public static double bearingDegrees(Point point1, Point point2) {
+        double lng1 = Math.toRadians(point1.getLng());
+        double lat1 = Math.toRadians(point1.getLat());
+        double lng2 = Math.toRadians(point2.getLng());
+        double lat2 = Math.toRadians(point2.getLat());
         double lngDiff = lng2 - lng1;
 
         double X = Math.cos(lat2) * Math.sin(lngDiff);
@@ -17,4 +17,5 @@ public class PolarCoordinates {
         double t = Math.abs(bearing1 - bearing2) % 360;
         return t > 180 ? 360 - t : t;
     }
+
 }

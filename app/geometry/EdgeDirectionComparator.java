@@ -18,7 +18,7 @@ public class EdgeDirectionComparator implements Comparator<Edge> {
     }
 
     private double getBearing(Stop from, Stop to) {
-        return PolarCoordinates.bearingDegrees(from.getLng(), from.getLat(), to.getLng(), to.getLat());
+        return PolarCoordinates.bearingDegrees(from.getCoordinates(), to.getCoordinates());
     }
 
     public double getTargetBearing() {

@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import dev.morphia.annotations.*;
 import entities.Edge;
 import entities.Stop;
+import geometry.Point;
 import models.StopsModel;
 import org.bson.types.ObjectId;
 
@@ -141,28 +142,18 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     }
 
     @Override
-    public Double getStop1Lat() {
-        return getStop1() == null ? null : getStop1().getLat();
+    public Point getStop1Coordinates() {
+        return getStop1() == null ? null : getStop1().getCoordinates();
     }
 
     @Override
-    public Double getStop1Lng() {
-        return getStop1() == null ? null : getStop1().getLng();
-    }
-
-    @Override
-    public Double getStop2Lat() {
-        return getStop2() == null ? null : getStop2().getLat();
-    }
-
-    @Override
-    public Double getStop2Lng() {
-        return getStop2() == null ? null : getStop2().getLng();
+    public Point getStop2Coordinates() {
+        return getStop2() == null ? null : getStop2().getCoordinates();
     }
 
     @Override
     public boolean isPrintable() {
-        return getStop1Lat() != null && getStop1Lng() != null && getStop2Lat() != null && getStop2Lng() != null;
+        return getStop1Coordinates() != null && getStop2Coordinates() != null;
     }
 
     @Override
