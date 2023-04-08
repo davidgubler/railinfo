@@ -8,6 +8,7 @@ import entities.Edge;
 import entities.Stop;
 import entities.mongodb.MongoDbEdge;
 import models.EdgesModel;
+import models.StopsModel;
 import org.bson.types.ObjectId;
 import services.MongoDb;
 
@@ -19,6 +20,9 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Inject
     private MongoDb mongoDb;
+
+    @Inject
+    private StopsModel stopsModel;
 
     private Query<MongoDbEdge> query(String databaseName) {
         return mongoDb.getDs(databaseName).createQuery(MongoDbEdge.class);
@@ -80,9 +84,8 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public Edge create(String databaseName, String stop1Id, String stop2Id, Integer typicalTime) {
-        MongoDbEdge edge = new MongoDbEdge(stop1Id, stop2Id, typicalTime, true);
+        MongoDbEdge edge = new MongoDbEdge(stopsModel, databaseName, stop1Id, stop2Id, typicalTime, true);
         mongoDb.getDs(databaseName).save(edge);
-        injector.injectMembers(edge);
         edge.setDatabaseName(databaseName);
         return edge;
     }

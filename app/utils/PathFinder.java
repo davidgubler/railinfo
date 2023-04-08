@@ -249,8 +249,7 @@ public class PathFinder {
         String key = from + "|" + to;
         Edge edge = edges.get(key);
         if (edge == null) {
-            MongoDbEdge mongoDbEdge = new MongoDbEdge(from, to);
-            injector.injectMembers(mongoDbEdge);
+            MongoDbEdge mongoDbEdge = new MongoDbEdge(stopsModel, databaseName, from, to);
             mongoDbEdge.setDatabaseName(databaseName);
             edge = mongoDbEdge;
             edges.put(key, edge);

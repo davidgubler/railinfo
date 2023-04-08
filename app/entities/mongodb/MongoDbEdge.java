@@ -22,6 +22,15 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     private String stop2Id;
     private Integer typicalTime = 0;
 
+    @Indexed
+    private Double bbNorth = null;
+    @Indexed
+    private Double bbSouth = null;
+    @Indexed
+    private Double bbEast = null;
+    @Indexed
+    private Double bbWest = null;
+
     private Boolean modified = null;
 
     @Transient
@@ -43,16 +52,22 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         // dummy constructor for morphia
     }
 
-    public MongoDbEdge(String stop1Id, String stop2Id) {
+    public MongoDbEdge(StopsModel stopsModel, String databaseName, String stop1Id, String stop2Id) {
+        this.stopsModel = stopsModel;
+        this.databaseName = databaseName;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
+        recalculateBoundingBox();
     }
 
-    public MongoDbEdge(String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
+    public MongoDbEdge(StopsModel stopsModel, String databaseName, String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
+        this.stopsModel = stopsModel;
+        this.databaseName = databaseName;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
         this.typicalTime = typicalTime;
         setModified(modified);
+        recalculateBoundingBox();
     }
 
     public void setDatabaseName(String databaseName) {
@@ -162,6 +177,24 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
 
     public void setModified(Boolean modified) {
         this.modified = modified != null && modified ? true : null;
+    }
+
+    public void recalculateBoundingBox() {
+        List<Point> boundingBox = getBoundingBox();
+        if (boundingBox.isEmpty()) {
+            return;
+        }
+        bbEast = boundingBox.get(0).getLng();
+        bbWest = boundingBox.get(0).getLng();
+        bbNorth = boundingBox.get(0).getLat();
+        bbSouth = boundingBox.get(0).getLat();
+        for (int i = 1; i < boundingBox.size(); i++) {
+            Point p = boundingBox.get(i);
+            bbEast = Math.max(bbEast, p.getLng());
+            bbWest = Math.min(bbWest, p.getLng());
+            bbNorth = Math.max(bbNorth, p.getLat());
+            bbSouth = Math.min(bbSouth, p.getLat());
+        }
     }
 
     public List<Point> getBoundingBox() {

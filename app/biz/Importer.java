@@ -115,13 +115,15 @@ public class Importer {
                     entry = zipIn.getNextEntry();
                 }
                 zipIn.close();
+
+                RailinfoLogger.info(request, "rebuilding indexes on " + databaseName);
+                mongoDb.getDs(databaseName).ensureIndexes();
+                mongoDb.getDs(databaseName).ensureCaps();
+
                 RailinfoLogger.info(request, "importing stops from previous DB");
                 migrateModifiedStops(oldDb, databaseName);
                 RailinfoLogger.info(request, "importing edges from previous DB");
                 migrateModifiedEdges(oldDb, databaseName);
-                RailinfoLogger.info(request, "rebuilding indexes on " + databaseName);
-                mongoDb.getDs(databaseName).ensureIndexes();
-                mongoDb.getDs(databaseName).ensureCaps();
 
                 // LOG
                 RailinfoLogger.info(request, "found " + stops + " stops");
@@ -155,7 +157,9 @@ public class Importer {
         // only add edge if it references valid stops
         Stream<? extends Edge> edges = edgesModel.getModified(oldDb).stream().filter(e -> stopsModel.getByStopId(newDb, e.getStop1Id()) != null && stopsModel.getByStopId(newDb, e.getStop2Id()) != null);
         edges.forEach(edge -> {
-            edgesModel.create(newDb, edge.getStop1Id(), edge.getStop2Id(), edge.getTypicalTime());
+            Stop stop1 = stopsModel.getByStopId(newDb, edge.getStop1Id());
+            Stop stop2 = stopsModel.getByStopId(newDb, edge.getStop2Id());
+            edgesModel.create(newDb, stop1, stop2, edge.getTypicalTime());
         });
     }
 
