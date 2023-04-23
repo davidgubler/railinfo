@@ -6,10 +6,7 @@ import entities.*;
 import entities.mongodb.MongoDbEdge;
 import entities.realized.RealizedWaypoint;
 import geometry.EdgeDirectionComparator;
-import models.EdgesModel;
-import models.RoutesModel;
-import models.StopsModel;
-import models.TripsModel;
+import models.*;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +28,9 @@ public class PathFinder {
 
     @Inject
     private RoutesModel routesModel;
+
+    @Inject
+    private StopTimesModel stopTimesModel;
 
     @Inject
     private Injector injector;
@@ -290,8 +290,11 @@ public class PathFinder {
             System.out.println((100 * done / railRoutes.size()) + "% " + route + " " + route.getShortName());
             done++;
             List<Trip> trips = tripsModel.getByRoute(databaseName, route);
+
+            Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(databaseName, trips);
+
             for (Trip trip : trips) {
-                List<StopTime> stopTimes = trip.getStopTimes();
+                List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
                 for (int i = 1; i < stopTimes.size(); i++) {
                     Stop from = stopTimes.get(i-1).getStop();
                     Stop to = stopTimes.get(i).getStop();

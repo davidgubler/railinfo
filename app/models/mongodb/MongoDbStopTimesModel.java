@@ -58,4 +58,30 @@ public class MongoDbStopTimesModel implements StopTimesModel {
         stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setDatabaseName(databaseName); });
         return stopTimes;
     }
+
+    @Override
+    public Map<Trip, List<StopTime>> getByTrips(String databaseName, List<Trip> trips) {
+        Map<String, Trip> tripsMap = new HashMap<>();
+        for (Trip trip : trips)  {
+            tripsMap.put(trip.getTripId(), trip);
+        }
+
+        List<String> tripIds = trips.stream().map(Trip::getTripId).collect(Collectors.toList());
+        Map<Trip, List<StopTime>> stopTimes = new HashMap<>();
+        for (StopTime stopTime : query(databaseName).field("tripId").in(tripIds).asList()) {
+            injector.injectMembers(stopTime);
+            stopTime.setDatabaseName(databaseName);
+            Trip trip = tripsMap.get(stopTime.getTripId());
+            if (!stopTimes.containsKey(trip)) {
+                stopTimes.put(trip, new LinkedList<>());
+            }
+            stopTimes.get(trip).add(stopTime);
+        }
+
+        for (Map.Entry<Trip, List<StopTime>> entry : stopTimes.entrySet()) {
+            Collections.sort(entry.getValue());
+        }
+
+        return stopTimes;
+    }
 }

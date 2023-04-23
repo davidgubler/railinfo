@@ -18,4 +18,6 @@ public interface StopTimesModel {
     List<StopTime> getByStops(String databaseName, Collection<? extends Stop> stops);
 
     List<StopTime> getByTrip(String databaseName, Trip trip);
+
+    Map<Trip, List<StopTime>> getByTrips(String databaseName, List<Trip> trips);
 }
