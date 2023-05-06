@@ -5,11 +5,12 @@ import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
 import dev.morphia.query.Query;
 import entities.ServiceCalendarException;
+import entities.Trip;
 import models.ServiceCalendarExceptionsModel;
 import services.MongoDb;
 
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExceptionsModel {
@@ -42,5 +43,19 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
     @Override
     public List<ServiceCalendarException> getByServiceId(String databaseName, String serviceId) {
         return query(databaseName).field("serviceId").equal(serviceId).asList();
+    }
+
+    @Override
+    public Map<String, List<ServiceCalendarException>> getByTripsAndDates(String databaseName, Collection<Trip> trips, Collection<LocalDate> localDates) {
+        Set<String> serviceIds = trips.stream().map(Trip::getServiceId).collect(Collectors.toSet());
+        Set<String> dates = localDates.stream().map(LocalDate::toString).collect(Collectors.toSet());
+        Map<String, List<ServiceCalendarException>> exceptionsByServiceId = new HashMap<>();
+        for (ServiceCalendarException sce : query(databaseName).field("serviceId").in(serviceIds).field("date").in(dates).asList() ) {
+            if (!exceptionsByServiceId.containsKey(sce.getServiceId())) {
+                exceptionsByServiceId.put(sce.getServiceId(), new LinkedList<>());
+            }
+            exceptionsByServiceId.get(sce.getServiceId()).add(sce);
+        }
+        return exceptionsByServiceId;
     }
 }

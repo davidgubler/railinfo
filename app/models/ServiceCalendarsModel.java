@@ -1,7 +1,9 @@
 package models;
 
 import entities.ServiceCalendar;
+import entities.Trip;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -14,4 +16,6 @@ public interface ServiceCalendarsModel {
     void create(String databaseName, List<Map<String, String>> dataBatch);
 
     ServiceCalendar getByServiceId(String databaseName, String serviceId);
+
+    Map<String, ServiceCalendar> getByTrips(String databaseName, Collection<Trip> trips);
 }

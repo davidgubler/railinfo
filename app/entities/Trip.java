@@ -10,6 +10,7 @@ import dev.morphia.annotations.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -101,36 +102,43 @@ public class Trip implements Comparable<Trip> {
 
     public boolean isActive(LocalDate date) {
         List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(databaseName, serviceId);
+        ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(databaseName, serviceId);
+        return isActive(date, serviceCalendarExceptions, serviceCalendar);
+    }
+
+    public boolean isActive(LocalDate date, List<ServiceCalendarException> serviceCalendarExceptions, ServiceCalendar serviceCalendar) {
+        if (serviceCalendarExceptions == null) {
+            serviceCalendarExceptions = Collections.emptyList();
+        }
         List<ServiceCalendarException> todaysExceptions = serviceCalendarExceptions.stream().filter(s -> date.equals(s.getDate())).collect(Collectors.toList());
         if (todaysExceptions.size() == 1) {
             return todaysExceptions.get(0).getActive();
         }
 
-        ServiceCalendar cal = serviceCalendarsModel.getByServiceId(databaseName, serviceId);
-        if (date.isBefore(cal.getStart()) || date.isAfter(cal.getEnd())) {
+        if (date.isBefore(serviceCalendar.getStart()) || date.isAfter(serviceCalendar.getEnd())) {
             return false;
         }
 
         DayOfWeek dow = date.getDayOfWeek();
-        if (dow == DayOfWeek.MONDAY && cal.getMonday()) {
+        if (dow == DayOfWeek.MONDAY && serviceCalendar.getMonday()) {
             return true;
         }
-        if (dow == DayOfWeek.TUESDAY && cal.getTuesday()) {
+        if (dow == DayOfWeek.TUESDAY && serviceCalendar.getTuesday()) {
             return true;
         }
-        if (dow == DayOfWeek.WEDNESDAY && cal.getWednesday()) {
+        if (dow == DayOfWeek.WEDNESDAY && serviceCalendar.getWednesday()) {
             return true;
         }
-        if (dow == DayOfWeek.THURSDAY && cal.getThursday()) {
+        if (dow == DayOfWeek.THURSDAY && serviceCalendar.getThursday()) {
             return true;
         }
-        if (dow == DayOfWeek.FRIDAY && cal.getFriday()) {
+        if (dow == DayOfWeek.FRIDAY && serviceCalendar.getFriday()) {
             return true;
         }
-        if (dow == DayOfWeek.SATURDAY && cal.getSaturday()) {
+        if (dow == DayOfWeek.SATURDAY && serviceCalendar.getSaturday()) {
             return true;
         }
-        if (dow == DayOfWeek.SUNDAY && cal.getSunday()) {
+        if (dow == DayOfWeek.SUNDAY && serviceCalendar.getSunday()) {
             return true;
         }
         return false;

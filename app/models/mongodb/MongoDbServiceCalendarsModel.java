@@ -5,12 +5,14 @@ import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import dev.morphia.InsertOptions;
 import entities.ServiceCalendar;
+import entities.ServiceCalendarException;
+import entities.Trip;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 import services.MongoDb;
 
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
@@ -43,5 +45,15 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
     @Override
     public ServiceCalendar getByServiceId(String databaseName, String serviceId) {
         return query(databaseName).field("serviceId").equal(serviceId).get();
+    }
+
+    @Override
+    public Map<String, ServiceCalendar> getByTrips(String databaseName, Collection<Trip> trips) {
+        Set<String> serviceIds = trips.stream().map(Trip::getServiceId).collect(Collectors.toSet());
+        Map<String, ServiceCalendar> serviceCalendarByServiceId = new HashMap<>();
+        for (ServiceCalendar serviceCalendar : query(databaseName).field("serviceId").in(serviceIds).asList() ) {
+            serviceCalendarByServiceId.put(serviceCalendar.getServiceId(), serviceCalendar);
+        }
+        return serviceCalendarByServiceId;
     }
 }

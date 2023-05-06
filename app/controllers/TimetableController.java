@@ -164,16 +164,31 @@ public class TimetableController extends Controller {
             trips.addAll(tripsModel.getByRoute(databaseName, route));
         }
 
-        List<RealizedTrip> realizedTrips = new LinkedList<>();
+        Set<RealizedTrip> realizedTrips = new HashSet<>();
         LocalDateTime dateTime = LocalDateTime.now();
-        for (int i = -1; i <= 1; i++) {
-            LocalDate d = dateTime.toLocalDate().plusDays(i);
-            realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
-                RealizedTrip realizedTrip = new RealizedTrip(t, d);
-                injector.injectMembers(realizedTrip);
-                realizedTrip.setDatabaseName(databaseName);
-                return realizedTrip;
-            }).collect(Collectors.toSet()));
+
+        LocalDate d1 = dateTime.toLocalDate();
+        LocalDate d0 = d1.plusDays(-1);
+        LocalDate d2 = d1.plusDays(1);
+
+        Map<String, List<ServiceCalendarException>> serviceCalendarExceptionsByServiceId = serviceCalendarExceptionsModel.getByTripsAndDates(databaseName, trips, Arrays.asList(d0, d1, d2));
+        Map<String, ServiceCalendar> serviceCalendarByServiceId = serviceCalendarsModel.getByTrips(databaseName, trips);
+        for (Trip trip : trips) {
+            List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsByServiceId.get(trip.getServiceId());
+            ServiceCalendar serviceCalendar = serviceCalendarByServiceId.get(trip.getServiceId());
+            if (trip.isActive(d0, serviceCalendarExceptions, serviceCalendar)) {
+                realizedTrips.add(new RealizedTrip(trip, d0));
+            }
+            if (trip.isActive(d1, serviceCalendarExceptions, serviceCalendar)) {
+                realizedTrips.add(new RealizedTrip(trip, d1));
+            }
+            if (trip.isActive(d2, serviceCalendarExceptions, serviceCalendar)) {
+                realizedTrips.add(new RealizedTrip(trip, d2));
+            }
+        }
+        for (RealizedTrip realizedTrip : realizedTrips) {
+            injector.injectMembers(realizedTrip);
+            realizedTrip.setDatabaseName(databaseName);
         }
         System.out.println("realized trips: " + realizedTrips.size());
 
