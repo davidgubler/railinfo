@@ -85,21 +85,21 @@ public class PathFinder {
         return null;
     }
 
-    private ConcurrentHashMap<String, Path> quickestPaths = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Path> globalPathsCache = new ConcurrentHashMap<>();
 
-    private Path quickest(Stop from, Stop to, long timeLimit, Function<Stop, List<? extends Edge>> f) {
+    private Path quickest(Stop from, Stop to, long timeLimit, Function<Stop, List<? extends Edge>> f, Map<String, Path> cache) {
         String key = from.getBaseId() + "|" + to.getBaseId();
-        if (quickestPaths.containsKey(key)) {
-            return quickestPaths.get(key);
+        if (cache.containsKey(key)) {
+            return cache.get(key);
         }
         Map<String, Long> cacheMap = new HashMap<>();
         Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap, f);
         if (quickest == null) {
             return null;
         }
-        quickestPaths.put(key, quickest);
+        cache.put(key, quickest);
         String reverseKey = to.getBaseId() + "|" + from.getBaseId();
-        quickestPaths.put(reverseKey, quickest.getReverse());
+        cache.put(reverseKey, quickest.getReverse());
         return quickest;
     }
 
@@ -107,7 +107,7 @@ public class PathFinder {
     public List<RealizedWaypoint> getIntermediate(String databaseName, Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(databaseName, stop));
+        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(databaseName, stop), globalPathsCache);
 
         if (quickest == null) {
             return new LinkedList<>();
@@ -139,13 +139,14 @@ public class PathFinder {
         return ((hour2 - hour1) * 60 + (minute2 - minute1)) * 60 + (second2 - second1);
     }
 
-    private boolean possibleWithExistingEdges(Edge e, Map<Stop, Set<Edge>> existingTopology) {
-        Path quickest = quickest(e.getStop1(), e.getStop2(), e.getTypicalTime(), stop -> { Set<Edge> edges = existingTopology.get(stop); return edges != null ? new LinkedList<>(edges) : Collections.emptyList(); });
+    private boolean possibleWithExistingEdges(Edge e, Map<Stop, Set<Edge>> existingTopology, Map<String, Path> cache) {
+        Path quickest = quickest(e.getStop1(), e.getStop2(), e.getTypicalTime(), stop -> { Set<Edge> edges = existingTopology.get(stop); return edges != null ? new LinkedList<>(edges) : Collections.emptyList(); }, cache);
         return quickest != null;
     }
 
     public void recalculateEdges(String databaseName) {
         Map<String, Edge> edges = new HashMap<>();
+        Map<String, Path> pathsCache = new HashMap<>();
         long start = System.currentTimeMillis();
         System.out.print("fetching rail routes... ");
         List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
@@ -197,7 +198,7 @@ public class PathFinder {
             requiredEdges.add(edge);
         }
         for (Edge edge : allEdges) {
-            if (!possibleWithExistingEdges(edge, topology)) {
+            if (!possibleWithExistingEdges(edge, topology, pathsCache)) {
                 if (!topology.containsKey(edge.getStop1())) {
                     topology.put(edge.getStop1(), new HashSet<>());
                 }
@@ -216,6 +217,8 @@ public class PathFinder {
             edgesModel.save(databaseName, edge);
         }
         System.out.println("edges saved");
+        clearCache();
+        System.out.println("caches cleared");
     }
 
 
@@ -291,7 +294,7 @@ public class PathFinder {
                     start = System.currentTimeMillis();
                     Path path;
                     long quickestStart = System.currentTimeMillis();
-                    path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()));
+                    path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()), globalPathsCache);
                     if (System.currentTimeMillis() - quickestStart > 50) {
                         System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
                     }
@@ -312,6 +315,7 @@ public class PathFinder {
     }
 
     public void clearCache() {
+        globalPathsCache.clear();
         routeIdsByEdge = null;
     }
 }
