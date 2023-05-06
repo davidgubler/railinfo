@@ -202,43 +202,6 @@ public class PathFinder {
         System.out.println("edges saved");
     }
 
-    private List<Edge> findEdges(long remainingTime, List<Edge> edges, Set<Stop> beenTo, Stop thisStop, Stop destination, Map<Stop, Set<Edge>> existingTopology, boolean debug) {
-        if (debug) {
-            //System.out.println("To " + destination + " : " + StringUtils.join(stops, " => ") + ", remaining " + remainingTime + " s");
-        }
-        if (remainingTime < -60) {
-            return null;
-        }
-        if (destination.equals(thisStop)) {
-            // success!
-            return edges;
-        }
-
-        if (!existingTopology.containsKey(thisStop)) {
-            return null;
-        }
-        Set<Edge> possibleEdges = existingTopology.get(thisStop);
-
-        // filter all the edges that lead to places where we've already been
-        possibleEdges = possibleEdges.stream().filter(e -> !beenTo.contains(e.getDestination(thisStop))).collect(Collectors.toSet());
-
-        if (possibleEdges.isEmpty()) {
-            return null;
-        }
-
-        for (Edge edge : possibleEdges) {
-            Stop edgeDestination = edge.getDestination(thisStop);
-            Set<Stop> newBeenTo = new HashSet<>(beenTo);
-            newBeenTo.add(thisStop);
-            LinkedList<Edge> newEdges = new LinkedList<>(edges);
-            newEdges.add(edge);
-            List<Edge> successEdges = findEdges(remainingTime - edge.getTypicalTime(), newEdges, newBeenTo, edgeDestination, destination, existingTopology, debug);
-            if (successEdges != null) {
-                return successEdges;
-            }
-        }
-        return null;
-    }
 
     private void addJourney(String databaseName, Map<String, Edge> edges, String from, String to, int seconds) {
         if (from.compareTo(to) > 0) {
@@ -286,12 +249,20 @@ public class PathFinder {
         }
 
         int done = 0;
+        long total = System.currentTimeMillis();
+        long totalDb = 0;
+        long totalQuickest = 0;
+
+        Map<String, Path> quickestCache = new HashMap<>();
+
         for (Route route : railRoutes) {
             System.out.println((100 * done / railRoutes.size()) + "% " + route + " " + route.getShortName());
             done++;
-            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
 
+            long start = System.currentTimeMillis();
+            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
             Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(databaseName, trips);
+            totalDb += System.currentTimeMillis() - start;
 
             for (Trip trip : trips) {
                 List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
@@ -299,7 +270,17 @@ public class PathFinder {
                     Stop from = stopTimes.get(i-1).getStop();
                     Stop to = stopTimes.get(i).getStop();
                     long time = googleTransportTimeDiff(stopTimes.get(i-1).getDeparture(), stopTimes.get(i).getArrival());
-                    Path path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()));
+
+
+                    start = System.currentTimeMillis();
+                    Path path;
+                    long quickestStart = System.currentTimeMillis();
+                    path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()));
+                    if (System.currentTimeMillis() - quickestStart > 50) {
+                        System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
+                    }
+                    totalQuickest += System.currentTimeMillis() - start;
+
                     for (Edge edge : path.getEdges()) {
                         if (!routeIdsByEdge.containsKey(edge)) {
                             routeIdsByEdge.put(edge, new HashSet<>());
@@ -309,6 +290,8 @@ public class PathFinder {
                 }
             }
         }
+        total = System.currentTimeMillis() - total;
+        System.out.println("total " + total + " ms, db " + totalDb + " ms, pathfinder " + totalQuickest + " ms, unaccounted " + (total - totalDb - totalQuickest) + " ms");
         this.routeIdsByEdge = routeIdsByEdge;
     }
 
