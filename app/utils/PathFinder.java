@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import entities.*;
 import entities.mongodb.MongoDbEdge;
 import entities.realized.RealizedWaypoint;
-import geometry.EdgeDirectionComparator;
 import models.*;
 
 import java.time.LocalDateTime;
@@ -35,38 +34,55 @@ public class PathFinder {
     @Inject
     private Injector injector;
 
-    private Path quickest(Stop current, Stop to, long timeLimit, Path travelledPath, Map<String, Long> timeFromStart, Function<Stop, List<? extends Edge>> f) {
-        String currentId = current.getBaseId();
-        if (timeFromStart.containsKey(currentId) && timeFromStart.get(currentId) <= travelledPath.getDuration()) {
-            // the current stop has already been reached via a quicker path, thus we abort
-            return null;
+    private Path quickest(Stop from, Stop to, long timeLimit, Path travelledPath, Map<String, Long> timeFromStart, Function<Stop, List<? extends Edge>> f) {
+        if (from.getBaseId().equals(to.getBaseId())) {
+            return new Path();
+            //throw new IllegalArgumentException("from and to cannot be the same");
         }
 
-        // we've reached the current stop quicker than before
-        timeFromStart.put(currentId, travelledPath.getDuration());
+        Set<String> visited = new HashSet<>();
+        List<Path> paths = new LinkedList<>();
 
-        if (current.getBaseId().equals(to.getBaseId()) && travelledPath.getDuration() <= timeLimit) {
-            return travelledPath;
-        }
-        if (travelledPath.getDuration() > timeLimit) {
-            return null;
-        }
-
-        Path quickestPath = null;
-
-        List<? extends Edge> edges = f.apply(current);
-        EdgeDirectionComparator comp = new EdgeDirectionComparator(current, to);
-        edges.sort(comp);
-
-        for (Edge tryEdge : edges) {
-            Path solution = quickest(tryEdge.getDestination(current), to, timeLimit, new Path(travelledPath, tryEdge), timeFromStart, f);
-            if (solution != null) {
-                quickestPath = solution;
-                timeLimit = quickestPath.getDuration() - 1; // we're only interested in quicker paths
+        visited.add(from.getBaseId());
+        for (Edge edge : f.apply(from)) {
+            if (!visited.contains(edge.getDestination(from).getBaseId())) {
+                paths.add(new Path(edge));
             }
         }
 
-        return quickestPath;
+        while (!paths.isEmpty()) {
+            Path path = null;
+            long nextTime = Long.MAX_VALUE;
+            for (Path p : paths) {
+                long d = p.getDuration();
+                if (d < nextTime) {
+                    path = p;
+                    nextTime = d;
+                }
+            }
+
+            paths.remove(path);
+
+            Stop stop = path.getDestination(from);
+            String stopId = stop.getBaseId();
+            if (visited.contains(stopId)) {
+                continue;
+            }
+
+            if (stopId.equals(to.getBaseId())) {
+                return path;
+            }
+
+            visited.add(stopId);
+            for (Edge edge : f.apply(stop)) {
+                if (!visited.contains(edge.getDestination(stop).getBaseId())) {
+                    Path addPath = new Path(path, edge);
+                    paths.add(addPath);
+                }
+            }
+        }
+
+        return null;
     }
 
     private ConcurrentHashMap<String, Path> quickestPaths = new ConcurrentHashMap<>();
@@ -194,7 +210,7 @@ public class PathFinder {
             }
         }
 
-        System.out.println("saving edges...");
+        System.out.println("saving " + requiredEdges.size() + " edges...");
         edgesModel.drop(databaseName);
         for (Edge edge: requiredEdges) {
             edgesModel.save(databaseName, edge);
