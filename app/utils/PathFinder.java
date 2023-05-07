@@ -61,6 +61,10 @@ public class PathFinder {
                 }
             }
 
+            if (nextTime > timeLimit) {
+                return null;
+            }
+
             paths.remove(path);
 
             Stop stop = path.getDestination(from);
@@ -90,7 +94,8 @@ public class PathFinder {
     private Path quickest(Stop from, Stop to, long timeLimit, Function<Stop, List<? extends Edge>> f, Map<String, Path> cache) {
         String key = from.getBaseId() + "|" + to.getBaseId();
         if (cache.containsKey(key)) {
-            return cache.get(key);
+            Path path = cache.get(key);
+            return path.getDuration() <= timeLimit ? path : null;
         }
         Map<String, Long> cacheMap = new HashMap<>();
         Path quickest = quickest(from, to, timeLimit, new Path(), cacheMap, f);
@@ -271,8 +276,6 @@ public class PathFinder {
         long total = System.currentTimeMillis();
         long totalDb = 0;
         long totalQuickest = 0;
-
-        Map<String, Path> quickestCache = new HashMap<>();
 
         for (Route route : railRoutes) {
             System.out.println((100 * done / railRoutes.size()) + "% " + route + " " + route.getShortName());

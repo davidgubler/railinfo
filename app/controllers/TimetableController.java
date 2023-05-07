@@ -17,7 +17,6 @@ import utils.PathFinder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TimetableController extends Controller {
 
@@ -98,19 +97,7 @@ public class TimetableController extends Controller {
             }
         }
 
-        List<RealizedTrip> realizedTrips = new LinkedList<>();
-        // we realize trips for yesterday, today and tomorrow in order to be sure to cover the time window from now to +12h
-        // note that this will not be sufficient for countries that have trains running for longer than 1 day
-        for (int i = -1; i <= 1; i++) {
-            LocalDate d = dateTime.toLocalDate().plusDays(i);
-            realizedTrips.addAll(trips.stream().filter(t -> t.isActive(d)).map(t -> {
-                RealizedTrip realizedTrip = new RealizedTrip(t, d);
-                injector.injectMembers(realizedTrip);
-                realizedTrip.setDatabaseName(databaseName);
-                return realizedTrip;
-            }).collect(Collectors.toSet()));
-        }
-        System.out.println("realized trips: " + realizedTrips.size());
+        Set<RealizedTrip> realizedTrips = realizeTrips(databaseName, dateTime.toLocalDate(), trips);
 
         List<RealizedDeparture> departures = new LinkedList<>();
         for (RealizedTrip realizedTrip : realizedTrips) {
@@ -138,36 +125,26 @@ public class TimetableController extends Controller {
         User user = usersModel.getFromRequest(request);
         String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
         LocalDate startDate = LocalDate.parse(startDateStr);
-        RealizedTrip realizedTrip = tripsModel.getRealizedTrip(databaseName, tripId, startDate);
-        if (realizedTrip == null) {
-            throw new NotFoundException("Realized Trip");
+        Trip trip = tripsModel.getByTripId(databaseName, tripId);
+        if (trip == null) {
+            throw new NotFoundException("trip");
         }
+        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(databaseName, trip.getServiceId());
+        ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(databaseName, trip.getServiceId());
+        if (!trip.isActive(startDate, serviceCalendarExceptions, serviceCalendar)) {
+            throw new NotFoundException("trip");
+        }
+
+        RealizedTrip realizedTrip = new RealizedTrip(trip, startDate);
+        injector.injectMembers(realizedTrip);
+        realizedTrip.setDatabaseName(databaseName);
+
         return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user));
     }
 
-    public Result edge(Http.Request request, String edgeId) {
-        User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        Edge edge = edgesModel.get(databaseName, edgeId);
-        if (edge == null) {
-            throw new NotFoundException("Edge");
-        }
-
-        Set<String> routeIds = pathFinder.getRouteIdsByEdge(databaseName, edge);
-        Set<Route> routes = new HashSet<>();
-        for (String routeId : routeIds) {
-            routes.add(routesModel.getByRouteId(databaseName, routeId));
-        }
-
-        Set<Trip> trips = new HashSet<>();
-        for (Route route : routes) {
-            trips.addAll(tripsModel.getByRoute(databaseName, route));
-        }
-
+    private Set<RealizedTrip> realizeTrips(String databaseName, LocalDate d1, Collection<Trip> trips) {
         Set<RealizedTrip> realizedTrips = new HashSet<>();
-        LocalDateTime dateTime = LocalDateTime.now();
 
-        LocalDate d1 = dateTime.toLocalDate();
         LocalDate d0 = d1.plusDays(-1);
         LocalDate d2 = d1.plusDays(1);
 
@@ -190,6 +167,31 @@ public class TimetableController extends Controller {
             injector.injectMembers(realizedTrip);
             realizedTrip.setDatabaseName(databaseName);
         }
+        return realizedTrips;
+    }
+
+    public Result edge(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+
+        Set<String> routeIds = pathFinder.getRouteIdsByEdge(databaseName, edge);
+        Set<Route> routes = new HashSet<>();
+        for (String routeId : routeIds) {
+            routes.add(routesModel.getByRouteId(databaseName, routeId));
+        }
+
+        Set<Trip> trips = new HashSet<>();
+        for (Route route : routes) {
+            trips.addAll(tripsModel.getByRoute(databaseName, route));
+        }
+
+        LocalDateTime dateTime = LocalDateTime.now();
+        Set<RealizedTrip> realizedTrips = realizeTrips(databaseName, dateTime.toLocalDate(), trips);
+
         System.out.println("realized trips: " + realizedTrips.size());
 
         List<RealizedPass> realizedPasses = new LinkedList<>();

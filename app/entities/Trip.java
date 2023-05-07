@@ -41,14 +41,6 @@ public class Trip implements Comparable<Trip> {
 
     @Transient
     @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Transient
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Transient
-    @Inject
     private StopTimesModel stopTimesModel;
 
     @Transient
@@ -98,12 +90,6 @@ public class Trip implements Comparable<Trip> {
 
     public String toString() {
         return tripId;
-    }
-
-    public boolean isActive(LocalDate date) {
-        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(databaseName, serviceId);
-        ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(databaseName, serviceId);
-        return isActive(date, serviceCalendarExceptions, serviceCalendar);
     }
 
     public boolean isActive(LocalDate date, List<ServiceCalendarException> serviceCalendarExceptions, ServiceCalendar serviceCalendar) {
