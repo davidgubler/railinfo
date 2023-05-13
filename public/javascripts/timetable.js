@@ -15,4 +15,10 @@ $(document).ready( function () {
             source: stops
         }
     );
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            $('input[name^=coordinates]').val(position.coords.latitude + ", " + position.coords.longitude);
+        });
+    }
 } );

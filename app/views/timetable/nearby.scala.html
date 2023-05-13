@@ -1,0 +1,16 @@
+@(  implicit request: Http.Request,
+    point: geometry.Point,
+    edges: List[_ <: entities.Edge],
+    pos: Map[entities.Edge, Double],
+    user: entities.User,
+)
+
+@template(request, "Timetable", user) {
+} {
+    <p>There may be more than one railway line nearby. Please choose one.</p>
+    <p>
+    @for(edge <- edges) {
+        <a href="@routes.TimetableController.edgePos(edge.getId, pos.get(edge))">@edge.getStop1.getName - @edge.getStop2.getName</a><br />
+    }
+    </p>
+}

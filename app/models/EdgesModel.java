@@ -2,6 +2,7 @@ package models;
 
 import entities.Edge;
 import entities.Stop;
+import geometry.Point;
 
 import java.util.List;
 
@@ -26,4 +27,6 @@ public interface EdgesModel {
     void delete(String databaseName, Edge edge);
 
     List<? extends Edge> getEdgesFrom(String databaseName, Stop stop);
+
+    List<? extends Edge> getByPoint(String databaseName, Point point);
 }

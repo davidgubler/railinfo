@@ -11,6 +11,8 @@ POST    /timetable                              controllers.TimetableController.
 GET     /timetable/stop/:stopName               controllers.TimetableController.stop(request: Request, stopName: String)
 GET     /timetable/realizedTrip/:tripId/:date   controllers.TimetableController.realizedTrip(request: Request, tripId: String, date: String)
 GET     /timetable/edge/:edgeId                 controllers.TimetableController.edge(request: Request, edgeId: String)
+GET     /timetable/nearby/:coordinates          controllers.TimetableController.nearby(request: Request, coordinates: String)
+GET     /timetable/edgePos/:edge/:pos           controllers.TimetableController.edgePos(request: Request, edge: String, pos: Double)
 
 GET     /admin/users                            controllers.AdminController.usersList(request: Request)
 GET     /admin/users/_create                    controllers.AdminController.usersCreate(request: Request)

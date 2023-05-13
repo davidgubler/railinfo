@@ -13,6 +13,7 @@ import utils.ErrorMessages;
 import utils.InputUtils;
 import utils.NotFoundException;
 import utils.PathFinder;
+import geometry.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -55,7 +56,7 @@ public class TimetableController extends Controller {
 
     public Result index(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.timetable.index.render(request, null, InputUtils.NOERROR, user));
+        return ok(views.html.timetable.index.render(request, null, null, InputUtils.NOERROR, user));
     }
 
     public Result indexPost(Http.Request request) {
@@ -65,17 +66,45 @@ public class TimetableController extends Controller {
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String submit = InputUtils.trimToNull(data.get("submit"));
         String stop = InputUtils.trimToNull(data.get("stop"));
+        String coordinates = InputUtils.trimToNull(data.get("coordinates"));
 
         Map<String, String> errors = new HashMap<>();
-        if ("Show Stop".equals(submit)) {
+        if ("Show Departures".equals(submit)) {
             if (stopsModel.getByName(databaseName, stop).isEmpty()) {
                 errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
             } else {
                 return redirect(routes.TimetableController.stop(stop));
             }
         }
+        if ("Show Nearby Trains".equals(submit)) {
+            if (Point.fromString(coordinates) == null) {
+                errors.put("coordinates", ErrorMessages.PLEASE_ENTER_VALID_COORDINATES);
+            } else {
+                return redirect(routes.TimetableController.nearby(coordinates));
+            }
+        }
 
-        return ok(views.html.timetable.index.render(request, stop, errors, user));
+        return ok(views.html.timetable.index.render(request, stop, coordinates, errors, user));
+    }
+
+    public Result nearby(Http.Request request, String coordinates) {
+        User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Point point = Point.fromString(coordinates);
+        if (point == null) {
+            throw new NotFoundException("coordinates");
+        }
+
+        List<? extends Edge> edges = edgesModel.getByPoint(databaseName, point);
+
+        Map<Edge, Double> pos = new HashMap<>();
+        for (Edge edge : edges) {
+            double d1 = PolarCoordinates.distanceKm(point, edge.getStop1Coordinates());
+            double d2 = PolarCoordinates.distanceKm(point, edge.getStop2Coordinates());
+            pos.put(edge, d1 / (d1 + d2));
+        }
+
+        return ok(views.html.timetable.nearby.render(request, point, edges, pos, user));
     }
 
     public Result stop(Http.Request request, String stopName)  {
@@ -170,14 +199,7 @@ public class TimetableController extends Controller {
         return realizedTrips;
     }
 
-    public Result edge(Http.Request request, String edgeId) {
-        User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        Edge edge = edgesModel.get(databaseName, edgeId);
-        if (edge == null) {
-            throw new NotFoundException("Edge");
-        }
-
+    private List<RealizedPass> getPasses(String databaseName, Edge edge) {
         Set<String> routeIds = pathFinder.getRouteIdsByEdge(databaseName, edge);
         Set<Route> routes = new HashSet<>();
         for (String routeId : routeIds) {
@@ -192,11 +214,8 @@ public class TimetableController extends Controller {
         LocalDateTime dateTime = LocalDateTime.now();
         Set<RealizedTrip> realizedTrips = realizeTrips(databaseName, dateTime.toLocalDate(), trips);
 
-        System.out.println("realized trips: " + realizedTrips.size());
-
         List<RealizedPass> realizedPasses = new LinkedList<>();
         Set<String> edgeStops = Set.of(edge.getStop1().getBaseId(), edge.getStop2().getBaseId());
-        System.out.println("edge stops: " + edgeStops);
 
         for (RealizedTrip realizedTrip : realizedTrips) {
             RealizedLocation previousLocation = null;
@@ -212,10 +231,34 @@ public class TimetableController extends Controller {
                 previousLocation = realizedLocation;
             }
         }
-
-        System.out.println("realized passes: " + realizedPasses.size());
         Collections.sort(realizedPasses);
+        return realizedPasses;
+    }
 
-        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, user));
+    public Result edge(Http.Request request, String edgeId) {
+        User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+
+        List<RealizedPass> realizedPasses = getPasses(databaseName, edge);
+
+        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, null, user));
+    }
+
+    public Result edgePos(Http.Request request, String edgeId, Double pos) {
+        User user = usersModel.getFromRequest(request);
+        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        Edge edge = edgesModel.get(databaseName, edgeId);
+        if (edge == null) {
+            throw new NotFoundException("Edge");
+        }
+
+        List<RealizedPass> realizedPasses = getPasses(databaseName, edge);
+        Collections.sort(realizedPasses, new RealizedPassIntermediateComparator(edge.getStop1(), pos));
+
+        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, pos, user));
     }
 }

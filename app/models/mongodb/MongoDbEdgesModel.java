@@ -5,13 +5,18 @@ import com.google.inject.Injector;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
 import entities.Edge;
+import entities.ReverseEdge;
 import entities.Stop;
 import entities.mongodb.MongoDbEdge;
+import geometry.EdgeSpreadComparator;
+import geometry.Point;
 import models.EdgesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
 import services.MongoDb;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MongoDbEdgesModel implements EdgesModel {
@@ -64,17 +69,27 @@ public class MongoDbEdgesModel implements EdgesModel {
     @Override
     public Edge get(String databaseName, String id) {
         ObjectId objectId;
+        boolean reverse;
         try {
+            reverse = id.startsWith("-");
+            if (reverse) {
+                id = id.substring(1);
+            }
             objectId = new ObjectId(id);
         } catch (Exception e) {
             return null;
         }
         MongoDbEdge edge = query(databaseName).field("_id").equal(objectId).first();
+
+        if (edge == null) {
+            return null;
+        }
         if (edge != null) {
             injector.injectMembers(edge);
             edge.setDatabaseName(databaseName);
+
         }
-        return edge;
+        return reverse ? new ReverseEdge(edge) : edge;
     }
 
     @Override
@@ -116,5 +131,30 @@ public class MongoDbEdgesModel implements EdgesModel {
             edge.setDatabaseName(databaseName);
         }
         return edges;
+    }
+
+    @Override
+    public List<? extends Edge> getByPoint(String databaseName, Point point) {
+        Query<MongoDbEdge> query = query(databaseName);
+        List<? extends Edge> edges = query.field("bbNorth").greaterThan(point.getLat()).field("bbSouth").lessThan(point.getLat()).field("bbEast").greaterThan(point.getLng()).field("bbWest").lessThan(point.getLng()).asList();
+        edges.stream().forEach(e -> { injector.injectMembers(e); ((MongoDbEdge)e).setDatabaseName(databaseName); });
+
+        if (edges.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Collections.sort(edges, new EdgeSpreadComparator(point));
+
+        List<Edge> finalEdges = new LinkedList<>();
+
+        double lastSpread = edges.get(0).getSpread(point);
+        for (Edge edge : edges) {
+            if (Math.abs(lastSpread - edge.getSpread(point)) > 30) {
+                break;
+            }
+            finalEdges.add(edge);
+        }
+
+        return finalEdges;
     }
 }

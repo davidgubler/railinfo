@@ -2,6 +2,9 @@ package entities.realized;
 
 import entities.Stop;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 public class RealizedPass implements Comparable<RealizedPass> {
     private RealizedTrip trip;
     private RealizedLocation startEdge;
@@ -21,6 +24,14 @@ public class RealizedPass implements Comparable<RealizedPass> {
             return endEdge;
         }
         return null;
+    }
+
+    public LocalDateTime getIntermediate(boolean isForward, Double pos) {
+        if (!isForward) {
+            pos = 1.0 - pos;
+        }
+        long edgeSeconds = startEdge.getDeparture().until(endEdge.getArrival(), ChronoUnit.SECONDS);
+        return startEdge.getDeparture().plusSeconds(Math.round(edgeSeconds * pos));
     }
 
     public boolean isForward(Stop stop) {

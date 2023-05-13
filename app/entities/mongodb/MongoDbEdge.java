@@ -79,6 +79,11 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         return _id.toString();
     }
 
+    @Override
+    public String getIdReverse() {
+        return "-" + getId();
+    }
+
     public ObjectId getObjectId() {
         return _id;
     }
@@ -252,5 +257,15 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public String toString(Stop from) {
         return from.getName() + "[" + from.getBaseId() + "] ---" + getTypicalTime() + "s--> " + getDestination(from).getName() + "[" + getDestination(from).getBaseId() + "]";
+    }
+
+    @Override
+    public Double getSpread(Point point) {
+        if (getStop1Coordinates() == null || getStop2Coordinates() == null || point == null) {
+            return null;
+        }
+        double bearing1 = PolarCoordinates.bearingDegrees(point, getStop1Coordinates());
+        double bearing2 = PolarCoordinates.bearingDegrees(point, getStop2Coordinates());
+        return PolarCoordinates.bearingDiff(bearing1, bearing2);
     }
 }

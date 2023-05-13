@@ -1,5 +1,6 @@
 @(  implicit request: Http.Request,
     stop: String,
+    coordinates: String,
     errors: Map[String, String],
     user: entities.User,
 )
@@ -13,7 +14,15 @@
                 @formInputText("Stop", "stop", stop, errors, xlWidth=10, lgWidth=8, mdWidth=6)
             </div>
             <div class="col-xl-8 col-lg-6 col-md-2">
-                @formButtons("Show Stop")
+                @formButtons("Show Departures")
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-4 col-lg-6 col-md-10">
+                @formInputText("Coordinates", "coordinates", coordinates, errors, xlWidth=10, lgWidth=8, mdWidth=6)
+            </div>
+            <div class="col-xl-8 col-lg-6 col-md-2">
+                @formButtons("Show Nearby Trains")
             </div>
         </div>
     }
