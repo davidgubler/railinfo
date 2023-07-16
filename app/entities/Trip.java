@@ -1,6 +1,7 @@
 package entities;
 
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import models.RoutesModel;
 import models.ServiceCalendarExceptionsModel;
 import models.ServiceCalendarsModel;
@@ -37,7 +38,7 @@ public class Trip implements Comparable<Trip> {
     private String directionId;
 
     @Transient
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     @Transient
     @Inject
@@ -60,8 +61,8 @@ public class Trip implements Comparable<Trip> {
         this.directionId = data.get("direction_id");
     }
 
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     public String routeId() {
@@ -131,11 +132,11 @@ public class Trip implements Comparable<Trip> {
     }
 
     public List<StopTime> getStopTimes() {
-        return stopTimesModel.getByTrip(databaseName, this);
+        return stopTimesModel.getByTrip(gtfs, this);
     }
 
     public Route getRoute() {
-        return routesModel.getByRouteId(databaseName, routeId);
+        return routesModel.getByRouteId(gtfs, routeId);
     }
 
     @Override

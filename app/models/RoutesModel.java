@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.Route;
 
 import java.util.List;
@@ -7,13 +8,13 @@ import java.util.Map;
 
 public interface RoutesModel {
 
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    Route create(String databaseName, Map<String, String> data);
+    Route create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    Route getByRouteId(String databaseName, String id);
+    Route getByRouteId(GtfsConfig gtfs, String id);
 
-    List<Route> getByType(String databaseName, int from, int to);
+    List<Route> getByType(GtfsConfig gtfs, int from, int to);
 }

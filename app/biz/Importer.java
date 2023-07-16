@@ -1,6 +1,8 @@
 package biz;
 
 import com.google.inject.Inject;
+import configs.CH;
+import configs.GtfsConfig;
 import entities.Edge;
 import entities.Stop;
 import entities.User;
@@ -49,7 +51,7 @@ public class Importer {
 
     public static final String UTF8_BOM = "\uFEFF";
 
-    public void importGtfs(Http.RequestHeader request, String urlStr, String databaseName, User user) throws InputValidationException {
+    public void importGtfs(Http.RequestHeader request, String urlStr, String newDbName, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -58,11 +60,11 @@ public class Importer {
         // INPUT
         Map<String, String> errors = new HashMap<>();
         InputUtils.validateUrl(urlStr, "url", true, errors);
-        InputUtils.validateString(databaseName, "databaseName", true, errors);
-        if (databaseName != null && !databaseName.startsWith("railinfo-ch-")) {
+        InputUtils.validateString(newDbName, "databaseName", true, errors);
+        if (newDbName != null && !newDbName.startsWith("railinfo-ch-")) {
             errors.put("databaseName", ErrorMessages.PLEASE_ENTER_VALID_DATABASE_NAME);
         }
-        if (mongoDb.getTimetableDatabases("ch").contains(databaseName)) {
+        if (mongoDb.getTimetableDatabases("ch").contains(newDbName)) {
             errors.put("databaseName", ErrorMessages.PLEASE_ENTER_DIFFERENT_NAME);
         }
         if (!errors.isEmpty()) {
@@ -70,7 +72,10 @@ public class Importer {
         }
 
         // BUSINESS
-        String oldDb = mongoDb.getTimetableDatabases("ch").stream().findFirst().orElse(null);
+        String oldDbName = mongoDb.getTimetableDatabases("ch").stream().findFirst().orElse(null);
+        GtfsConfig oldDb = new CH(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName));
+        GtfsConfig newDb = new CH(mongoDb.get(newDbName), mongoDb.getDs(newDbName));
+
         new Thread(() -> {
             try {
                 long start = System.currentTimeMillis();
@@ -88,23 +93,23 @@ public class Importer {
                     BufferedReader reader = new BufferedReader(zipInReader);
 
                     if ("stops.txt".equals(entry.getName())) {
-                        stopsModel.drop(databaseName);
-                        stops = parseFile(zipIn, dataMap -> { stopsModel.create(databaseName, dataMap); return null; });
+                        stopsModel.drop(newDb);
+                        stops = parseFile(zipIn, dataMap -> { stopsModel.create(newDb, dataMap); return null; });
                     } else if ("trips.txt".equals(entry.getName())) {
-                        tripsModel.drop(databaseName);
-                        trips = parseFile(zipIn, dataMap -> { tripsModel.create(databaseName, dataMap); return null; });
+                        tripsModel.drop(newDb);
+                        trips = parseFile(zipIn, dataMap -> { tripsModel.create(newDb, dataMap); return null; });
                     } else if ("routes.txt".equals(entry.getName())) {
-                        routesModel.drop(databaseName);
-                        routes = parseFile(zipIn, dataMap -> { routesModel.create(databaseName, dataMap); return null; });
+                        routesModel.drop(newDb);
+                        routes = parseFile(zipIn, dataMap -> { routesModel.create(newDb, dataMap); return null; });
                     } else if ("stop_times.txt".equals(entry.getName())) {
-                        stopTimesModel.drop(databaseName);
-                        stopTimes = parseFile(zipIn, dataMap -> { stopTimesModel.create(databaseName, dataMap); return null; });
+                        stopTimesModel.drop(newDb);
+                        stopTimes = parseFile(zipIn, dataMap -> { stopTimesModel.create(newDb, dataMap); return null; });
                     } else if ("calendar.txt".equals(entry.getName())) {
-                        serviceCalendarsModel.drop(databaseName);
-                        serviceCalendars = parseFile(zipIn, dataMap -> { serviceCalendarsModel.create(databaseName, dataMap); return null; });
+                        serviceCalendarsModel.drop(newDb);
+                        serviceCalendars = parseFile(zipIn, dataMap -> { serviceCalendarsModel.create(newDb, dataMap); return null; });
                     } else if ("calendar_dates.txt".equals(entry.getName())) {
-                        serviceCalendarExceptionsModel.drop(databaseName);
-                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> { serviceCalendarExceptionsModel.create(databaseName, dataMap); return null; });
+                        serviceCalendarExceptionsModel.drop(newDb);
+                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> { serviceCalendarExceptionsModel.create(newDb, dataMap); return null; });
                     } else {
                         String line;
                         while ((line = reader.readLine()) != null) {
@@ -116,14 +121,14 @@ public class Importer {
                 }
                 zipIn.close();
 
-                RailinfoLogger.info(request, "rebuilding indexes on " + databaseName);
-                mongoDb.getDs(databaseName).ensureIndexes();
-                mongoDb.getDs(databaseName).ensureCaps();
+                RailinfoLogger.info(request, "rebuilding indexes on " + newDb);
+                newDb.getDs().ensureIndexes();
+                newDb.getDs().ensureCaps();
 
                 RailinfoLogger.info(request, "importing stops from previous DB");
-                migrateModifiedStops(oldDb, databaseName);
+                migrateModifiedStops(oldDb, newDb);
                 RailinfoLogger.info(request, "importing edges from previous DB");
-                migrateModifiedEdges(oldDb, databaseName);
+                migrateModifiedEdges(oldDb, newDb);
 
                 // LOG
                 RailinfoLogger.info(request, "found " + stops + " stops");
@@ -132,14 +137,14 @@ public class Importer {
                 RailinfoLogger.info(request, "found " + stopTimes + " stopTimes");
                 RailinfoLogger.info(request, "found " + serviceCalendars + " serviceCalendars");
                 RailinfoLogger.info(request, "found " + serviceCalendarExceptions + " serviceCalendarExceptions");
-                RailinfoLogger.info(request, user + " imported database " + databaseName + " in " + (System.currentTimeMillis() - start) + " ms");
+                RailinfoLogger.info(request, user + " imported database " + newDb + " in " + (System.currentTimeMillis() - start) + " ms");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    private void migrateModifiedStops(String oldDb, String newDb) {
+    private void migrateModifiedStops(GtfsConfig oldDb, GtfsConfig newDb) {
         if (oldDb == null) {
             return;
         }
@@ -150,7 +155,7 @@ public class Importer {
         });
     }
 
-    private void migrateModifiedEdges(String oldDb, String newDb) {
+    private void migrateModifiedEdges(GtfsConfig oldDb, GtfsConfig newDb) {
         if (oldDb == null) {
             return;
         }

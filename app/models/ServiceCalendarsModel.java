@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.ServiceCalendar;
 import entities.Trip;
 
@@ -9,13 +10,13 @@ import java.util.Map;
 
 public interface ServiceCalendarsModel {
 
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    ServiceCalendar create(String databaseName, Map<String, String> data);
+    ServiceCalendar create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    ServiceCalendar getByServiceId(String databaseName, String serviceId);
+    ServiceCalendar getByServiceId(GtfsConfig gtfs, String serviceId);
 
-    Map<String, ServiceCalendar> getByTrips(String databaseName, Collection<Trip> trips);
+    Map<String, ServiceCalendar> getByTrips(GtfsConfig gtfs, Collection<Trip> trips);
 }

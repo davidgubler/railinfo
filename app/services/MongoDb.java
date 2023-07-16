@@ -7,6 +7,8 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
+import configs.CH;
+import configs.GtfsConfig;
 import entities.*;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
@@ -44,6 +46,17 @@ public class MongoDb {
             actorSystem.registerOnTermination(() -> client.close());
         }
         return client;
+    }
+
+    public GtfsConfig getLatest(String countryCode) {
+        countryCode = countryCode.toLowerCase();
+        if ("ch".equals(countryCode)) {
+            List<String> databaseNames = this.getTimetableDatabases(countryCode);
+            if (!databaseNames.isEmpty()) {
+                return new CH(get(databaseNames.get(0)), getDs(databaseNames.get(0)));
+            }
+        }
+        return null;
     }
 
     public List<String> getTimetableDatabases(String countryCode) {

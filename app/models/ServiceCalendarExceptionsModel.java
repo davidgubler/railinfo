@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.ServiceCalendarException;
 import entities.Trip;
 
@@ -10,13 +11,13 @@ import java.util.Map;
 
 public interface ServiceCalendarExceptionsModel {
 
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    ServiceCalendarException create(String databaseName, Map<String, String> data);
+    ServiceCalendarException create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    List<ServiceCalendarException> getByServiceId(String databaseName, String serviceId);
+    List<ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId);
 
-    Map<String, List<ServiceCalendarException>> getByTripsAndDates(String databaseName, Collection<Trip> trips, Collection<LocalDate> dates);
+    Map<String, List<ServiceCalendarException>> getByTripsAndDates(GtfsConfig gtfs, Collection<Trip> trips, Collection<LocalDate> dates);
 }

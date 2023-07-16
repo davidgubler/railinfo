@@ -1,6 +1,7 @@
 package entities;
 
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import dev.morphia.annotations.*;
 import models.StopsModel;
 import org.bson.types.ObjectId;
@@ -29,7 +30,7 @@ public class StopTime implements Comparable<StopTime> {
     private String dropoffType;
 
     @Transient
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     @Transient
     @Inject
@@ -49,8 +50,8 @@ public class StopTime implements Comparable<StopTime> {
         this.dropoffType = data.get("drop_off_type");
     }
 
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     public String getTripId() {
@@ -70,7 +71,7 @@ public class StopTime implements Comparable<StopTime> {
     }
 
     public Stop getStop() {
-        return stopsModel.getByStopId(databaseName, stopId);
+        return stopsModel.getByStopId(gtfs, stopId);
     }
 
     public Integer getStopSequence() {

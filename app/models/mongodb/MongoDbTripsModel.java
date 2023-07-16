@@ -3,6 +3,7 @@ package models.mongodb;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
+import configs.GtfsConfig;
 import dev.morphia.InsertOptions;
 import entities.Route;
 import entities.Trip;
@@ -19,48 +20,45 @@ public class MongoDbTripsModel implements TripsModel {
     @Inject
     private Injector injector;
 
-    @Inject
-    private MongoDb mongoDb;
-
-    private Query<Trip> query(String databaseName) {
-        return mongoDb.getDs(databaseName).createQuery(Trip.class);
+    private Query<Trip> query(GtfsConfig gtfs) {
+        return gtfs.getDs().createQuery(Trip.class);
     }
 
     @Override
-    public void drop(String databaseName) {
-        mongoDb.get(databaseName).getCollection("trips").drop();
+    public void drop(GtfsConfig gtfs) {
+        gtfs.getDatabase().getCollection("trips").drop();
     }
 
     @Override
-    public Trip create(String databaseName, Map<String, String> data) {
+    public Trip create(GtfsConfig gtfs, Map<String, String> data) {
         Trip trip = new Trip(data);
-        mongoDb.getDs(databaseName).save(trip);
+        gtfs.getDs().save(trip);
         return trip;
     }
 
     @Override
-    public void create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<Trip> trips = dataBatch.stream().map(data -> new Trip(data)).collect(Collectors.toList());
-        mongoDb.getDs(databaseName).save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(trips, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
-    public Trip getByTripId(String databaseName, String id) {
-        Trip trip = query(databaseName).field("tripId").equal(id).get();
+    public Trip getByTripId(GtfsConfig gtfs, String id) {
+        Trip trip = query(gtfs).field("tripId").equal(id).get();
         injector.injectMembers(trip);
-        trip.setDatabaseName(databaseName);
+        trip.setGtfs(gtfs);
         return trip;
     }
 
     @Override
-    public List<Trip> getByRoute(String databaseName, Route route) {
-        List<Trip> trips = query(databaseName).field("routeId").equal(route.getRouteId()).asList();
-        trips.stream().forEach(t -> { injector.injectMembers(t); t.setDatabaseName(databaseName); });
+    public List<Trip> getByRoute(GtfsConfig gtfs, Route route) {
+        List<Trip> trips = query(gtfs).field("routeId").equal(route.getRouteId()).asList();
+        trips.stream().forEach(t -> { injector.injectMembers(t); t.setGtfs(gtfs); });
         return trips;
     }
 
     @Override
-    public List<? extends Trip> getAll(String databaseName) {
-        return query(databaseName).asList();
+    public List<? extends Trip> getAll(GtfsConfig gtfs) {
+        return query(gtfs).asList();
     }
 }

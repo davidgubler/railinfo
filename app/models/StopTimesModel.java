@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
@@ -9,15 +10,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface StopTimesModel {
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    StopTime create(String databaseName, Map<String, String> data);
+    StopTime create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    List<StopTime> getByStops(String databaseName, Collection<? extends Stop> stops);
+    List<StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops);
 
-    List<StopTime> getByTrip(String databaseName, Trip trip);
+    List<StopTime> getByTrip(GtfsConfig gtfs, Trip trip);
 
-    Map<Trip, List<StopTime>> getByTrips(String databaseName, List<Trip> trips);
+    Map<Trip, List<StopTime>> getByTrips(GtfsConfig gtfs, List<Trip> trips);
 }

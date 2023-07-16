@@ -1,6 +1,7 @@
 package entities.mongodb;
 
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import dev.morphia.utils.IndexType;
 import entities.Stop;
 import geometry.Point;
@@ -40,7 +41,7 @@ public class MongoDbStop implements Stop {
     private String parentId;
 
     @Transient
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     @Transient
     @Inject
@@ -71,8 +72,8 @@ public class MongoDbStop implements Stop {
         this.parentId = data.get("parent_station").isBlank() ? null : data.get("parent_station");
     }
 
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     public String getId() {
@@ -135,9 +136,9 @@ public class MongoDbStop implements Stop {
 
     public Integer getImportance() {
         if (importance == null) {
-            Set<Stop> stops = new HashSet<>(stopsModel.getByName(databaseName, getName()));
-            importance = stopTimesModel.getByStops(databaseName, stops).size();
-            stopsModel.updateImportance(databaseName, stops, importance);
+            Set<Stop> stops = new HashSet<>(stopsModel.getByName(gtfs, getName()));
+            importance = stopTimesModel.getByStops(gtfs, stops).size();
+            stopsModel.updateImportance(gtfs, stops, importance);
         }
         return importance;
     }

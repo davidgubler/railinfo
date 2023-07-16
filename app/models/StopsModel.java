@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.Stop;
 
 import java.util.List;
@@ -8,35 +9,35 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public interface StopsModel {
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    Stop create(String databaseName, Map<String, String> data);
+    Stop create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    Stop create(String databaseName, String name, Double lat, Double lng);
+    Stop create(GtfsConfig gtfs, String name, Double lat, Double lng);
 
-    Stop create(String databaseName, String stopId, String name, Double lat, Double lng);
+    Stop create(GtfsConfig gtfs, String stopId, String name, Double lat, Double lng);
 
-    Stop get(String databaseName, String id);
+    Stop get(GtfsConfig gtfs, String id);
 
-    Stop getByStopId(String databaseName, String stopId);
+    Stop getByStopId(GtfsConfig gtfs, String stopId);
 
-    Stop getByStopIdUncached(String databaseName, String stopId);
+    Stop getByStopIdUncached(GtfsConfig gtfs, String stopId);
 
-    Set<? extends Stop> getByName(String databaseName, String name);
+    Set<? extends Stop> getByName(GtfsConfig gtfs, String name);
 
-    Stop getPrimaryByName(String databaseName, String name);
+    Stop getPrimaryByName(GtfsConfig gtfs, String name);
 
-    List<? extends Stop> getByPartialName(String databaseName, String name);
+    List<? extends Stop> getByPartialName(GtfsConfig gtfs, String name);
 
-    void updateImportance(String databaseName, Set<Stop> stops, Integer importance);
+    void updateImportance(GtfsConfig gtfs, Set<Stop> stops, Integer importance);
 
-    List<Stop> getAll(String databaseName);
+    List<Stop> getAll(GtfsConfig gtfs);
 
-    Stream<Stop> getModified(String databaseName);
+    Stream<Stop> getModified(GtfsConfig gtfs);
 
-    void update(String databaseName, Stop stop, String name, Double lat, Double lng);
+    void update(GtfsConfig gtfs, Stop stop, String name, Double lat, Double lng);
 
-    void delete(String databaseName, Stop stop);
+    void delete(GtfsConfig gtfs, Stop stop);
 }

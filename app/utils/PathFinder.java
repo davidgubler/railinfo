@@ -2,6 +2,7 @@ package utils;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import configs.GtfsConfig;
 import entities.*;
 import entities.mongodb.MongoDbEdge;
 import entities.realized.RealizedWaypoint;
@@ -109,10 +110,10 @@ public class PathFinder {
     }
 
 
-    public List<RealizedWaypoint> getIntermediate(String databaseName, Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
+    public List<RealizedWaypoint> getIntermediate(GtfsConfig gtfs, Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(databaseName, stop), globalPathsCache);
+        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(gtfs, stop), globalPathsCache);
 
         if (quickest == null) {
             return new LinkedList<>();
@@ -149,18 +150,18 @@ public class PathFinder {
         return quickest != null;
     }
 
-    public void recalculateEdges(String databaseName) {
+    public void recalculateEdges(GtfsConfig gtfs) {
         Map<String, Edge> edges = new HashMap<>();
         Map<String, Path> pathsCache = new HashMap<>();
         long start = System.currentTimeMillis();
         System.out.print("fetching rail routes... ");
-        List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
+        List<Route> railRoutes = routesModel.getByType(gtfs, 100, 199);
         System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
 
         System.out.print("extracting edges... ");
         for (Route route : railRoutes) {
             System.out.println(route + " " + route.getShortName());
-            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
+            List<Trip> trips = tripsModel.getByRoute(gtfs, route);
 
             for (Trip trip : trips) {
                 String depTime = null;
@@ -169,7 +170,7 @@ public class PathFinder {
                 for (StopTime stopTime : stopTimes) {
                     if (lastStopId != null) {
                         int seconds = googleTransportTimeDiff(depTime, stopTime.getArrival());
-                        addJourney(databaseName, edges, lastStopId, stopTime.getParentStopId(), seconds);
+                        addJourney(gtfs, edges, lastStopId, stopTime.getParentStopId(), seconds);
                     }
                     lastStopId = stopTime.getParentStopId();
                     depTime = stopTime.getDeparture();
@@ -191,7 +192,7 @@ public class PathFinder {
         List<Edge> requiredEdges = new LinkedList<>();
         Map<Stop, Set<Edge>> topology = new HashMap<>();
         // we want to keep all edges that have been manually modified
-        for (Edge edge : edgesModel.getModified(databaseName)) {
+        for (Edge edge : edgesModel.getModified(gtfs)) {
             if (!topology.containsKey(edge.getStop1())) {
                 topology.put(edge.getStop1(), new HashSet<>());
             }
@@ -217,9 +218,9 @@ public class PathFinder {
         }
 
         System.out.println("saving " + requiredEdges.size() + " edges...");
-        edgesModel.drop(databaseName);
+        edgesModel.drop(gtfs);
         for (Edge edge: requiredEdges) {
-            edgesModel.save(databaseName, edge);
+            edgesModel.save(gtfs, edge);
         }
         System.out.println("edges saved");
         clearCache();
@@ -227,7 +228,7 @@ public class PathFinder {
     }
 
 
-    private void addJourney(String databaseName, Map<String, Edge> edges, String from, String to, int seconds) {
+    private void addJourney(GtfsConfig gtfs, Map<String, Edge> edges, String from, String to, int seconds) {
         if (from.compareTo(to) > 0) {
             String tmp = to;
             to = from;
@@ -236,8 +237,8 @@ public class PathFinder {
         String key = from + "|" + to;
         Edge edge = edges.get(key);
         if (edge == null) {
-            MongoDbEdge mongoDbEdge = new MongoDbEdge(stopsModel, databaseName, from, to);
-            mongoDbEdge.setDatabaseName(databaseName);
+            MongoDbEdge mongoDbEdge = new MongoDbEdge(stopsModel, gtfs, from, to);
+            mongoDbEdge.setGtfs(gtfs);
             edge = mongoDbEdge;
             edges.put(key, edge);
         }
@@ -247,21 +248,21 @@ public class PathFinder {
 
     private volatile Map<Edge, Set<String>> routeIdsByEdge = null;
 
-    public Set<String> getRouteIdsByEdge(String databaseName, Edge edge) {
+    public Set<String> getRouteIdsByEdge(GtfsConfig gtfs, Edge edge) {
         if (routeIdsByEdge == null) {
             routeIdsByEdge = new HashMap<>();
-            recalculatePaths(databaseName);
+            recalculatePaths(gtfs);
         }
         Set<String> routes = routeIdsByEdge.get(edge);
         return routes == null ? Collections.emptySet() : routes;
     }
 
-    public void recalculatePaths(String databaseName) {
+    public void recalculatePaths(GtfsConfig gtfs) {
         Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
-        List<Route> railRoutes = routesModel.getByType(databaseName, 100, 199);
+        List<Route> railRoutes = routesModel.getByType(gtfs, 100, 199);
 
         Map<String, List<Edge>> edgesLookupTable = new HashMap<>();
-        for (Edge edge : edgesModel.getAll(databaseName)) {
+        for (Edge edge : edgesModel.getAll(gtfs)) {
             if (!edgesLookupTable.containsKey(edge.getStop1Id())) {
                 edgesLookupTable.put(edge.getStop1Id(), new LinkedList<>());
             }
@@ -282,8 +283,8 @@ public class PathFinder {
             done++;
 
             long start = System.currentTimeMillis();
-            List<Trip> trips = tripsModel.getByRoute(databaseName, route);
-            Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(databaseName, trips);
+            List<Trip> trips = tripsModel.getByRoute(gtfs, route);
+            Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(gtfs, trips);
             totalDb += System.currentTimeMillis() - start;
 
             for (Trip trip : trips) {

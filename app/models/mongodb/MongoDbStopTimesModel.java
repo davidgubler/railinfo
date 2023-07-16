@@ -3,6 +3,7 @@ package models.mongodb;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
+import configs.GtfsConfig;
 import dev.morphia.InsertOptions;
 import entities.Stop;
 import entities.StopTime;
@@ -22,45 +23,45 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     @Inject
     private MongoDb mongoDb;
 
-    private Query<StopTime> query(String databaseName) {
-        return mongoDb.getDs(databaseName).createQuery(StopTime.class);
+    private Query<StopTime> query(GtfsConfig gtfs) {
+        return gtfs.getDs().createQuery(StopTime.class);
     }
 
     @Override
-    public void drop(String databaseName) {
-        mongoDb.get(databaseName).getCollection("stopTimes").drop();
+    public void drop(GtfsConfig gtfs) {
+        gtfs.getDatabase().getCollection("stopTimes").drop();
     }
 
     @Override
-    public StopTime create(String databaseName, Map<String, String> data) {
+    public StopTime create(GtfsConfig gtfs, Map<String, String> data) {
         StopTime stopTime = new StopTime(data);
-        mongoDb.getDs(databaseName).save(stopTime);
+        gtfs.getDs().save(stopTime);
         return stopTime;
     }
 
     @Override
-    public void create(String databaseName, List<Map<String, String>> dataBatch) {
+    public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<StopTime> serviceCalendarExceptions = dataBatch.stream().map(data -> new StopTime(data)).collect(Collectors.toList());
-        mongoDb.getDs(databaseName).save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
-    public List<StopTime> getByStops(String databaseName, Collection<? extends Stop> stops) {
+    public List<StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops) {
         List<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toList());
-        List<StopTime> stopTimes = query(databaseName).field("stopId").in(stopIds).asList();
-        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setDatabaseName(databaseName); });
+        List<StopTime> stopTimes = query(gtfs).field("stopId").in(stopIds).asList();
+        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
         return stopTimes;
     }
 
     @Override
-    public List<StopTime> getByTrip(String databaseName, Trip trip) {
-        List<StopTime> stopTimes = query(databaseName).field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
-        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setDatabaseName(databaseName); });
+    public List<StopTime> getByTrip(GtfsConfig gtfs, Trip trip) {
+        List<StopTime> stopTimes = query(gtfs).field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
+        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
         return stopTimes;
     }
 
     @Override
-    public Map<Trip, List<StopTime>> getByTrips(String databaseName, List<Trip> trips) {
+    public Map<Trip, List<StopTime>> getByTrips(GtfsConfig gtfs, List<Trip> trips) {
         Map<String, Trip> tripsMap = new HashMap<>();
         for (Trip trip : trips)  {
             tripsMap.put(trip.getTripId(), trip);
@@ -68,9 +69,9 @@ public class MongoDbStopTimesModel implements StopTimesModel {
 
         List<String> tripIds = trips.stream().map(Trip::getTripId).collect(Collectors.toList());
         Map<Trip, List<StopTime>> stopTimes = new HashMap<>();
-        for (StopTime stopTime : query(databaseName).field("tripId").in(tripIds).asList()) {
+        for (StopTime stopTime : query(gtfs).field("tripId").in(tripIds).asList()) {
             injector.injectMembers(stopTime);
-            stopTime.setDatabaseName(databaseName);
+            stopTime.setGtfs(gtfs);
             Trip trip = tripsMap.get(stopTime.getTripId());
             if (!stopTimes.containsKey(trip)) {
                 stopTimes.put(trip, new LinkedList<>());

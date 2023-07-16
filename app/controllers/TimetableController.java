@@ -2,6 +2,7 @@ package controllers;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import configs.GtfsConfig;
 import entities.*;
 import entities.realized.*;
 import models.*;
@@ -61,7 +62,7 @@ public class TimetableController extends Controller {
 
     public Result indexPost(Http.Request request) {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
 
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String submit = InputUtils.trimToNull(data.get("submit"));
@@ -70,7 +71,7 @@ public class TimetableController extends Controller {
 
         Map<String, String> errors = new HashMap<>();
         if ("Show Departures".equals(submit)) {
-            if (stopsModel.getByName(databaseName, stop).isEmpty()) {
+            if (stopsModel.getByName(gtfs, stop).isEmpty()) {
                 errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
             } else {
                 return redirect(routes.TimetableController.stop(stop));
@@ -89,13 +90,13 @@ public class TimetableController extends Controller {
 
     public Result nearby(Http.Request request, String coordinates) {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
         Point point = Point.fromString(coordinates);
         if (point == null) {
             throw new NotFoundException("coordinates");
         }
 
-        List<? extends Edge> edges = edgesModel.getByPoint(databaseName, point);
+        List<? extends Edge> edges = edgesModel.getByPoint(gtfs, point);
 
         Map<Edge, Double> pos = new HashMap<>();
         for (Edge edge : edges) {
@@ -109,24 +110,24 @@ public class TimetableController extends Controller {
 
     public Result stop(Http.Request request, String stopName)  {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        Set<? extends Stop> stops = stopsModel.getByName(databaseName, stopName);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        Set<? extends Stop> stops = stopsModel.getByName(gtfs, stopName);
         if (stops.isEmpty()) {
             throw new NotFoundException("Stop");
         }
 
         LocalDateTime dateTime = LocalDateTime.now();
 
-        List<StopTime> stopTimes = stopTimesModel.getByStops(databaseName, stops);
+        List<StopTime> stopTimes = stopTimesModel.getByStops(gtfs, stops);
         List<Trip> trips = new LinkedList<>();
         for (StopTime stopTime : stopTimes) {
-            Trip trip = tripsModel.getByTripId(databaseName, stopTime.getTripId());
+            Trip trip = tripsModel.getByTripId(gtfs, stopTime.getTripId());
             if (trip != null) {
                 trips.add(trip);
             }
         }
 
-        Set<RealizedTrip> realizedTrips = realizeTrips(databaseName, dateTime.toLocalDate(), trips);
+        Set<RealizedTrip> realizedTrips = realizeTrips(gtfs, dateTime.toLocalDate(), trips);
 
         List<RealizedDeparture> departures = new LinkedList<>();
         for (RealizedTrip realizedTrip : realizedTrips) {
@@ -152,33 +153,33 @@ public class TimetableController extends Controller {
 
     public Result realizedTrip(Http.Request request, String tripId, String startDateStr)  {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
         LocalDate startDate = LocalDate.parse(startDateStr);
-        Trip trip = tripsModel.getByTripId(databaseName, tripId);
+        Trip trip = tripsModel.getByTripId(gtfs, tripId);
         if (trip == null) {
             throw new NotFoundException("trip");
         }
-        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(databaseName, trip.getServiceId());
-        ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(databaseName, trip.getServiceId());
+        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(gtfs, trip.getServiceId());
+        ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(gtfs, trip.getServiceId());
         if (!trip.isActive(startDate, serviceCalendarExceptions, serviceCalendar)) {
             throw new NotFoundException("trip");
         }
 
         RealizedTrip realizedTrip = new RealizedTrip(trip, startDate);
         injector.injectMembers(realizedTrip);
-        realizedTrip.setDatabaseName(databaseName);
+        realizedTrip.setGtfs(gtfs);
 
         return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user));
     }
 
-    private Set<RealizedTrip> realizeTrips(String databaseName, LocalDate d1, Collection<Trip> trips) {
+    private Set<RealizedTrip> realizeTrips(GtfsConfig gtfs, LocalDate d1, Collection<Trip> trips) {
         Set<RealizedTrip> realizedTrips = new HashSet<>();
 
         LocalDate d0 = d1.plusDays(-1);
         LocalDate d2 = d1.plusDays(1);
 
-        Map<String, List<ServiceCalendarException>> serviceCalendarExceptionsByServiceId = serviceCalendarExceptionsModel.getByTripsAndDates(databaseName, trips, Arrays.asList(d0, d1, d2));
-        Map<String, ServiceCalendar> serviceCalendarByServiceId = serviceCalendarsModel.getByTrips(databaseName, trips);
+        Map<String, List<ServiceCalendarException>> serviceCalendarExceptionsByServiceId = serviceCalendarExceptionsModel.getByTripsAndDates(gtfs, trips, Arrays.asList(d0, d1, d2));
+        Map<String, ServiceCalendar> serviceCalendarByServiceId = serviceCalendarsModel.getByTrips(gtfs, trips);
         for (Trip trip : trips) {
             List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsByServiceId.get(trip.getServiceId());
             ServiceCalendar serviceCalendar = serviceCalendarByServiceId.get(trip.getServiceId());
@@ -194,25 +195,25 @@ public class TimetableController extends Controller {
         }
         for (RealizedTrip realizedTrip : realizedTrips) {
             injector.injectMembers(realizedTrip);
-            realizedTrip.setDatabaseName(databaseName);
+            realizedTrip.setGtfs(gtfs);
         }
         return realizedTrips;
     }
 
-    private List<RealizedPass> getPasses(String databaseName, Edge edge) {
-        Set<String> routeIds = pathFinder.getRouteIdsByEdge(databaseName, edge);
+    private List<RealizedPass> getPasses(GtfsConfig gtfs, Edge edge) {
+        Set<String> routeIds = pathFinder.getRouteIdsByEdge(gtfs, edge);
         Set<Route> routes = new HashSet<>();
         for (String routeId : routeIds) {
-            routes.add(routesModel.getByRouteId(databaseName, routeId));
+            routes.add(routesModel.getByRouteId(gtfs, routeId));
         }
 
         Set<Trip> trips = new HashSet<>();
         for (Route route : routes) {
-            trips.addAll(tripsModel.getByRoute(databaseName, route));
+            trips.addAll(tripsModel.getByRoute(gtfs, route));
         }
 
         LocalDateTime dateTime = LocalDateTime.now();
-        Set<RealizedTrip> realizedTrips = realizeTrips(databaseName, dateTime.toLocalDate(), trips);
+        Set<RealizedTrip> realizedTrips = realizeTrips(gtfs, dateTime.toLocalDate(), trips);
 
         List<RealizedPass> realizedPasses = new LinkedList<>();
         Set<String> edgeStops = Set.of(edge.getStop1().getBaseId(), edge.getStop2().getBaseId());
@@ -237,26 +238,26 @@ public class TimetableController extends Controller {
 
     public Result edge(Http.Request request, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        Edge edge = edgesModel.get(databaseName, edgeId);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        Edge edge = edgesModel.get(gtfs, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
 
-        List<RealizedPass> realizedPasses = getPasses(databaseName, edge);
+        List<RealizedPass> realizedPasses = getPasses(gtfs, edge);
 
         return ok(views.html.timetable.edge.render(request, edge, realizedPasses, null, user));
     }
 
     public Result edgePos(Http.Request request, String edgeId, Double pos) {
         User user = usersModel.getFromRequest(request);
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        Edge edge = edgesModel.get(databaseName, edgeId);
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        Edge edge = edgesModel.get(gtfs, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
 
-        List<RealizedPass> realizedPasses = getPasses(databaseName, edge);
+        List<RealizedPass> realizedPasses = getPasses(gtfs, edge);
         Collections.sort(realizedPasses, new RealizedPassIntermediateComparator(edge.getStop1(), pos));
 
         return ok(views.html.timetable.edge.render(request, edge, realizedPasses, pos, user));

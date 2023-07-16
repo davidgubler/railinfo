@@ -1,6 +1,7 @@
 package entities.mongodb;
 
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import dev.morphia.annotations.*;
 import entities.Edge;
 import entities.Stop;
@@ -34,7 +35,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     private Boolean modified = null;
 
     @Transient
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     @Transient
     private Stop stop1;
@@ -52,17 +53,17 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         // dummy constructor for morphia
     }
 
-    public MongoDbEdge(StopsModel stopsModel, String databaseName, String stop1Id, String stop2Id) {
+    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id) {
         this.stopsModel = stopsModel;
-        this.databaseName = databaseName;
+        this.gtfs = gtfs;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
         recalculateBoundingBox();
     }
 
-    public MongoDbEdge(StopsModel stopsModel, String databaseName, String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
+    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
         this.stopsModel = stopsModel;
-        this.databaseName = databaseName;
+        this.gtfs = gtfs;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
         this.typicalTime = typicalTime;
@@ -70,8 +71,8 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         recalculateBoundingBox();
     }
 
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     @Override
@@ -131,7 +132,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop1() {
         if (stop1 == null) {
-            stop1 = stopsModel.getByStopId(databaseName, stop1Id);
+            stop1 = stopsModel.getByStopId(gtfs, stop1Id);
         }
         return stop1;
     }
@@ -144,7 +145,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop2() {
         if (stop2 == null) {
-            stop2 = stopsModel.getByStopId(databaseName, stop2Id);
+            stop2 = stopsModel.getByStopId(gtfs, stop2Id);
         }
         return stop2;
     }

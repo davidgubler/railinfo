@@ -2,6 +2,7 @@ package entities.realized;
 
 import biz.Topology;
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import entities.*;
 import entities.Stop;
 import models.*;
@@ -19,7 +20,7 @@ public class RealizedTrip {
 
     private List<RealizedStopTime> realizedStopTimes;
 
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     @Inject
     private ServiceCalendarsModel serviceCalendarsModel;
@@ -47,8 +48,8 @@ public class RealizedTrip {
         this.startDate = startDate;
     }
 
-    public void setDatabaseName(String databaseName) {
-        this.databaseName = databaseName;
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     public RealizedDeparture getDeparture(Collection<? extends Stop> stops) {
@@ -65,7 +66,7 @@ public class RealizedTrip {
 
     public List<RealizedStopTime> getRealizedStopTimes() {
         if (realizedStopTimes == null) {
-            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel, databaseName)).collect(Collectors.toList()));
+            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel, gtfs)).collect(Collectors.toList()));
             // At least in some cases the first and last stop have invalid arrivals/departures, fix this
             this.realizedStopTimes.get(0).setArrival(null);
             this.realizedStopTimes.get(realizedStopTimes.size()-1).setDeparture(null);
@@ -84,7 +85,7 @@ public class RealizedTrip {
             for (int i = 1; i < realizedStopTimes.size(); i++) {
                 Stop from = realizedStopTimes.get(i - 1).getStop();
                 Stop to = realizedStopTimes.get(i).getStop();
-                complete.addAll(pathFinder.getIntermediate(databaseName, from, to, realizedStopTimes.get(i - 1).getDeparture(), realizedStopTimes.get(i).getArrival()));
+                complete.addAll(pathFinder.getIntermediate(gtfs, from, to, realizedStopTimes.get(i - 1).getDeparture(), realizedStopTimes.get(i).getArrival()));
                 complete.add(realizedStopTimes.get(i));
             }
             realizedStopTimesWithIntermediate = complete;

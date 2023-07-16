@@ -1,5 +1,6 @@
 package entities.realized;
 
+import configs.GtfsConfig;
 import entities.Stop;
 import entities.StopTime;
 import models.StopsModel;
@@ -21,7 +22,7 @@ public class RealizedStopTime implements RealizedLocation {
 
     private StopsModel stopsModel;
 
-    private String databaseName;
+    private GtfsConfig gtfs;
 
     private LocalDateTime realizeGoogleTransportTime(String googleTransportTime, LocalDate startDate) {
         String[] split = googleTransportTime.split(":");
@@ -36,13 +37,13 @@ public class RealizedStopTime implements RealizedLocation {
         return LocalDateTime.of(startDate, LocalTime.of(hour, minute, second));
     }
 
-    public RealizedStopTime(StopTime stopTime, LocalDate startDate, StopsModel stopsModel, String databaseName) {
+    public RealizedStopTime(StopTime stopTime, LocalDate startDate, StopsModel stopsModel, GtfsConfig gtfs) {
         this.startDate = startDate;
         arrival = realizeGoogleTransportTime(stopTime.getArrival(), startDate);
         departure = realizeGoogleTransportTime(stopTime.getDeparture(), startDate);
         stopId = stopTime.getStopId();
         this.stopsModel = stopsModel;
-        this.databaseName = databaseName;
+        this.gtfs = gtfs;
     }
 
     public LocalDateTime getArrival() {
@@ -66,7 +67,7 @@ public class RealizedStopTime implements RealizedLocation {
     }
 
     public Stop getStop() {
-        return stopsModel.getByStopId(databaseName, stopId);
+        return stopsModel.getByStopId(gtfs, stopId);
     }
 
     @Override

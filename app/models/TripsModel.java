@@ -1,5 +1,6 @@
 package models;
 
+import configs.GtfsConfig;
 import entities.Route;
 import entities.Trip;
 import java.util.List;
@@ -7,15 +8,15 @@ import java.util.Map;
 
 public interface TripsModel {
 
-    void drop(String databaseName);
+    void drop(GtfsConfig gtfs);
 
-    Trip create(String databaseName, Map<String, String> data);
+    Trip create(GtfsConfig gtfs, Map<String, String> data);
 
-    void create(String databaseName, List<Map<String, String>> dataBatch);
+    void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    Trip getByTripId(String databaseName, String id);
+    Trip getByTripId(GtfsConfig gtfs, String id);
 
-    List<Trip> getByRoute(String databaseName, Route route);
+    List<Trip> getByRoute(GtfsConfig gtfs, Route route);
 
-    List<? extends Trip> getAll(String databaseName);
+    List<? extends Trip> getAll(GtfsConfig gtfs);
 }

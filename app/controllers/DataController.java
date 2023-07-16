@@ -2,6 +2,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.Inject;
+import configs.GtfsConfig;
 import entities.Stop;
 import models.StopsModel;
 import play.libs.Json;
@@ -22,8 +23,8 @@ public class DataController extends Controller {
     private MongoDb mongoDb;
 
     public Result stops(Http.Request request) {
-        String databaseName = mongoDb.getTimetableDatabases("ch").get(0);
-        List<String> stops = stopsModel.getAll(databaseName).stream().map(Stop::getName).collect(Collectors.toList());
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        List<String> stops = stopsModel.getAll(gtfs).stream().map(Stop::getName).collect(Collectors.toList());
         Collections.sort(stops);
         ArrayNode stopsArray = Json.newArray();
         stops.forEach(s -> stopsArray.add(s));
