@@ -116,7 +116,7 @@ public class TimetableController extends Controller {
             throw new NotFoundException("Stop");
         }
 
-        LocalDateTime dateTime = LocalDateTime.now();
+        LocalDateTime dateTime = LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15);
 
         List<StopTime> stopTimes = stopTimesModel.getByStops(gtfs, stops);
         List<Trip> trips = new LinkedList<>();
@@ -212,7 +212,7 @@ public class TimetableController extends Controller {
             trips.addAll(tripsModel.getByRoute(gtfs, route));
         }
 
-        LocalDateTime dateTime = LocalDateTime.now();
+        LocalDateTime dateTime = LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15);
         Set<RealizedTrip> realizedTrips = realizeTrips(gtfs, dateTime.toLocalDate(), trips);
 
         List<RealizedPass> realizedPasses = new LinkedList<>();
