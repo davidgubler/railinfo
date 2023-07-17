@@ -83,7 +83,7 @@ public class ApiController extends Controller {
                 late = " mit +" + Math.round(getLateSeconds()/300.0)*5;
             }
             if (getLateSeconds() > 3600) {
-                late = " mit +" + Math.round(getLateSeconds()/36000)*10;
+                late = " mit +" + Math.round(getLateSeconds()/600)*10;
             }
             return shortName + " " + tripShortName + " " +start + " - " + end + late;
         }
