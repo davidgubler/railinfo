@@ -49,3 +49,4 @@ POST    /topology/stops/:partial/:stopId/_delete controllers.TopologyController.
 
 GET     /data/stops.json                        controllers.DataController.stops(request: Request)
 
+GET     /api/guessthetrain                      controllers.ApiController.guessTheTrain(request: Request, lng: String, lat: String, date: String, time: String)

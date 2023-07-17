@@ -1,6 +1,8 @@
 package utils;
 
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -154,5 +156,23 @@ public class InputUtils {
             errors.put(name, ErrorMessages.MAX_VALUE_IS("" + maxValue));
             return;
         }
+    }
+
+    public static LocalDate parseDate(String dateStr) {
+        try {
+            return LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            // too bad
+        }
+        return null;
+    }
+
+    public static LocalTime parseTime(String timeStr) {
+        try {
+            return LocalTime.parse(timeStr);
+        } catch (Exception e) {
+            // too bad
+        }
+        return null;
     }
 }
