@@ -124,9 +124,16 @@ public class ApiController extends Controller {
         }
 
         Collections.sort(candidates);
-        if (candidates.size() > 5) {
-            candidates = candidates.subList(0, 5);
+
+        // Take the first five candidates and all which are less than 5 minutes late, whichever is more
+        int i = 0;
+        for (LateRealizedPass p : candidates) {
+            i++;
+            if (i >= 5 && p.getLateSeconds() >= 300) {
+                break;
+            }
         }
+        candidates = candidates.subList(0, i);
 
         for (LateRealizedPass lateRealizedPass : candidates) {
             System.out.println(lateRealizedPass);
