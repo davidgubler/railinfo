@@ -4,6 +4,7 @@ import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 
 import java.time.ZoneId;
+import java.util.Objects;
 
 public class CH implements GtfsConfig {
     @Override
@@ -32,5 +33,18 @@ public class CH implements GtfsConfig {
     @Override
     public String toString() {
         return db.getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CH ch = (CH) o;
+        return Objects.equals(db.getName(), ch.db.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return db.getName().hashCode();
     }
 }
