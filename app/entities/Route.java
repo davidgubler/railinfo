@@ -4,6 +4,7 @@ import dev.morphia.annotations.*;
 import org.bson.types.ObjectId;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Entity(value = "routes", noClassnameStored = true)
 public class Route {
@@ -62,5 +63,18 @@ public class Route {
 
     public String toString() {
         return routeId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Route route = (Route) o;
+        return Objects.equals(routeId, route.routeId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(routeId);
     }
 }

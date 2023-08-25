@@ -11,7 +11,7 @@ import models.*;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -258,9 +258,7 @@ public class PathFinder {
     }
 
     public void recalculatePaths(GtfsConfig gtfs) {
-        Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
         List<Route> railRoutes = routesModel.getByType(gtfs, 100, 199);
-
         Map<String, List<Edge>> edgesLookupTable = new HashMap<>();
         for (Edge edge : edgesModel.getAll(gtfs)) {
             if (!edgesLookupTable.containsKey(edge.getStop1Id())) {
@@ -273,46 +271,69 @@ public class PathFinder {
             edgesLookupTable.get(edge.getStop2Id()).add(edge);
         }
 
-        int done = 0;
         long total = System.currentTimeMillis();
         long totalDb = 0;
         long totalQuickest = 0;
 
+        int cpus = Runtime.getRuntime().availableProcessors();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(cpus, cpus, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
+        Map<Route, Map<Edge, Set<String>>> parallelResultsMap = new ConcurrentHashMap<>();
+
         for (Route route : railRoutes) {
-            System.out.println((100 * done / railRoutes.size()) + "% " + route + " " + route.getShortName());
-            done++;
+            executor.execute(() -> {
+                List<Trip> trips = tripsModel.getByRoute(gtfs, route);
+                Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(gtfs, trips);
 
-            long start = System.currentTimeMillis();
-            List<Trip> trips = tripsModel.getByRoute(gtfs, route);
-            Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(gtfs, trips);
-            totalDb += System.currentTimeMillis() - start;
+                Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
+                for (Trip trip : trips) {
+                    List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
+                    for (int i = 1; i < stopTimes.size(); i++) {
+                        Stop from = stopTimes.get(i-1).getStop();
+                        Stop to = stopTimes.get(i).getStop();
+                        long time = googleTransportTimeDiff(stopTimes.get(i-1).getDeparture(), stopTimes.get(i).getArrival());
 
-            for (Trip trip : trips) {
-                List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
-                for (int i = 1; i < stopTimes.size(); i++) {
-                    Stop from = stopTimes.get(i-1).getStop();
-                    Stop to = stopTimes.get(i).getStop();
-                    long time = googleTransportTimeDiff(stopTimes.get(i-1).getDeparture(), stopTimes.get(i).getArrival());
-
-
-                    start = System.currentTimeMillis();
-                    Path path;
-                    long quickestStart = System.currentTimeMillis();
-                    path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()), globalPathsCache);
-                    if (System.currentTimeMillis() - quickestStart > 50) {
-                        System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
-                    }
-                    totalQuickest += System.currentTimeMillis() - start;
-
-                    for (Edge edge : path.getEdges()) {
-                        if (!routeIdsByEdge.containsKey(edge)) {
-                            routeIdsByEdge.put(edge, new HashSet<>());
+                        Path path;
+                        long quickestStart = System.currentTimeMillis();
+                        path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()), globalPathsCache);
+                        if (System.currentTimeMillis() - quickestStart > 50) {
+                            System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
                         }
-                        routeIdsByEdge.get(edge).add(route.getRouteId());
+
+                        for (Edge edge : path.getEdges()) {
+                            if (!routeIdsByEdge.containsKey(edge)) {
+                                routeIdsByEdge.put(edge, new HashSet<>());
+                            }
+                            routeIdsByEdge.get(edge).add(route.getRouteId());
+                        }
                     }
+                }
+                parallelResultsMap.put(route, routeIdsByEdge);
+            });
+        }
+
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+            try {
+                executor.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                // nothing
+            }
+            int pct = (100 * (railRoutes.size() - executor.getQueue().size())) / railRoutes.size();
+            System.out.println("Recalculating routes " + pct + "%");
+        }
+
+        // consolidate the many result maps into a single result map
+        Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
+        for (Map<Edge, Set<String>> routeIdsByEdgeByRoute : parallelResultsMap.values()) {
+            for (Map.Entry<Edge, Set<String>> entry : routeIdsByEdgeByRoute.entrySet()) {
+                if (!routeIdsByEdge.containsKey(entry.getKey())) {
+                    routeIdsByEdge.put(entry.getKey(), entry.getValue());
+                } else {
+                    routeIdsByEdge.get(entry.getKey()).addAll(entry.getValue());
                 }
             }
         }
+
         total = System.currentTimeMillis() - total;
         System.out.println("total " + total + " ms, db " + totalDb + " ms, pathfinder " + totalQuickest + " ms, unaccounted " + (total - totalDb - totalQuickest) + " ms");
         this.routeIdsByEdge = routeIdsByEdge;
