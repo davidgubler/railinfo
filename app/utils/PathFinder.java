@@ -277,14 +277,14 @@ public class PathFinder {
 
         int cpus = Runtime.getRuntime().availableProcessors();
         ThreadPoolExecutor executor = new ThreadPoolExecutor(cpus, cpus, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue());
-        Map<Route, Map<Edge, Set<String>>> parallelResultsMap = new ConcurrentHashMap<>();
+        List<Map<Edge, Set<String>>> parallelResults = new LinkedList<>();
 
         for (Route route : railRoutes) {
+            Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
+            parallelResults.add(routeIdsByEdge);
             executor.execute(() -> {
                 List<Trip> trips = tripsModel.getByRoute(gtfs, route);
                 Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(gtfs, trips);
-
-                Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
                 for (Trip trip : trips) {
                     List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
                     for (int i = 1; i < stopTimes.size(); i++) {
@@ -298,7 +298,6 @@ public class PathFinder {
                         if (System.currentTimeMillis() - quickestStart > 50) {
                             System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
                         }
-
                         for (Edge edge : path.getEdges()) {
                             if (!routeIdsByEdge.containsKey(edge)) {
                                 routeIdsByEdge.put(edge, new HashSet<>());
@@ -307,7 +306,6 @@ public class PathFinder {
                         }
                     }
                 }
-                parallelResultsMap.put(route, routeIdsByEdge);
             });
         }
 
@@ -324,7 +322,7 @@ public class PathFinder {
 
         // consolidate the many result maps into a single result map
         Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
-        for (Map<Edge, Set<String>> routeIdsByEdgeByRoute : parallelResultsMap.values()) {
+        for (Map<Edge, Set<String>> routeIdsByEdgeByRoute : parallelResults) {
             for (Map.Entry<Edge, Set<String>> entry : routeIdsByEdgeByRoute.entrySet()) {
                 if (!routeIdsByEdge.containsKey(entry.getKey())) {
                     routeIdsByEdge.put(entry.getKey(), entry.getValue());
