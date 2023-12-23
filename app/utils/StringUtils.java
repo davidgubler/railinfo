@@ -3,6 +3,7 @@ package utils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -51,5 +52,9 @@ public class StringUtils {
         }
         Period period = Period.between(startDate, time.toLocalDate());
         return hourMinuteSecondFormatter.format(time) + (period.isZero() ? "" : "+" + period.getDays());
+    }
+
+    public static long formatTimeEpochSecond(LocalDateTime dateTime, ZoneId zoneId) {
+        return dateTime.atZone(zoneId).toEpochSecond();
     }
 }

@@ -5,6 +5,14 @@
     margin: 0px;
 }
 
+.departureBoard a {
+    color: #ccccff;
+}
+
+.departureBoard a:hover {
+    color: #ffffff;
+}
+
 .departureBoard span.product {
     color: #1a258f;
 }

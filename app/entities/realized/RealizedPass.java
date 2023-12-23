@@ -1,16 +1,20 @@
 package entities.realized;
 
+import configs.GtfsConfig;
 import entities.Stop;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
 public class RealizedPass implements Comparable<RealizedPass> {
+    private GtfsConfig gtfs;
     private RealizedTrip trip;
     private RealizedLocation startEdge;
     private RealizedLocation endEdge;
 
-    public RealizedPass(RealizedTrip trip, RealizedLocation start, RealizedLocation end) {
+    public RealizedPass(GtfsConfig gtfs, RealizedTrip trip, RealizedLocation start, RealizedLocation end) {
+        this.gtfs = gtfs;
         this.trip = trip;
         this.startEdge = start;
         this.endEdge = end;
@@ -40,6 +44,10 @@ public class RealizedPass implements Comparable<RealizedPass> {
 
     public RealizedTrip getTrip() {
         return trip;
+    }
+
+    public ZoneId getZoneId() {
+        return gtfs.getZoneId();
     }
 
     @Override

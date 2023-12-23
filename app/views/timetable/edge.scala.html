@@ -5,22 +5,24 @@
     user: entities.User,
 )
 
-@template(request, "Trains between " + edge.getStop1.getName + " and " + edge.getStop2.getName, user) {
+@template(request, "Trains between " + edge.getStop1.getName + " and " + edge.getStop2.getName, user, mainClasses="departureBoard") {
+    <script src='@routes.Assets.versioned("javascripts/highlightPasstime.js")'></script>
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
+    <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/departureBoard.css")'>
     <style>
-        td { padding-right: 20px; }
+        td { padding-right: 10px; }
     </style>
 } {
-    <table>
+    <table class="departureBoard" style="max-width: 100%">
         <thead>
             <tr>
-                <th colspan="3">Train</th>
-                <th>@edge.getStop1.getName</th>
+                <th style="text-align: center;">@edge.getStop1.getName</th>
                 <th></th>
                 @if(pos != null) {
-                <th>YOU</th>
+                <th style="text-align: center;">YOU</th>
                 <th></th>
                 }
-                <th>@edge.getStop2.getName</th>
+                <th style="text-align: center;">@edge.getStop2.getName</th>
             </tr>
         </thead>
         <tbody>
@@ -32,30 +34,24 @@
             }
         @for(pass <- passes) {
             <tr>
-                <td>
-                    @pass.getTrip.getRoute.getShortName
-                </td>
-                <td style="text-align: right;">
-                    @pass.getTrip.getTripShortName
-                </td>
-                <td>
-                    @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName
-                </td>
-                <td>
+                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><span class="product @pass.getTrip.getRoute.getDesc.toLowerCase">@pass.getTrip.getRoute.getShortName</span> @pass.getTrip.getTripShortName @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName</td>
+            </tr>
+            <tr>
+                <td style="text-align: center; border-top: 0px;">
                     @if(pass.isForward(edge.getStop1)){ <b>@utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getDeparture)</b> } else { @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getArrival) }
                 </td>
-                <td>
-                    @if(pass.isForward(edge.getStop1)){&rarr;}else{&larr;}
+                <td style="text-align: center; border-top: 0px; font-size: 40px; line-height: 20px;" @if(pos != null && pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
+                    @if(pass.isForward(edge.getStop1)){&rarr;}@if(pos == null && !pass.isForward(edge.getStop1)){&larr;}
                 </td>
                 @if(pos != null) {
-                <td style="background-color: @if(pass.isForward(edge.getStop1)){#ffffcc;}else{#ffcccc;} padding-right: 0px;">
+                <td style="text-align: center; border-top: 0px;" data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)">
                     @utils.StringUtils.formatTimeSeconds(pass.getIntermediate(pass.isForward(edge.getStop1), pos))
                 </td>
-                <td style="padding-left: 20px;">
-                    @if(pass.isForward(edge.getStop1)){&rarr;}else{&larr;}
+                <td style="text-align: center; border-top: 0px; font-size: 40px; line-height: 20px;" @if(!pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
+                    @if(!pass.isForward(edge.getStop1)){&larr;}
                 </td>
                 }
-                <td>
+                <td  style="text-align: center; border-top: 0px;">
                     @if(pass.isForward(edge.getStop1)){ @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop2).getArrival) } else { <b>@utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop2).getDeparture)</b> }
                 </td>
             </tr>

@@ -197,7 +197,7 @@ public class TimetableController extends Controller {
             throw new NotFoundException("Edge");
         }
 
-        List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, LocalDateTime.now().minusMinutes(15));
+        List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15));
         Collections.sort(realizedPasses, new RealizedPassIntermediateComparator(edge.getStop1(), pos));
 
         return ok(views.html.timetable.edge.render(request, edge, realizedPasses, pos, user));

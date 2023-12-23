@@ -85,7 +85,7 @@ public class RealizerModel {
                 if (previousLocation != null) {
                     if (previousLocation.getDeparture().isAfter(dateTime)) {
                         if (edgeStops.contains(previousLocation.getStop().getBaseId()) && edgeStops.contains(realizedLocation.getStop().getBaseId())) {
-                            realizedPasses.add(new RealizedPass(realizedTrip, previousLocation, realizedLocation));
+                            realizedPasses.add(new RealizedPass(gtfs, realizedTrip, previousLocation, realizedLocation));
                         }
                     }
                 }
