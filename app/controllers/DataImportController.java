@@ -39,7 +39,7 @@ public class DataImportController extends Controller {
             throw new NotAllowedException();
         }
         String databaseName = "railinfo-ch-" + LocalDate.now();
-        return ok(views.html.admin.dataimport.index.render(request, "https://opentransportdata.swiss/de/dataset/timetable-2023-gtfs2020/permalink", databaseName, InputUtils.NOERROR, user));
+        return ok(views.html.admin.dataimport.index.render(request, "https://opentransportdata.swiss/de/dataset/timetable-2024-gtfs2020/permalink", databaseName, InputUtils.NOERROR, user));
     }
 
     public Result importGtfsPost(Http.Request request) {
