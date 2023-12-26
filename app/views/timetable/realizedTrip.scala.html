@@ -3,29 +3,32 @@
     user: entities.User,
 )
 
-@template(request, "Trip", user) {
+@template(request, null, user) {
+    <script src='@routes.Assets.versioned("javascripts/highlightCurrentStop.js")'></script>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/realizedTrip.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
+    <style>
+        .highlight { color: red !important; }
+    </style>
 } {
-    <span class="product @realizedTrip.getRoute.getDesc.toLowerCase whitebg">@realizedTrip.getRoute.getShortName</span> @realizedTrip.getTrip.getTripShortName
+    <h1><span class="product @realizedTrip.getRoute.getDesc.toLowerCase whitebg">@realizedTrip.getRoute.getShortName</span> @realizedTrip.getTrip.getTripShortName </h1>
+    Starts on: @realizedTrip.getStartDate<br />
     <table class="realizedTrip">
         <thead>
-            <tr>
-                <th>Stop</th>
-                <th>Arrival</th>
-                <th>Departure</th>
-            </tr>
+            <th></th>
+            <th>Arrival</th>
+            <th>Departure</th>
         </thead>
         <tbody>
         @for(realizedStopTime <- realizedTrip.getRealizedStopTimesWithIntermediate) {
             @if(realizedStopTime.stops) {
-                <tr>
+                <tr data-passtime="@utils.StringUtils.formatTimeEpochSecond(if(realizedStopTime.getArrival==null){realizedStopTime.getDeparture}else{realizedStopTime.getArrival}, realizedStopTime.getZoneId)">
                     <td>@realizedStopTime.getStop.getName</td>
                     <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getArrival)</td>
                     <td>@utils.StringUtils.formatStopTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
                 </tr>
             } else {
-                <tr class="waypoint">
+                <tr class="waypoint" data-passtime="@utils.StringUtils.formatTimeEpochSecond(realizedStopTime.getDeparture, realizedStopTime.getZoneId)">
                     <td>@realizedStopTime.getStop.getName</td>
                     <td colspan="2">@utils.StringUtils.formatWaypointTime(realizedTrip.getStartDate, realizedStopTime.getDeparture)</td>
                 </tr>

@@ -9,6 +9,7 @@ import utils.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 
 public class RealizedStopTime implements RealizedLocation {
 
@@ -68,6 +69,11 @@ public class RealizedStopTime implements RealizedLocation {
 
     public Stop getStop() {
         return stopsModel.getByStopId(gtfs, stopId);
+    }
+
+    @Override
+    public ZoneId getZoneId() {
+        return gtfs.getZoneId();
     }
 
     @Override

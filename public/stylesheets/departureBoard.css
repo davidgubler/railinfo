@@ -6,11 +6,13 @@
 }
 
 .departureBoard a {
-    color: #ccccff;
+    color: #ffffff;
+    text-decoration: none;
 }
 
 .departureBoard a:hover {
     color: #ffffff;
+    text-decoration: underline;
 }
 
 .departureBoard span.product {

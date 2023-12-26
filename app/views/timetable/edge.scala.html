@@ -5,7 +5,7 @@
     user: entities.User,
 )
 
-@template(request, "Trains between " + edge.getStop1.getName + " and " + edge.getStop2.getName, user, mainClasses="departureBoard") {
+@template(request, edge.getStop1.getName + " - " + edge.getStop2.getName, user, mainClasses="departureBoard") {
     <script src='@routes.Assets.versioned("javascripts/highlightPasstime.js")'></script>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/departureBoard.css")'>
@@ -34,20 +34,20 @@
             }
         @for(pass <- passes) {
             <tr>
-                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><span class="product @pass.getTrip.getRoute.getDesc.toLowerCase">@pass.getTrip.getRoute.getShortName</span> @pass.getTrip.getTripShortName @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName</td>
+                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getDesc.toLowerCase">@pass.getTrip.getRoute.getShortName</span> @pass.getTrip.getTripShortName @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName</a></td>
             </tr>
             <tr>
                 <td style="text-align: center; border-top: 0px;">
                     @if(pass.isForward(edge.getStop1)){ <b>@utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getDeparture)</b> } else { @utils.StringUtils.formatTimeSeconds(pass.get(edge.getStop1).getArrival) }
                 </td>
-                <td style="text-align: center; border-top: 0px; font-size: 40px; line-height: 20px;" @if(pos != null && pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
+                <td style="text-align: center; border-top: 0px; font-size: 32px; line-height: 20px;" @if(pos != null && pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
                     @if(pass.isForward(edge.getStop1)){&rarr;}@if(pos == null && !pass.isForward(edge.getStop1)){&larr;}
                 </td>
                 @if(pos != null) {
                 <td style="text-align: center; border-top: 0px;" data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)">
                     @utils.StringUtils.formatTimeSeconds(pass.getIntermediate(pass.isForward(edge.getStop1), pos))
                 </td>
-                <td style="text-align: center; border-top: 0px; font-size: 40px; line-height: 20px;" @if(!pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
+                <td style="text-align: center; border-top: 0px; font-size: 32px; line-height: 20px;" @if(!pass.isForward(edge.getStop1)){ data-passtime="@utils.StringUtils.formatTimeEpochSecond(pass.getIntermediate(pass.isForward(edge.getStop1), pos), pass.getZoneId)" }>
                     @if(!pass.isForward(edge.getStop1)){&larr;}
                 </td>
                 }

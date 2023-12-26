@@ -10,7 +10,6 @@ table.realizedTrip > tbody > tr > td:not(:first-child) {
     text-align: center;
 }
 
-table.realizedTrip > tbody > tr.waypoint > td {
-    font-size: 12px;
+table.realizedTrip > tbody > tr.waypoint {
     color: #aaaaaa;
 }

@@ -127,7 +127,7 @@ public class PathFinder {
             Edge edge = quickest.getEdges().get(i);
             topologyTime += edge.getTypicalTime();
             stop = edge.getDestination(stop);
-            waypoints.add(new RealizedWaypoint(stop, departure.plusSeconds(60 + Math.round(speedFactor * topologyTime))));
+            waypoints.add(new RealizedWaypoint(stop, departure.plusSeconds(60 + Math.round(speedFactor * topologyTime)), gtfs));
         }
 
         return waypoints;
