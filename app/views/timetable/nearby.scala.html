@@ -1,16 +1,33 @@
 @(  implicit request: Http.Request,
     point: geometry.Point,
-    edges: List[_ <: entities.Edge],
-    pos: Map[entities.Edge, Double],
+    nearbyEdgesLikely: List[entities.NearbyEdge],
+    nearbyEdgesUnlikely: List[entities.NearbyEdge],
     user: entities.User,
 )
 
 @template(request, "Timetable", user) {
 } {
-    <p>There may be more than one railway line nearby. Please choose one.</p>
-    <p>
-    @for(edge <- edges) {
-        <a href="@routes.TimetableController.edgePos(edge.getId, pos.get(edge))">@edge.getStop1.getName - @edge.getStop2.getName</a><br />
+    @if(nearbyEdgesLikely.isEmpty && nearbyEdgesUnlikely.isEmpty) {
+        <p>Sorry, there don't appear to be any railway lines near your position./p>
     }
+    @if(!nearbyEdgesLikely.isEmpty) {
+    <p>There may be more than one railway line near you. Please choose one.</p>
+    <p>
+        @for(nearbyEdge <- nearbyEdgesLikely) {
+            @if(nearbyEdge.getNearbyFactor > 0.1) {
+                <a href="@routes.TimetableController.edgePos(nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+            }
+        }
     </p>
+    }
+    @if(!nearbyEdgesUnlikely.isEmpty) {
+    <p>
+        Unlikely candidates:<br />
+        @for(nearbyEdge <- nearbyEdgesUnlikely) {
+            @if(nearbyEdge.getNearbyFactor <= 0.1) {
+                <a href="@routes.TimetableController.edgePos(nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+            }
+        }
+    </p>
+    }
 }

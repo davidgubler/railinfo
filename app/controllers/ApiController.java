@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.Inject;
 import configs.GtfsConfig;
 import entities.Edge;
+import entities.NearbyEdge;
 import entities.Route;
 import entities.Trip;
 import entities.realized.RealizedLocation;
@@ -104,22 +105,20 @@ public class ApiController extends Controller {
         LocalDateTime lookupStart = dateTime.minusMinutes(180);
 
         Point point = new Point(lat, lng);
-        List<? extends Edge> edges = edgesModel.getByPoint(gtfs, point);
+        List<NearbyEdge> nearbyEdges = edgesModel.getByPoint(gtfs, point);
 
         List<LateRealizedPass> candidates = new LinkedList<>();
-        for (Edge edge : edges) {
-            double d1 = PolarCoordinates.distanceKm(point, edge.getStop1Coordinates());
-            double d2 = PolarCoordinates.distanceKm(point, edge.getStop2Coordinates());
-            double pos = d1 / (d1 + d2);
-            List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, lookupStart);
-
+        for (NearbyEdge nearbyEdge : nearbyEdges) {
+            if (nearbyEdge.getNearbyFactor() <= 0.1) {
+                break;
+            }
+            List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, nearbyEdge.getEdge(), lookupStart);
             for (RealizedPass realizedPass : realizedPasses) {
-                LocalDateTime passTime = realizedPass.getIntermediate(true, pos);
+                LocalDateTime passTime = realizedPass.getIntermediate(true, nearbyEdge.getPos());
                 Duration diff = Duration.between(passTime, dateTime);
                 if (diff.getSeconds() > -300) {
                     candidates.add(new LateRealizedPass(realizedPass, diff.getSeconds()));
                 }
-
             }
         }
 

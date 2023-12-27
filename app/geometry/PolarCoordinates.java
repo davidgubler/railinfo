@@ -38,4 +38,17 @@ public class PolarCoordinates {
         double newLng = startingPoint.getLng() + 180 * distanceKm / (Math.PI * R * Math.cos(Math.toRadians(startingPoint.getLat())));
         return new Point.PointBuilder().withLat(startingPoint.getLat()).withLng(newLng).build();
     }
+
+    public static double distanceFromEdgeKm(Point point, Point linePoint1, Point linePoint2) {
+        // calculate how far a point is from a line (given by two points). This is a 2D calculation only and doesn't account for the curvature of the earth.
+        // Calculate triangle area using Heron's formula
+        double a = distanceKm(point, linePoint1);
+        double b = distanceKm(linePoint1, linePoint2);
+        double c = distanceKm(linePoint2, point);
+        double s = (a + b + c)/2.0;
+        double area = Math.sqrt(s*(s - a)*(s - b)*(s - c));
+        // Get distance from triangle area
+        double distance = 2.0 * area / b;
+        return distance;
+    }
 }

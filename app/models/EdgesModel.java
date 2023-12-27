@@ -2,13 +2,13 @@ package models;
 
 import configs.GtfsConfig;
 import entities.Edge;
+import entities.NearbyEdge;
 import entities.Stop;
 import geometry.Point;
 
 import java.util.List;
 
 public interface EdgesModel {
-
     void drop(GtfsConfig gtfs);
 
     Edge save(GtfsConfig v, Edge edge);
@@ -29,5 +29,5 @@ public interface EdgesModel {
 
     List<? extends Edge> getEdgesFrom(GtfsConfig gtfs, Stop stop);
 
-    List<? extends Edge> getByPoint(GtfsConfig gtfs, Point point);
+    List<NearbyEdge> getByPoint(GtfsConfig gtfs, Point point);
 }

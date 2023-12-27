@@ -19,6 +19,7 @@ import geometry.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TimetableController extends Controller {
 
@@ -98,17 +99,10 @@ public class TimetableController extends Controller {
         if (point == null) {
             throw new NotFoundException("coordinates");
         }
-
-        List<? extends Edge> edges = edgesModel.getByPoint(gtfs, point);
-
-        Map<Edge, Double> pos = new HashMap<>();
-        for (Edge edge : edges) {
-            double d1 = PolarCoordinates.distanceKm(point, edge.getStop1Coordinates());
-            double d2 = PolarCoordinates.distanceKm(point, edge.getStop2Coordinates());
-            pos.put(edge, d1 / (d1 + d2));
-        }
-
-        return ok(views.html.timetable.nearby.render(request, point, edges, pos, user));
+        List<NearbyEdge> nearbyEdges = edgesModel.getByPoint(gtfs, point);
+        List<NearbyEdge> nearbyEdgesLikely = nearbyEdges.stream().filter(ne -> ne.getNearbyFactor() > 0.1).collect(Collectors.toList());
+        List<NearbyEdge> nearbyEdgesUnlikely = nearbyEdges.stream().filter(ne -> ne.getNearbyFactor() <= 0.1).collect(Collectors.toList());
+        return ok(views.html.timetable.nearby.render(request, point, nearbyEdgesLikely, nearbyEdgesUnlikely, user));
     }
 
     public Result stop(Http.Request request, String stopName)  {

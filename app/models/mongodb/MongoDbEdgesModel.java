@@ -6,19 +6,19 @@ import configs.GtfsConfig;
 import dev.morphia.query.Query;
 import dev.morphia.query.UpdateOperations;
 import entities.Edge;
+import entities.NearbyEdge;
 import entities.ReverseEdge;
 import entities.Stop;
 import entities.mongodb.MongoDbEdge;
-import geometry.EdgeSpreadComparator;
 import geometry.Point;
 import models.EdgesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
-import services.MongoDb;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MongoDbEdgesModel implements EdgesModel {
     @Inject
@@ -132,27 +132,19 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
-    public List<? extends Edge> getByPoint(GtfsConfig gtfs, Point point) {
+    public List<NearbyEdge> getByPoint(GtfsConfig gtfs, Point point) {
         Query<MongoDbEdge> query = query(gtfs);
         List<? extends Edge> edges = query.field("bbNorth").greaterThan(point.getLat()).field("bbSouth").lessThan(point.getLat()).field("bbEast").greaterThan(point.getLng()).field("bbWest").lessThan(point.getLng()).asList();
         edges.stream().forEach(e -> { injector.injectMembers(e); ((MongoDbEdge)e).setGtfs(gtfs); });
 
-        if (edges.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Collections.sort(edges, new EdgeSpreadComparator(point));
-
-        List<Edge> finalEdges = new LinkedList<>();
-
-        double lastSpread = edges.get(0).getSpread(point);
+        List<NearbyEdge> nearbyEdges = new LinkedList<>();
         for (Edge edge : edges) {
-            if (Math.abs(lastSpread - edge.getSpread(point)) > 30) {
-                break;
-            }
-            finalEdges.add(edge);
+            nearbyEdges.add(new NearbyEdge(point, edge));
         }
-
-        return finalEdges;
+        NearbyEdge.normalizeNearbyFactors(nearbyEdges);
+        nearbyEdges = nearbyEdges.stream().filter(ne -> ne.getNearbyFactor() >= 0.01).collect(Collectors.toList());
+        Collections.sort(nearbyEdges);
+        Collections.reverse(nearbyEdges);
+        return nearbyEdges;
     }
 }
