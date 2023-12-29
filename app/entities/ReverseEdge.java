@@ -90,4 +90,9 @@ public class ReverseEdge implements Edge {
     public int hashCode() {
         return edge.hashCode();
     }
+
+    @Override
+    public String getDisplayName() {
+        return getStop1().getName() + " - " + getStop2().getName();
+    }
 }

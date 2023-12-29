@@ -1,5 +1,6 @@
 package models;
 
+import akka.japi.Pair;
 import configs.GtfsConfig;
 import entities.Edge;
 import entities.NearbyEdge;
@@ -28,6 +29,10 @@ public interface EdgesModel {
     void delete(GtfsConfig gtfs, Edge edge);
 
     List<? extends Edge> getEdgesFrom(GtfsConfig gtfs, Stop stop);
+
+    Edge getEdgeBetween(GtfsConfig gtfs, Stop stop1, Stop stop2);
+
+    Edge getEdgeByString(GtfsConfig gtfs, String edgeName);
 
     List<NearbyEdge> getByPoint(GtfsConfig gtfs, Point point);
 }

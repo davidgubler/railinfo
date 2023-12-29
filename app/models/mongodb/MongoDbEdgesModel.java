@@ -1,5 +1,6 @@
 package models.mongodb;
 
+import akka.japi.Pair;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import configs.GtfsConfig;
@@ -146,5 +147,38 @@ public class MongoDbEdgesModel implements EdgesModel {
         Collections.sort(nearbyEdges);
         Collections.reverse(nearbyEdges);
         return nearbyEdges;
+    }
+
+    @Override
+    public Edge getEdgeBetween(GtfsConfig gtfs, Stop stop1, Stop stop2) {
+        String stop1Id = stop1.getBaseId();
+        String stop2Id = stop2.getBaseId();
+        Query<MongoDbEdge> query = query(gtfs);
+        query.or(query.and(query.criteria("stop1Id").equal(stop1Id), query.criteria("stop2Id").equal(stop2Id)), query.and(query.criteria("stop1Id").equal(stop2Id), query.criteria("stop2Id").equal(stop1Id)));
+        MongoDbEdge edge = query.find().tryNext();
+        injector.injectMembers(edge);
+        edge.setGtfs(gtfs);
+        return edge;
+    }
+
+    @Override
+    public Edge getEdgeByString(GtfsConfig gtfs, String edgeName) {
+        String[] stops = edgeName.split("-");
+        if (stops.length != 2) {
+            return null;
+        }
+        Stop stop1 = stopsModel.getPrimaryByName(gtfs, stops[0].trim());
+        if (stop1 == null) {
+            return null;
+        }
+        Stop stop2 = stopsModel.getPrimaryByName(gtfs, stops[1].trim());
+        if (stop2 == null) {
+            return null;
+        }
+        Edge edge = getEdgeBetween(gtfs, stop1, stop2);
+        if (edge.getStop1().equals(stop1)) {
+            return edge;
+        }
+        return new ReverseEdge(edge);
     }
 }

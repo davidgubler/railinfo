@@ -269,4 +269,9 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         double bearing2 = PolarCoordinates.bearingDegrees(point, getStop2Coordinates());
         return PolarCoordinates.bearingDiff(bearing1, bearing2);
     }
+
+    @Override
+    public String getDisplayName() {
+        return getStop1().getName() + " - " + getStop2().getName();
+    }
 }

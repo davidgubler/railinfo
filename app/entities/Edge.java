@@ -36,4 +36,6 @@ public interface Edge extends Comparable<Edge> {
     String toString(Stop from);
 
     Double getSpread(Point point);
+
+    String getDisplayName();
 }

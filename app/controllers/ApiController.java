@@ -1,22 +1,21 @@
 package controllers;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.Inject;
 import configs.GtfsConfig;
 import entities.Edge;
 import entities.NearbyEdge;
-import entities.Route;
-import entities.Trip;
-import entities.realized.RealizedLocation;
+import entities.api.ApiEdgePass;
+import entities.api.ApiEdgeTraffic;
 import entities.realized.RealizedPass;
-import entities.realized.RealizedPassIntermediateComparator;
-import entities.realized.RealizedTrip;
+import entities.realized.RealizedPassPos;
 import geometry.Point;
-import geometry.PolarCoordinates;
-import models.EdgesModel;
-import models.RealizerModel;
-import models.RoutesModel;
-import models.TripsModel;
+import models.*;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -24,14 +23,18 @@ import play.mvc.Result;
 import services.MongoDb;
 import utils.InputUtils;
 import utils.PathFinder;
+import utils.StringUtils;
 
 import java.time.*;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ApiController extends Controller {
     @Inject
     private MongoDb mongoDb;
+
+    @Inject
+    private StopsModel stopsModel;
 
     @Inject
     private EdgesModel edgesModel;
@@ -47,6 +50,17 @@ public class ApiController extends Controller {
 
     @Inject
     private RealizerModel realizerModel;
+
+    private static final ObjectMapper MAPPER;
+
+    static {
+        MAPPER = new ObjectMapper();
+        MAPPER.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+        MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
 
     private class LateRealizedPass implements Comparable<LateRealizedPass> {
         private RealizedPass realizedPass;
@@ -141,5 +155,59 @@ public class ApiController extends Controller {
         ArrayNode candiatesArray = Json.newArray();
         candidates.forEach(s -> candiatesArray.add(s.toString()));
         return ok(candiatesArray.toString()).as("application/json; charset=utf-8");
+    }
+
+    public Result edgePos(Http.Request request) {
+        GtfsConfig gtfs = mongoDb.getLatest("ch");
+
+        Map<Edge, Double> edges = new HashMap<>();
+
+        for (Map.Entry<String, String[]> param : request.queryString().entrySet()) {
+            Double position;
+            try {
+                position = Double.parseDouble(param.getValue()[0]);
+            } catch (Exception e) {
+                continue;
+            }
+            Edge edge = edgesModel.getEdgeByString(gtfs, param.getKey());
+            if (edge == null) {
+                continue;
+            }
+            edges.put(edge, position);
+        }
+
+        List<RealizedPassPos> realizedPassesWithPos = new LinkedList<>();
+        for (Edge edge : edges.keySet()) {
+            List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, LocalDateTime.now(gtfs.getZoneId()).minusHours(12));
+            realizedPassesWithPos.addAll(realizedPasses.stream().map(rp -> new RealizedPassPos(rp, edge, edges.get(edge))).collect(Collectors.toList()));
+        }
+        Collections.sort(realizedPassesWithPos);
+
+        List<ApiEdgePass> apiEdgePasses = new LinkedList<>();
+        for (RealizedPassPos rp : realizedPassesWithPos) {
+            String edgeName = rp.getEdge().getDisplayName();
+            boolean forward = rp.isForward();
+            LocalDateTime localDateTime = rp.getIntermediate();
+            long epochTime = StringUtils.formatTimeEpochSecond(rp.getIntermediate(), rp.getZoneId());
+
+            String shortName = rp.getTrip().getRoute().getShortName();
+            String tripShortName = rp.getTrip().getTripShortName();
+            String tripBegins = rp.getTrip().getBegins().getName();
+            String tripEnds = rp.getTrip().getEnds().getName();
+
+            apiEdgePasses.add(new ApiEdgePass(edgeName, forward, localDateTime.toLocalTime().toString(), epochTime, shortName, tripShortName, tripBegins, tripEnds));
+        }
+
+        Map<String, Double> displayEdges = new HashMap<>();
+        for (Map.Entry<Edge, Double> entry : edges.entrySet()) {
+            displayEdges.put(entry.getKey().getDisplayName(), entry.getValue());
+        }
+
+        ApiEdgeTraffic edgeTraffic = new ApiEdgeTraffic(displayEdges, apiEdgePasses);
+        try {
+            return ok(MAPPER.writeValueAsString(edgeTraffic)).as("application/json; charset=utf-8");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
