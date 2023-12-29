@@ -154,7 +154,7 @@ public class ApiController extends Controller {
 
         ArrayNode candiatesArray = Json.newArray();
         candidates.forEach(s -> candiatesArray.add(s.toString()));
-        return ok(candiatesArray.toString()).as("application/json; charset=utf-8");
+        return ok(candiatesArray.toString()).as("application/json; charset=utf-8").withHeader("Access-Control-Allow-Origin", "*");
     }
 
     public Result edgePos(Http.Request request) {
@@ -205,7 +205,7 @@ public class ApiController extends Controller {
 
         ApiEdgeTraffic edgeTraffic = new ApiEdgeTraffic(displayEdges, apiEdgePasses);
         try {
-            return ok(MAPPER.writeValueAsString(edgeTraffic)).as("application/json; charset=utf-8");
+            return ok(MAPPER.writeValueAsString(edgeTraffic)).as("application/json; charset=utf-8").withHeader("Access-Control-Allow-Origin", "*");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
