@@ -188,6 +188,7 @@ public class ApiController extends Controller {
             String edgeName = rp.getEdge().getDisplayName();
             boolean forward = rp.isForward();
             LocalDateTime localDateTime = rp.getIntermediate();
+            String localTime = StringUtils.formatTimeSeconds(localDateTime);
             long epochTime = StringUtils.formatTimeEpochSecond(rp.getIntermediate(), rp.getZoneId());
 
             String shortName = rp.getTrip().getRoute().getShortName();
@@ -195,7 +196,7 @@ public class ApiController extends Controller {
             String tripBegins = rp.getTrip().getBegins().getName();
             String tripEnds = rp.getTrip().getEnds().getName();
 
-            apiEdgePasses.add(new ApiEdgePass(edgeName, forward, localDateTime.toLocalTime().toString(), epochTime, shortName, tripShortName, tripBegins, tripEnds));
+            apiEdgePasses.add(new ApiEdgePass(edgeName, forward, localTime, epochTime, shortName, tripShortName, tripBegins, tripEnds));
         }
 
         Map<String, Double> displayEdges = new HashMap<>();
