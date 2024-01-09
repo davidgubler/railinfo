@@ -3,9 +3,11 @@
     nearbyEdgesLikely: List[entities.NearbyEdge],
     nearbyEdgesUnlikely: List[entities.NearbyEdge],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Timetable", user) {
+@template(request, "Timetable", user, gtfsConfigs, cc) {
 } {
     @if(nearbyEdgesLikely.isEmpty && nearbyEdgesUnlikely.isEmpty) {
         <p>Sorry, there don't appear to be any railway lines near your position./p>
@@ -15,7 +17,7 @@
     <p>
         @for(nearbyEdge <- nearbyEdgesLikely) {
             @if(nearbyEdge.getNearbyFactor > 0.1) {
-                <a href="@routes.TimetableController.edgePos(nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
             }
         }
     </p>
@@ -25,7 +27,7 @@
         Unlikely candidates:<br />
         @for(nearbyEdge <- nearbyEdgesUnlikely) {
             @if(nearbyEdge.getNearbyFactor <= 0.1) {
-                <a href="@routes.TimetableController.edgePos(nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
             }
         }
     </p>

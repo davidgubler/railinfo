@@ -1,13 +1,15 @@
 @(  implicit request: Http.Request,
     edge: entities.Edge,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Delete Edge", user) {
+@template(request, "Delete Edge", user, gtfsConfigs, cc) {
 
 } {
-    @form(request, routes.TopologyController.edgesDeletePost(edge.getId)) {
+    @form(request, routes.TopologyController.edgesDeletePost(cc, edge.getId)) {
         @edge.getStop1().getName - @edge.getStop2().getName in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
-        @formButtons("Delete Edge", routes.TopologyController.edgesList())
+        @formButtons("Delete Edge", routes.TopologyController.edgesList(cc))
     }
 }

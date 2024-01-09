@@ -1,7 +1,6 @@
 package entities.realized;
 
 import entities.Edge;
-import entities.Trip;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

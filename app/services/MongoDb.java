@@ -9,12 +9,9 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import configs.CH;
 import configs.GtfsConfig;
-import entities.*;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
-import entities.mongodb.MongoDbEdge;
-import entities.mongodb.MongoDbStop;
-import entities.mongodb.MongoDbUser;
+import entities.mongodb.*;
 import utils.Config;
 
 import java.util.*;
@@ -87,11 +84,11 @@ public class MongoDb {
             // it is a timetable database
             morphia.map(MongoDbEdge.class);
             morphia.map(MongoDbStop.class);
-            morphia.map(StopTime.class);
-            morphia.map(Trip.class);
-            morphia.map(Route.class);
-            morphia.map(ServiceCalendar.class);
-            morphia.map(ServiceCalendarException.class);
+            morphia.map(MongoDbStopTime.class);
+            morphia.map(MongoDbTrip.class);
+            morphia.map(MongoDbRoute.class);
+            morphia.map(MongoDbServiceCalendar.class);
+            morphia.map(MongoDbServiceCalendarException.class);
         }
 
         ds = morphia.createDatastore(client, databaseName);
@@ -107,6 +104,9 @@ public class MongoDb {
     }
 
     public MongoDatabase get(String databaseName) {
+        if (databaseName == null) {
+            return null;
+        }
         if (!connections.containsKey(databaseName)) {
             connect(databaseName);
         }
@@ -114,6 +114,9 @@ public class MongoDb {
     }
 
     public Datastore getDs(String databaseName) {
+        if (databaseName == null) {
+            return null;
+        }
         if (!connections.containsKey(databaseName)) {
             connect(databaseName);
         }

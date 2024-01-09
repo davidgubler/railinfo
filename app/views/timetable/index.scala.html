@@ -3,12 +3,14 @@
     coordinates: String,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Timetable", user) {
-    <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
+@template(request, "Timetable", user, gtfsConfigs, cc) {
+    <script id="timetablejs" data-cc="@cc" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
-    @form(request, routes.TimetableController.indexPost()) {
+    @form(request, routes.TimetableController.indexPost(cc)) {
         <div class="row">
             <div class="col-xl-6 col-lg-5 col-md-8">
                 @formInputText("Stop", "stop", stop, errors, xlWidth=9, lgWidth=8, mdWidth=6)

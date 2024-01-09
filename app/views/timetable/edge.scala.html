@@ -3,9 +3,11 @@
     passes: List[entities.realized.RealizedPass],
     pos: Double,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, edge.getStop1.getName + " - " + edge.getStop2.getName, user, mainClasses="departureBoard") {
+@template(request, edge.getStop1.getName + " – " + edge.getStop2.getName, user, gtfsConfigs, cc, mainClasses="departureBoard") {
     <script src='@routes.Assets.versioned("javascripts/highlightPasstime.js")'></script>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/departureBoard.css")'>
@@ -28,13 +30,13 @@
         <tbody>
         <p>
             @if(pos ==null) {
-            <a href="@routes.TimetableController.edge(edge.getIdReverse())">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edge(cc, edge.getIdReverse())">&larr;reverse&rarr;</a></p>
             } else {
-            <a href="@routes.TimetableController.edgePos(edge.getIdReverse(), 1.0 - pos)">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edgePos(cc, edge.getIdReverse(), 1.0 - pos)">&larr;reverse&rarr;</a></p>
             }
         @for(pass <- passes) {
             <tr>
-                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getDesc.toLowerCase">@pass.getTrip.getRoute.getShortName</span> @pass.getTrip.getTripShortName @pass.getTrip.getBegins.getName - @pass.getTrip.getEnds.getName</a></td>
+                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(cc, pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getDesc.toLowerCase">@pass.getTrip.getRoute.getShortName</span> @pass.getTrip.getTripShortName @pass.getTrip.getBegins.getName &ndash; @pass.getTrip.getEnds.getName</a></td>
             </tr>
             <tr>
                 <td style="text-align: center; border-top: 0px;">

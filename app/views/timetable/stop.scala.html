@@ -2,9 +2,11 @@
     stopName: String,
     departures: List[entities.realized.RealizedDeparture],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, stopName, user, mainClasses="departureBoard") {
+@template(request, stopName, user, gtfsConfigs, cc, mainClasses="departureBoard") {
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/departureBoard.css")'>
 } {
@@ -17,7 +19,7 @@
         </tr>
     @for(departure <- departures) {
         <tr>
-            <td><a href="@routes.TimetableController.realizedTrip(departure.getRealizedTrip.getTrip.getTripId, departure.getRealizedTrip.getStartDate.toString)"><span class="product @departure.getRoute.getDesc.toLowerCase">@departure.getRoute.getShortName</span></a></td>
+            <td><a href="@routes.TimetableController.realizedTrip(cc, departure.getRealizedTrip.getTrip.getTripId, departure.getRealizedTrip.getStartDate.toString)"><span class="product @departure.getRoute.getDesc.toLowerCase">@departure.getRoute.getShortName</span></a></td>
             <td>@departure.getDepartureTimeStr()</td>
             <td>
                 @for(stopTime <- departure.getImportantIntermediateStopTimes(4)) {

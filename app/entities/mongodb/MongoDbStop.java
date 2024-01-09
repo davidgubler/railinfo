@@ -124,10 +124,7 @@ public class MongoDbStop implements Stop {
     }
 
     public String getBaseId() {
-        String baseId = stopId.split(":")[0];
-        // base ID can contain stuff like "Parent" or "P"
-        baseId = baseId.replaceAll("[^0-9]", "");
-        return baseId;
+        return gtfs.extractBaseId(this.getStopId());
     }
 
     public String getParentId() {

@@ -51,6 +51,9 @@ public class ApiController extends Controller {
     @Inject
     private RealizerModel realizerModel;
 
+    @Inject
+    private GtfsConfigModel gtfsConfigModel;
+
     private static final ObjectMapper MAPPER;
 
     static {
@@ -104,8 +107,11 @@ public class ApiController extends Controller {
         }
     }
 
-    public Result guessTheTrain(Http.Request request, String lngStr, String latStr, String dateStr, String timeStr) {
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+    public Result guessTheTrain(Http.Request request, String cc, String lngStr, String latStr, String dateStr, String timeStr) {
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        if (gtfs == null || gtfs.getDatabase() == null) {
+            return notFound();
+        }
 
         Double lng = InputUtils.toDouble(lngStr);
         Double lat = InputUtils.toDouble(latStr);
@@ -157,8 +163,11 @@ public class ApiController extends Controller {
         return ok(candiatesArray.toString()).as("application/json; charset=utf-8").withHeader("Access-Control-Allow-Origin", "*");
     }
 
-    public Result edgePos(Http.Request request) {
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+    public Result edgePos(Http.Request request, String cc) {
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        if (gtfs == null || gtfs.getDatabase() == null) {
+            return notFound();
+        }
 
         Map<Edge, Double> edges = new HashMap<>();
 

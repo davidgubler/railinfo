@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import configs.GtfsConfig;
 import entities.*;
+import entities.mongodb.MongoDbRoute;
 import entities.realized.RealizedLocation;
 import entities.realized.RealizedPass;
 import entities.realized.RealizedTrip;
@@ -63,13 +64,13 @@ public class RealizerModel {
 
     public List<RealizedPass> getPasses(GtfsConfig gtfs, Edge edge, LocalDateTime dateTime) {
         Set<String> routeIds = pathFinder.getRouteIdsByEdge(gtfs, edge);
-        Set<Route> routes = new HashSet<>();
+        Set<MongoDbRoute> routes = new HashSet<>();
         for (String routeId : routeIds) {
             routes.add(routesModel.getByRouteId(gtfs, routeId));
         }
 
         Set<Trip> trips = new HashSet<>();
-        for (Route route : routes) {
+        for (MongoDbRoute route : routes) {
             trips.addAll(tripsModel.getByRoute(gtfs, route));
         }
 

@@ -90,18 +90,11 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     }
 
     public void addJourney(Integer seconds) {
-        // we assume that a stop takes 1 min, thus we subtract this
-        seconds -= 60;
-        if (seconds < 30) {
-            // the minimum assumed travel time between stops is 30s
-            seconds = 30;
-        }
         if (travelTimes.containsKey(seconds)) {
             travelTimes.put(seconds, travelTimes.get(seconds) + 1);
         } else {
             travelTimes.put(seconds, 1);
         }
-
         typicalTime = calculateTypicalTime();
     }
 

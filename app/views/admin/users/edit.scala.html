@@ -5,15 +5,17 @@
     password: String,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Edit User: " + editUser.getEmail(), user) {
+@template(request, "Edit User: " + editUser.getEmail(), user, gtfsConfigs, cc) {
 } {
-    @form(request, routes.AdminController.usersEditPost(editUser.getId)) {
+    @form(request, routes.AdminController.usersEditPost(cc, editUser.getId)) {
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputText("Name", "name", name, errors)
         @formInputPassword("Password", "password", password, errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.AdminController.usersList())
+        @formButtons("Save", routes.AdminController.usersList(cc))
     }
 }

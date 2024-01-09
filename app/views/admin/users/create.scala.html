@@ -4,15 +4,17 @@
     password: String,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, title = "Create User", user) {
+@template(request, title = "Create User", user, gtfsConfigs, cc) {
 } {
-    @form(request, routes.AdminController.usersCreatePost()) {
+    @form(request, routes.AdminController.usersCreatePost(cc)) {
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputText("Name", "name", name, errors)
         @formInputPassword("Password", "password", password, errors)
         <div class="mt-3"></div>
-        @formButtons("Create", routes.AdminController.usersList())
+        @formButtons("Create", routes.AdminController.usersList(cc))
     }
 }

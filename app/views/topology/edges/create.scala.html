@@ -5,16 +5,18 @@
     allStops: List[entities.Stop],
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Create Edge", user) {
+@template(request, "Create Edge", user, gtfsConfigs, cc) {
     <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
-    @form(request, routes.TopologyController.edgesCreatePost()) {
+    @form(request, routes.TopologyController.edgesCreatePost(cc)) {
         @formInputText("Stop 1", "stop1", if(stop1!=null){stop1.getName}else{""}, errors)
         @formInputText("Stop 2", "stop2", if(stop2!=null){stop2.getName}else{""}, errors)
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(time), errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.TopologyController.edgesList())
+        @formButtons("Save", routes.TopologyController.edgesList(cc))
     }
 }

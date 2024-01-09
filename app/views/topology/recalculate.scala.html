@@ -1,15 +1,17 @@
 @(  implicit request: Http.Request,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Recalculate", user) {
+@template(request, "Recalculate", user, gtfsConfigs, cc) {
 
 } {
-    @form(request, routes.TopologyController.recalculateEdgesPost) {
+    @form(request, routes.TopologyController.recalculateEdgesPost(cc)) {
         @formButtons(submitLabel = "Recalculate Topology")
     }
-
-    @form(request, routes.TopologyController.recalculatePathsPost) {
+    <div class="mb-2"></div>
+    @form(request, routes.TopologyController.recalculatePathsPost(cc)) {
         @formButtons(submitLabel = "Recalculate Paths")
     }
 }

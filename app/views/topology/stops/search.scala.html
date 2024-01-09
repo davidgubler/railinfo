@@ -2,19 +2,21 @@
     partialName: String,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Stops", user) {
+@template(request, "Stops", user, gtfsConfigs, cc) {
 } {
-    <a href="@routes.TopologyController.stopsCreate()">Create new stop...</a>
-    @form(request, routes.TopologyController.stopsSearchPost()) {
-    <div class="row mt-4">
-        <div class="col-xl-4 col-lg-6 col-md-10">
-            @formInputText("Name", "partialName", partialName, errors, xlWidth=10, lgWidth=8, mdWidth=6)
+    <a href="@routes.TopologyController.stopsCreate(cc)">Create new stop...</a>
+    @form(request, routes.TopologyController.stopsSearchPost(cc)) {
+        <div class="row mt-4">
+            <div class="col-xl-6 col-lg-5 col-md-8">
+                @formInputText("Name", "partialName", partialName, errors, xlWidth=9, lgWidth=8, mdWidth=6)
+            </div>
+            <div class="col-xl-6 col-lg-7 col-md-4">
+                @formButtons("Search")
+            </div>
         </div>
-        <div class="col-xl-8 col-lg-6 col-md-2">
-            @formButtons("Search")
-        </div>
-    </div>
     }
 }

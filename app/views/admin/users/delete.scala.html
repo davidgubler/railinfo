@@ -1,11 +1,13 @@
 @(  implicit request: Http.Request,
     deleteUser: entities.User,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, title = "Delete User: " + deleteUser.getEmail(), user) {
+@template(request, title = "Delete User: " + deleteUser.getEmail(), user, gtfsConfigs, cc) {
 } {
-    @form(request, routes.AdminController.usersDeletePost(deleteUser.getId)) {
-        @formButtons("Delete", routes.AdminController.usersList())
+    @form(request, routes.AdminController.usersDeletePost(cc, deleteUser.getId)) {
+        @formButtons("Delete", routes.AdminController.usersList(cc))
     }
 }

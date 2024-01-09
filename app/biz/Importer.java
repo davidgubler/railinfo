@@ -1,7 +1,6 @@
 package biz;
 
 import com.google.inject.Inject;
-import configs.CH;
 import configs.GtfsConfig;
 import entities.Edge;
 import entities.Stop;
@@ -18,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -51,7 +49,7 @@ public class Importer {
 
     public static final String UTF8_BOM = "\uFEFF";
 
-    public void importGtfs(Http.RequestHeader request, String urlStr, String newDbName, User user) throws InputValidationException {
+    public void importGtfs(Http.RequestHeader request, GtfsConfig gtfs, String urlStr, String newDbName, User user) throws InputValidationException {
         // ACCESS
         if (user == null) {
             throw new NotAllowedException();
@@ -61,7 +59,7 @@ public class Importer {
         Map<String, String> errors = new HashMap<>();
         InputUtils.validateUrl(urlStr, "url", true, errors);
         InputUtils.validateString(newDbName, "databaseName", true, errors);
-        if (newDbName != null && !newDbName.startsWith("railinfo-ch-")) {
+        if (newDbName != null && !newDbName.startsWith("railinfo-")) {
             errors.put("databaseName", ErrorMessages.PLEASE_ENTER_VALID_DATABASE_NAME);
         }
         if (mongoDb.getTimetableDatabases("ch").contains(newDbName)) {
@@ -72,9 +70,9 @@ public class Importer {
         }
 
         // BUSINESS
-        String oldDbName = mongoDb.getTimetableDatabases("ch").stream().findFirst().orElse(null);
-        GtfsConfig oldDb = new CH(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName));
-        GtfsConfig newDb = new CH(mongoDb.get(newDbName), mongoDb.getDs(newDbName));
+        String oldDbName = mongoDb.getTimetableDatabases(gtfs.getCode()).stream().findFirst().orElse(null);
+        GtfsConfig oldDb = gtfs.withDatabase(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName));
+        GtfsConfig newDb = gtfs.withDatabase(mongoDb.get(newDbName), mongoDb.getDs(newDbName));
 
         new Thread(() -> {
             try {
@@ -172,21 +170,21 @@ public class Importer {
         String[] components = new String[length];
         int i = 0;
         int pos = 0;
-        while (pos < line.length()) {
-            if ("\"".equals(line.substring(pos, pos + 1))) {
+        while (pos <= line.length()) {
+            if (line.indexOf("\"", pos) == pos) {
                 int endPos = line.indexOf("\"", pos + 1);
                 if (endPos == -1) {
                     endPos = line.length();
                 }
                 components[i++] = line.substring(pos + 1, endPos);
-                pos = Math.min(endPos + 2, line.length());
+                pos = endPos + 2;
             } else {
-                int endPos = line.indexOf(",", pos + 1);
+                int endPos = line.indexOf(",", pos);
                 if (endPos == -1) {
                     endPos = line.length();
                 }
                 components[i++] = line.substring(pos, endPos);
-                pos = Math.min(endPos + 1, line.length());
+                pos = endPos + 1;
             }
         }
         if (i < length) {

@@ -6,7 +6,6 @@ import configs.GtfsConfig;
 import entities.*;
 import entities.realized.*;
 import models.*;
-import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import services.MongoDb;
@@ -21,7 +20,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TimetableController extends Controller {
+public class TimetableController extends GtfsController {
 
     @Inject
     private StopsModel stopsModel;
@@ -59,14 +58,20 @@ public class TimetableController extends Controller {
     @Inject
     private RealizerModel realizerModel;
 
-    public Result index(Http.Request request) {
+    @Inject
+    private GtfsConfigModel gtfsConfigModel;
+
+    public Result index(Http.Request request, String cc) {
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.timetable.index.render(request, null, null, InputUtils.NOERROR, user));
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+        return ok(views.html.timetable.index.render(request, null, null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result indexPost(Http.Request request) {
+    public Result indexPost(Http.Request request, String cc) {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
 
         Map<String, String[]> data = request.body().asFormUrlEncoded();
         String submit = InputUtils.trimToNull(data.get("submit"));
@@ -78,23 +83,25 @@ public class TimetableController extends Controller {
             if (stopsModel.getByName(gtfs, stop).isEmpty()) {
                 errors.put("stop", ErrorMessages.STOP_NOT_FOUND);
             } else {
-                return redirect(routes.TimetableController.stop(stop));
+                return redirect(routes.TimetableController.stop(gtfs.getCode(), stop));
             }
         }
         if ("Show Nearby Trains".equals(submit)) {
             if (Point.fromString(coordinates) == null) {
                 errors.put("coordinates", ErrorMessages.PLEASE_ENTER_VALID_COORDINATES);
             } else {
-                return redirect(routes.TimetableController.nearby(coordinates));
+                return redirect(routes.TimetableController.nearby(gtfs.getCode(), coordinates));
             }
         }
 
-        return ok(views.html.timetable.index.render(request, stop, coordinates, errors, user));
+        return ok(views.html.timetable.index.render(request, stop, coordinates, errors, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result nearby(Http.Request request, String coordinates) {
+    public Result nearby(Http.Request request, String cc, String coordinates) {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+
         Point point = Point.fromString(coordinates);
         if (point == null) {
             throw new NotFoundException("coordinates");
@@ -102,12 +109,14 @@ public class TimetableController extends Controller {
         List<NearbyEdge> nearbyEdges = edgesModel.getByPoint(gtfs, point);
         List<NearbyEdge> nearbyEdgesLikely = nearbyEdges.stream().filter(ne -> ne.getNearbyFactor() > 0.1).collect(Collectors.toList());
         List<NearbyEdge> nearbyEdgesUnlikely = nearbyEdges.stream().filter(ne -> ne.getNearbyFactor() <= 0.1).collect(Collectors.toList());
-        return ok(views.html.timetable.nearby.render(request, point, nearbyEdgesLikely, nearbyEdgesUnlikely, user));
+        return ok(views.html.timetable.nearby.render(request, point, nearbyEdgesLikely, nearbyEdgesUnlikely, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result stop(Http.Request request, String stopName)  {
+    public Result stop(Http.Request request, String cc, String stopName)  {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+
         Set<? extends Stop> stops = stopsModel.getByName(gtfs, stopName);
         if (stops.isEmpty()) {
             throw new NotFoundException("Stop");
@@ -115,7 +124,7 @@ public class TimetableController extends Controller {
 
         LocalDateTime dateTime = LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15);
 
-        List<StopTime> stopTimes = stopTimesModel.getByStops(gtfs, stops);
+        List<? extends StopTime> stopTimes = stopTimesModel.getByStops(gtfs, stops);
         List<Trip> trips = new LinkedList<>();
         for (StopTime stopTime : stopTimes) {
             Trip trip = tripsModel.getByTripId(gtfs, stopTime.getTripId());
@@ -145,18 +154,20 @@ public class TimetableController extends Controller {
         }
         Collections.sort(departures);
 
-        return ok(views.html.timetable.stop.render(request, stopName, departures, user));
+        return ok(views.html.timetable.stop.render(request, stopName, departures, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result realizedTrip(Http.Request request, String tripId, String startDateStr)  {
+    public Result realizedTrip(Http.Request request, String cc, String tripId, String startDateStr)  {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+
         LocalDate startDate = LocalDate.parse(startDateStr);
         Trip trip = tripsModel.getByTripId(gtfs, tripId);
         if (trip == null) {
             throw new NotFoundException("trip");
         }
-        List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(gtfs, trip.getServiceId());
+        List<? extends ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsModel.getByServiceId(gtfs, trip.getServiceId());
         ServiceCalendar serviceCalendar = serviceCalendarsModel.getByServiceId(gtfs, trip.getServiceId());
         if (!trip.isActive(startDate, serviceCalendarExceptions, serviceCalendar)) {
             throw new NotFoundException("trip");
@@ -166,12 +177,14 @@ public class TimetableController extends Controller {
         injector.injectMembers(realizedTrip);
         realizedTrip.setGtfs(gtfs);
 
-        return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user));
+        return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edge(Http.Request request, String edgeId) {
+    public Result edge(Http.Request request, String cc, String edgeId) {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+
         Edge edge = edgesModel.get(gtfs, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
@@ -180,12 +193,14 @@ public class TimetableController extends Controller {
         LocalDateTime dateTime = LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15);
         List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, dateTime);
 
-        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, null, user));
+        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, null, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edgePos(Http.Request request, String edgeId, Double pos) {
+    public Result edgePos(Http.Request request, String cc, String edgeId, Double pos) {
         User user = usersModel.getFromRequest(request);
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+
         Edge edge = edgesModel.get(gtfs, edgeId);
         if (edge == null) {
             throw new NotFoundException("Edge");
@@ -194,6 +209,6 @@ public class TimetableController extends Controller {
         List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, edge, LocalDateTime.now(gtfs.getZoneId()).minusMinutes(15));
         Collections.sort(realizedPasses, new RealizedPassIntermediateComparator(edge.getStop1(), pos));
 
-        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, pos, user));
+        return ok(views.html.timetable.edge.render(request, edge, realizedPasses, pos, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 }

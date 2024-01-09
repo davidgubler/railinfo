@@ -1,9 +1,11 @@
 @(  implicit request: Http.Request,
     databases: List[String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Databases", user) {
+@template(request, "Databases", user, gtfsConfigs, cc) {
 
 } {
     @for(database <- databases) {

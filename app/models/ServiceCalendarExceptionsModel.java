@@ -17,7 +17,7 @@ public interface ServiceCalendarExceptionsModel {
 
     void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    List<ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId);
+    List<? extends ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId);
 
     Map<String, List<ServiceCalendarException>> getByTripsAndDates(GtfsConfig gtfs, Collection<Trip> trips, Collection<LocalDate> dates);
 }

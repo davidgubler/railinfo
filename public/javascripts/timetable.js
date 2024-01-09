@@ -2,7 +2,7 @@ $(document).ready( function () {
     var stops = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.whitespace,
         queryTokenizer: Bloodhound.tokenizers.whitespace,
-        prefetch: '/data/stops.json',
+        prefetch: '/' + $('#timetablejs').data('cc') + '/data/stops.json',
         cache: false
     });
 

@@ -1,6 +1,6 @@
 package entities.realized;
 
-import entities.Route;
+import entities.mongodb.MongoDbRoute;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,7 +73,7 @@ public class RealizedDeparture implements Comparable<RealizedDeparture> {
         return null;
     }
 
-    public Route getRoute() {
+    public MongoDbRoute getRoute() {
         return trip.getRoute();
     }
 
