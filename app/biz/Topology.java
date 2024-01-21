@@ -54,7 +54,7 @@ public class Topology {
 
         // BUSINESS
         Edge edge = edgesModel.create(gtfs, stop1, stop2, time);
-        pathFinder.clearCache();
+        pathFinder.clearCache(gtfs);
 
         // LOG
         RailinfoLogger.info(request, user + " created " + edge);
@@ -75,7 +75,7 @@ public class Topology {
 
         // BUSINESS
         edgesModel.update(gtfs, edge, time);
-        pathFinder.clearCache();
+        pathFinder.clearCache(gtfs);
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + edge);
@@ -91,7 +91,7 @@ public class Topology {
 
         // BUSINESS
         edgesModel.delete(gtfs, edge);
-        pathFinder.clearCache();
+        pathFinder.clearCache(gtfs);
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + edge);

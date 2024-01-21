@@ -1,9 +1,11 @@
 @(  implicit request: Http.Request,
     edge: entities.Edge,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, edge.getStop1.getName + " - " + edge.getStop2.getName, user) {
+@template(request, edge.getStop1.getName + " - " + edge.getStop2.getName, user, gtfsConfigs, cc) {
 } {
     <div class="col-12">
         <table>
@@ -21,9 +23,9 @@
     </div>
     <div class="col-12 mt-4">
         @if(user != null) {
-        <a href="@routes.TopologyController.edgesEdit(edge.getId)" class="btn btn-warning">Edit</a>
-        <a href="@routes.TopologyController.edgesDelete(edge.getId)" class="btn btn-danger">Delete</a>
+        <a href="@routes.TopologyController.edgesEdit(cc, edge.getId)" class="btn btn-warning">Edit</a>
+        <a href="@routes.TopologyController.edgesDelete(cc, edge.getId)" class="btn btn-danger">Delete</a>
         }
-        <a href="@routes.TimetableController.edge(edge.getId)" class="btn btn-primary">View all trains</a>
+        <a href="@routes.TimetableController.edge(cc, edge.getId)" class="btn btn-primary">View all trains</a>
     </div>
 }

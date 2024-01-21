@@ -1,13 +1,11 @@
 package entities.mongodb;
 
-import com.mongodb.Mongo;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Indexed;
 import entities.Session;
 import entities.User;
 import org.bson.types.ObjectId;
-import services.MongoDb;
 import utils.Generator;
 import utils.SimplePBKDF2;
 

@@ -22,8 +22,8 @@ public class DataController extends Controller {
     @Inject
     private MongoDb mongoDb;
 
-    public Result stops(Http.Request request) {
-        GtfsConfig gtfs = mongoDb.getLatest("ch");
+    public Result stops(Http.Request request, String cc) {
+        GtfsConfig gtfs = mongoDb.getLatest(cc);
         List<String> stops = stopsModel.getAll(gtfs).stream().map(Stop::getName).collect(Collectors.toList());
         Collections.sort(stops);
         ArrayNode stopsArray = Json.newArray();

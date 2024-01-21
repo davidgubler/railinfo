@@ -1,9 +1,11 @@
 @(	implicit request: Http.Request,
     departures: List[entities.realized.RealizedDeparture],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Timetable", user) {
+@template(request, "Timetable", user, gtfsConfigs, cc) {
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/timetable.css")'>
 } {
     <table>

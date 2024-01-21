@@ -2,13 +2,15 @@
     edge: entities.Edge,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Edit Edge", user) {
+@template(request, "Edit Edge", user, gtfsConfigs, cc) {
 } {
-    @form(request, routes.TopologyController.edgesEditPost(edge.getId)) {
+    @form(request, routes.TopologyController.edgesEditPost(cc, edge.getId)) {
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.TopologyController.edgesList())
+        @formButtons("Save", routes.TopologyController.edgesList(cc))
     }
 }

@@ -6,9 +6,8 @@ import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertOptions;
 import dev.morphia.query.Query;
-import entities.Route;
+import entities.mongodb.MongoDbRoute;
 import models.RoutesModel;
-import services.MongoDb;
 
 import java.util.List;
 import java.util.Map;
@@ -19,8 +18,8 @@ public class MongoDbRoutesModel implements RoutesModel {
     @Inject
     private Injector injector;
 
-    private Query<Route> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(Route.class);
+    private Query<MongoDbRoute> query(GtfsConfig gtfs) {
+        return gtfs.getDs().createQuery(MongoDbRoute.class);
     }
 
     @Override
@@ -29,26 +28,26 @@ public class MongoDbRoutesModel implements RoutesModel {
     }
 
     @Override
-    public Route create(GtfsConfig gtfs, Map<String, String> data) {
-        Route route = new Route(data);
+    public MongoDbRoute create(GtfsConfig gtfs, Map<String, String> data) {
+        MongoDbRoute route = new MongoDbRoute(data);
         gtfs.getDs().save(route);
         return route;
     }
 
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
-        List<Route> routes = dataBatch.stream().map(data -> new Route(data)).collect(Collectors.toList());
+        List<MongoDbRoute> routes = dataBatch.stream().map(data -> new MongoDbRoute(data)).collect(Collectors.toList());
         gtfs.getDs().save(routes, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
-    public Route getByRouteId(GtfsConfig gtfs, String id) {
-        Route route = query(gtfs).field("routeId").equal(id).get();
+    public MongoDbRoute getByRouteId(GtfsConfig gtfs, String id) {
+        MongoDbRoute route = query(gtfs).field("routeId").equal(id).get();
         return route;
     }
 
     @Override
-    public List<Route> getByType(GtfsConfig gtfs, int from, int to) {
-        return query(gtfs).field("type").greaterThanOrEq(from).field("type").lessThanOrEq(to).asList();
+    public List<MongoDbRoute> getByType(GtfsConfig gtfs, int min, int max) {
+        return query(gtfs).field("type").greaterThanOrEq(min).field("type").lessThanOrEq(max).asList();
     }
 }

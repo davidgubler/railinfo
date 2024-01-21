@@ -90,7 +90,14 @@ public class PathFinder {
         return null;
     }
 
-    private ConcurrentHashMap<String, Path> globalPathsCache = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<GtfsConfig, ConcurrentHashMap<String, Path>> globalPathsCache = new ConcurrentHashMap<>(1);
+
+    private Map<String, Path> getGlobalPathsCache(GtfsConfig gtfs) {
+        if (!globalPathsCache.containsKey(gtfs)) {
+            globalPathsCache.put(gtfs, new ConcurrentHashMap<>(1));
+        }
+        return globalPathsCache.get(gtfs);
+    }
 
     private Path quickest(Stop from, Stop to, long timeLimit, Function<Stop, List<? extends Edge>> f, Map<String, Path> cache) {
         String key = from.getBaseId() + "|" + to.getBaseId();
@@ -113,7 +120,7 @@ public class PathFinder {
     public List<RealizedWaypoint> getIntermediate(GtfsConfig gtfs, Stop from, Stop to, LocalDateTime departure, LocalDateTime arrival) {
         long scheduledSeconds = departure.until(arrival, ChronoUnit.SECONDS);
 
-        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(gtfs, stop), globalPathsCache);
+        Path quickest = quickest(from, to, scheduledSeconds * 2, stop -> edgesModel.getEdgesFrom(gtfs, stop), getGlobalPathsCache(gtfs));
 
         if (quickest == null) {
             return new LinkedList<>();
@@ -155,24 +162,23 @@ public class PathFinder {
         Map<String, Path> pathsCache = new HashMap<>();
         long start = System.currentTimeMillis();
         System.out.print("fetching rail routes... ");
-        List<Route> railRoutes = routesModel.getByType(gtfs, 100, 199);
+        List<? extends Route> railRoutes = gtfs.getRailRoutes(routesModel);
         System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
 
         System.out.print("extracting edges... ");
         for (Route route : railRoutes) {
             System.out.println(route + " " + route.getShortName());
-            List<Trip> trips = tripsModel.getByRoute(gtfs, route);
-
+            List<? extends Trip> trips = gtfs.getRailTripsByRoute(tripsModel, route);
             for (Trip trip : trips) {
                 String depTime = null;
                 String lastStopId = null;
-                List<StopTime> stopTimes = trip.getStopTimes();
+                List<? extends StopTime> stopTimes = trip.getStopTimes();
                 for (StopTime stopTime : stopTimes) {
                     if (lastStopId != null) {
                         int seconds = googleTransportTimeDiff(depTime, stopTime.getArrival());
-                        addJourney(gtfs, edges, lastStopId, stopTime.getParentStopId(), seconds);
+                        addJourney(gtfs, edges, lastStopId, stopTime.getStopBaseId(), seconds);
                     }
-                    lastStopId = stopTime.getParentStopId();
+                    lastStopId = stopTime.getStopBaseId();
                     depTime = stopTime.getDeparture();
                 }
             }
@@ -223,7 +229,7 @@ public class PathFinder {
             edgesModel.save(gtfs, edge);
         }
         System.out.println("edges saved");
-        clearCache();
+        clearCache(gtfs);
         System.out.println("caches cleared");
     }
 
@@ -242,23 +248,21 @@ public class PathFinder {
             edge = mongoDbEdge;
             edges.put(key, edge);
         }
-        edge.addJourney(seconds);
+        edge.addJourney(gtfs.subtractStopTime(seconds));
     }
 
-
-    private volatile Map<Edge, Set<String>> routeIdsByEdge = null;
+    private ConcurrentHashMap<GtfsConfig, Map<Edge, Set<String>>> routeIdsByEdge = new ConcurrentHashMap(1);
 
     public Set<String> getRouteIdsByEdge(GtfsConfig gtfs, Edge edge) {
-        if (routeIdsByEdge == null) {
-            routeIdsByEdge = new HashMap<>();
+        if (routeIdsByEdge.get(gtfs) == null) {
             recalculatePaths(gtfs);
         }
-        Set<String> routes = routeIdsByEdge.get(edge);
+        Set<String> routes = routeIdsByEdge.get(gtfs).get(edge);
         return routes == null ? Collections.emptySet() : routes;
     }
 
     public void recalculatePaths(GtfsConfig gtfs) {
-        List<Route> railRoutes = routesModel.getByType(gtfs, 100, 199);
+        List<? extends Route> railRoutes = gtfs.getRailRoutes(routesModel);
         Map<String, List<Edge>> edgesLookupTable = new HashMap<>();
         for (Edge edge : edgesModel.getAll(gtfs)) {
             if (!edgesLookupTable.containsKey(edge.getStop1Id())) {
@@ -283,7 +287,7 @@ public class PathFinder {
             Map<Edge, Set<String>> routeIdsByEdge = new HashMap<>();
             parallelResults.add(routeIdsByEdge);
             executor.execute(() -> {
-                List<Trip> trips = tripsModel.getByRoute(gtfs, route);
+                List<? extends Trip> trips = gtfs.getRailTripsByRoute(tripsModel, route);
                 Map<Trip, List<StopTime>> stopTimesForAllTrips = stopTimesModel.getByTrips(gtfs, trips);
                 for (Trip trip : trips) {
                     List<StopTime> stopTimes = stopTimesForAllTrips.get(trip);
@@ -294,7 +298,7 @@ public class PathFinder {
 
                         Path path;
                         long quickestStart = System.currentTimeMillis();
-                        path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()), globalPathsCache);
+                        path = quickest(from, to, time * 3 / 2 + 60, stop -> edgesLookupTable.get(stop.getBaseId()), getGlobalPathsCache(gtfs));
                         if (System.currentTimeMillis() - quickestStart > 50) {
                             System.out.println("==> pathfinder slow for " + from.getName() + " - " + to.getName());
                         }
@@ -317,7 +321,7 @@ public class PathFinder {
                 // nothing
             }
             int pct = (100 * (railRoutes.size() - executor.getQueue().size())) / railRoutes.size();
-            System.out.println("Recalculating routes " + pct + "%");
+            System.out.println("Recalculating paths " + pct + "%");
         }
 
         // consolidate the many result maps into a single result map
@@ -334,11 +338,11 @@ public class PathFinder {
 
         total = System.currentTimeMillis() - total;
         System.out.println("total " + total + " ms, db " + totalDb + " ms, pathfinder " + totalQuickest + " ms, unaccounted " + (total - totalDb - totalQuickest) + " ms");
-        this.routeIdsByEdge = routeIdsByEdge;
+        this.routeIdsByEdge.put(gtfs, routeIdsByEdge);
     }
 
-    public void clearCache() {
-        globalPathsCache.clear();
-        routeIdsByEdge = null;
+    public void clearCache(GtfsConfig gtfs) {
+        globalPathsCache.put(gtfs, new ConcurrentHashMap<>(1));
+        routeIdsByEdge.remove(gtfs);
     }
 }

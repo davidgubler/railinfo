@@ -4,6 +4,7 @@ import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertOptions;
 import entities.ServiceCalendar;
+import entities.mongodb.MongoDbServiceCalendar;
 import entities.Trip;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
@@ -13,8 +14,8 @@ import java.util.stream.Collectors;
 
 public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
 
-    private Query<ServiceCalendar> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(ServiceCalendar.class);
+    private Query<MongoDbServiceCalendar> query(GtfsConfig gtfs) {
+        return gtfs.getDs().createQuery(MongoDbServiceCalendar.class);
     }
 
     @Override
@@ -24,14 +25,14 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
 
     @Override
     public ServiceCalendar create(GtfsConfig gtfs, Map<String, String> data) {
-        ServiceCalendar serviceCalendar = new ServiceCalendar(data);
+        ServiceCalendar serviceCalendar = new MongoDbServiceCalendar(data);
         gtfs.getDs().save(serviceCalendar);
         return serviceCalendar;
     }
 
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
-        List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendar(data)).collect(Collectors.toList());
+        List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbServiceCalendar(data)).collect(Collectors.toList());
         gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 

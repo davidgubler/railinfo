@@ -5,6 +5,7 @@ import configs.GtfsConfig;
 import dev.morphia.InsertOptions;
 import dev.morphia.query.Query;
 import entities.ServiceCalendarException;
+import entities.mongodb.MongoDbServiceCalendarException;
 import entities.Trip;
 import models.ServiceCalendarExceptionsModel;
 
@@ -14,8 +15,8 @@ import java.util.stream.Collectors;
 
 public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExceptionsModel {
 
-    private Query<ServiceCalendarException> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(ServiceCalendarException.class);
+    private Query<MongoDbServiceCalendarException> query(GtfsConfig gtfs) {
+        return gtfs.getDs().createQuery(MongoDbServiceCalendarException.class);
     }
 
     @Override
@@ -25,19 +26,19 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
 
     @Override
     public ServiceCalendarException create(GtfsConfig gtfs, Map<String, String> data) {
-        ServiceCalendarException serviceCalendarException = new ServiceCalendarException(data);
+        ServiceCalendarException serviceCalendarException = new MongoDbServiceCalendarException(data);
         gtfs.getDs().save(serviceCalendarException);
         return serviceCalendarException;
     }
 
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
-        List<ServiceCalendarException> serviceCalendarExceptions = dataBatch.stream().map(data -> new ServiceCalendarException(data)).collect(Collectors.toList());
+        List<ServiceCalendarException> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbServiceCalendarException(data)).collect(Collectors.toList());
         gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
-    public List<ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId) {
+    public List<? extends ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId) {
         return query(gtfs).field("serviceId").equal(serviceId).asList();
     }
 

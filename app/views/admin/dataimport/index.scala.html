@@ -3,12 +3,14 @@
     databaseName: String,
     errors: Map[String, String],
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, "Import", user) {
+@template(request, "Import", user, gtfsConfigs, cc) {
 
 } {
-    @form(request, routes.DataImportController.importGtfsPost) {
+    @form(request, routes.DataImportController.importGtfsPost(cc)) {
         @formInputText("URL", "url", url, errors)
         @formInputText("Database Name", "databaseName", databaseName, errors)
         <div class="mt-3"></div>

@@ -67,3 +67,7 @@ span.twitter-typeahead {
 tr.modified {
     background-color: #fff3cd !important;
 }
+
+span.navbar-brand a {
+    color: #ffffff;
+}

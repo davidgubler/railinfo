@@ -5,6 +5,7 @@ import com.google.inject.Inject;
 import configs.GtfsConfig;
 import entities.*;
 import entities.Stop;
+import entities.mongodb.MongoDbRoute;
 import models.*;
 import utils.PathFinder;
 
@@ -109,7 +110,7 @@ public class RealizedTrip {
         return startDate;
     }
 
-    public Route getRoute() {
+    public MongoDbRoute getRoute() {
         return trip.getRoute();
     }
 

@@ -1,9 +1,11 @@
 @(	implicit request: Http.Request,
     realizedTrip: entities.realized.RealizedTrip,
     user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    cc: String,
 )
 
-@template(request, null, user) {
+@template(request, null, user, gtfsConfigs, cc) {
     <script src='@routes.Assets.versioned("javascripts/highlightCurrentStop.js")'></script>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/realizedTrip.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>

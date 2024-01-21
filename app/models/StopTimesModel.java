@@ -16,9 +16,9 @@ public interface StopTimesModel {
 
     void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    List<StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops);
+    List<? extends StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops);
 
-    List<StopTime> getByTrip(GtfsConfig gtfs, Trip trip);
+    List<? extends StopTime> getByTrip(GtfsConfig gtfs, Trip trip);
 
-    Map<Trip, List<StopTime>> getByTrips(GtfsConfig gtfs, List<Trip> trips);
+    Map<Trip, List<StopTime>> getByTrips(GtfsConfig gtfs, List<? extends Trip> trips);
 }

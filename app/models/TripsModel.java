@@ -3,6 +3,7 @@ package models;
 import configs.GtfsConfig;
 import entities.Route;
 import entities.Trip;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ public interface TripsModel {
 
     Trip getByTripId(GtfsConfig gtfs, String id);
 
-    List<Trip> getByRoute(GtfsConfig gtfs, Route route);
+    List<? extends Trip> getByRoute(GtfsConfig gtfs, Route route);
 
     List<? extends Trip> getAll(GtfsConfig gtfs);
 }
