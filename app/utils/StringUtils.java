@@ -1,11 +1,13 @@
 package utils;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class StringUtils {
     public static String join(List<? extends Object> objectList, String separator) {
@@ -56,5 +58,9 @@ public class StringUtils {
 
     public static long formatTimeEpochSecond(LocalDateTime dateTime, ZoneId zoneId) {
         return dateTime.atZone(zoneId).toEpochSecond();
+    }
+
+    public static String normalizeName(String name) {
+        return Normalizer.normalize(name.toLowerCase(Locale.ENGLISH), Normalizer.Form.NFKD).replaceAll("\\p{M}", "").replaceAll("[^a-z0-9]", "");
     }
 }

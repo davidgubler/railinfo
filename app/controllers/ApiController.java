@@ -178,7 +178,7 @@ public class ApiController extends Controller {
             } catch (Exception e) {
                 continue;
             }
-            Edge edge = edgesModel.getEdgeByString(gtfs, param.getKey());
+            Edge edge = edgesModel.getByName(gtfs, param.getKey());
             if (edge == null) {
                 continue;
             }

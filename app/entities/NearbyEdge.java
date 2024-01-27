@@ -56,7 +56,7 @@ public class NearbyEdge implements Comparable<NearbyEdge> {
     public Double getPos() {
         double d1 = PolarCoordinates.distanceKm(point, edge.getStop1Coordinates());
         double d2 = PolarCoordinates.distanceKm(point, edge.getStop2Coordinates());
-        return d1 / (d1 + d2);
+        return Math.round(100.0 * (d1 / (d1 + d2))) / 100.0;
     }
 
     public Edge getEdge() {

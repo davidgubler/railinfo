@@ -80,11 +80,6 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         return _id.toString();
     }
 
-    @Override
-    public String getIdReverse() {
-        return "-" + getId();
-    }
-
     public ObjectId getObjectId() {
         return _id;
     }
@@ -130,9 +125,17 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         return stop1;
     }
 
+    public void setStop1(Stop stop1) {
+        this.stop1 = stop1;
+    }
+
     @Override
     public String getStop2Id() {
         return stop2Id;
+    }
+
+    public void setStop2(Stop stop2) {
+        this.stop2 = stop2;
     }
 
     @Override
@@ -266,5 +269,15 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public String getDisplayName() {
         return getStop1().getName() + " - " + getStop2().getName();
+    }
+
+    @Override
+    public String getNormalizedName() {
+        return getStop1().getNormalizedName() + "-" + getStop2().getNormalizedName();
+    }
+
+    @Override
+    public String getNormalizedNameReverse() {
+        return getStop2().getNormalizedName() + "-" + getStop1().getNormalizedName();
     }
 }

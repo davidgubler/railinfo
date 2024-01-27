@@ -7,8 +7,6 @@ import java.util.List;
 public interface Edge extends Comparable<Edge> {
     String getId();
 
-    String getIdReverse();
-
     void addJourney(Integer seconds);
 
     Integer getTypicalTime();
@@ -38,4 +36,8 @@ public interface Edge extends Comparable<Edge> {
     Double getSpread(Point point);
 
     String getDisplayName();
+
+    String getNormalizedName();
+
+    String getNormalizedNameReverse();
 }

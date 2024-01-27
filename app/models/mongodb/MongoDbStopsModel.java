@@ -12,6 +12,7 @@ import entities.mongodb.MongoDbStop;
 import models.StopsModel;
 import dev.morphia.query.Query;
 import org.bson.types.ObjectId;
+import utils.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -120,7 +121,7 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public Set<? extends Stop> getByName(GtfsConfig gtfs, String name) {
         Set<MongoDbStop> stops = new HashSet<>();
-        stops.addAll(query(gtfs).field("name").equal(name).asList());
+        stops.addAll(query(gtfs).field("normalizedName").equal(StringUtils.normalizeName(name)).asList());
         stops.stream().forEach(s -> { injector.injectMembers(s); s.setGtfs(gtfs);});
         return stops;
     }
@@ -207,7 +208,7 @@ public class MongoDbStopsModel implements StopsModel {
         mongoDbStop.setLat(lat);
         mongoDbStop.setLng(lng);
         mongoDbStop.setModified(true);
-        UpdateOperations<MongoDbStop> ops = ops(gtfs).set("name", name).set("lat", lat).set("lng", lng).set("modified", Boolean.TRUE);
+        UpdateOperations<MongoDbStop> ops = ops(gtfs).set("name", name).set("normalizedName", mongoDbStop.getNormalizedName()).set("lat", lat).set("lng", lng).set("modified", Boolean.TRUE);
         gtfs.getDs().update(query(gtfs, mongoDbStop), ops);
         stops.remove(gtfs);
     }

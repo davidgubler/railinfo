@@ -180,12 +180,12 @@ public class TimetableController extends GtfsController {
         return ok(views.html.timetable.realizedTrip.render(request, realizedTrip, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edge(Http.Request request, String cc, String edgeId) {
+    public Result edge(Http.Request request, String cc, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         check(gtfs);
 
-        Edge edge = edgesModel.get(gtfs, edgeId);
+        Edge edge = edgesModel.getByName(gtfs, edgeName);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }
@@ -196,12 +196,12 @@ public class TimetableController extends GtfsController {
         return ok(views.html.timetable.edge.render(request, edge, realizedPasses, null, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edgePos(Http.Request request, String cc, String edgeId, Double pos) {
+    public Result edgePos(Http.Request request, String cc, String edgeName, Double pos) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         check(gtfs);
 
-        Edge edge = edgesModel.get(gtfs, edgeId);
+        Edge edge = edgesModel.getByName(gtfs, edgeName);
         if (edge == null) {
             throw new NotFoundException("Edge");
         }

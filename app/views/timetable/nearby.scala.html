@@ -17,7 +17,7 @@
     <p>
         @for(nearbyEdge <- nearbyEdgesLikely) {
             @if(nearbyEdge.getNearbyFactor > 0.1) {
-                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getNormalizedName(), nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
             }
         }
     </p>
@@ -27,7 +27,7 @@
         Unlikely candidates:<br />
         @for(nearbyEdge <- nearbyEdgesUnlikely) {
             @if(nearbyEdge.getNearbyFactor <= 0.1) {
-                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getId, nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
+                <a href="@routes.TimetableController.edgePos(cc, nearbyEdge.getEdge.getNormalizedName(), nearbyEdge.getPos)" title="Rating: @String.format("%.2f", nearbyEdge.getNearbyFactor)">@nearbyEdge.getEdge.getStop1.getName - @nearbyEdge.getEdge.getStop2.getName</a><br />
             }
         }
     </p>

@@ -30,9 +30,9 @@
         <tbody>
         <p>
             @if(pos ==null) {
-            <a href="@routes.TimetableController.edge(cc, edge.getIdReverse())">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edge(cc, edge.getNormalizedNameReverse())">&larr;reverse&rarr;</a></p>
             } else {
-            <a href="@routes.TimetableController.edgePos(cc, edge.getIdReverse(), 1.0 - pos)">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edgePos(cc, edge.getNormalizedNameReverse(), Math.round(100.0 * (1.0 - pos)) / 100.0)">&larr;reverse&rarr;</a></p>
             }
         @for(pass <- passes) {
             <tr>

@@ -82,7 +82,7 @@
 
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getStop1Coordinates.getLat, @edge.getStop1Coordinates.getLng, @edge.getStop2Coordinates.getLat, @edge.getStop2Coordinates.getLng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgesView(cc, edge.getId)");
+                addEdge(map, @edge.getStop1Coordinates.getLat, @edge.getStop1Coordinates.getLng, @edge.getStop2Coordinates.getLat, @edge.getStop2Coordinates.getLng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgesView(cc, edge.getNormalizedName)");
 
                 var polyLine = new google.maps.Polyline({
                     path: [

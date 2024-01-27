@@ -9,11 +9,9 @@ import models.StopTimesModel;
 import models.StopsModel;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.*;
+import utils.StringUtils;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity(value = "stops", noClassnameStored = true)
 @Indexes(@Index(fields = @Field(value = "name", type = IndexType.TEXT)))
@@ -26,6 +24,9 @@ public class MongoDbStop implements Stop {
 
     @Indexed
     private String name;
+
+    @Indexed
+    private String normalizedName;
 
     private Double lat;
 
@@ -58,6 +59,7 @@ public class MongoDbStop implements Stop {
     public MongoDbStop(String stopId, String name, Double lat, Double lng) {
         this.stopId = stopId;
         this.name = name;
+        this.normalizedName = StringUtils.normalizeName(name);
         this.lat = lat;
         this.lng = lng;
         this.modified = true;
@@ -66,6 +68,7 @@ public class MongoDbStop implements Stop {
     public MongoDbStop(Map<String, String> data) {
         this.stopId = data.get("stop_id");
         this.name = data.get("stop_name");
+        this.normalizedName = StringUtils.normalizeName(this.name);
         this.lat = data.get("stop_lat").isBlank() ? null : Double.parseDouble(data.get("stop_lat"));
         this.lng = data.get("stop_lon").isBlank() ? null : Double.parseDouble(data.get("stop_lon"));
         this.type = data.get("location_type").isBlank() ? null : data.get("location_type");
@@ -88,12 +91,18 @@ public class MongoDbStop implements Stop {
         return stopId;
     }
 
+    @Override
+    public String getNormalizedName() {
+        return normalizedName;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+        this.normalizedName = StringUtils.normalizeName(name);
     }
 
     public Double getLat() {

@@ -92,6 +92,32 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
+    public Edge getByName(GtfsConfig gtfs, String name) {
+        String[] stopNames = name.split("-");
+        if (stopNames.length != 2) {
+            return null;
+        }
+        Stop stop1 = stopsModel.getPrimaryByName(gtfs, stopNames[0]);
+        if (stop1 == null) {
+            return null;
+        }
+        Stop stop2 = stopsModel.getPrimaryByName(gtfs, stopNames[1]);
+        if (stop2 == null) {
+            return null;
+        }
+        Edge edge = getEdgeBetween(gtfs, stop1, stop2);
+        if (edge == null) {
+            return null;
+        }
+
+        if (edge.getStop1().equals(stop1)) {
+            return edge;
+        } else {
+            return new ReverseEdge(edge);
+        }
+    }
+
+    @Override
     public Edge create(GtfsConfig gtfs, Stop stop1, Stop stop2, Integer typicalTime) {
         return create(gtfs, stop1.getBaseId(), stop2.getBaseId(), typicalTime);
     }
@@ -156,29 +182,11 @@ public class MongoDbEdgesModel implements EdgesModel {
         Query<MongoDbEdge> query = query(gtfs);
         query.or(query.and(query.criteria("stop1Id").equal(stop1Id), query.criteria("stop2Id").equal(stop2Id)), query.and(query.criteria("stop1Id").equal(stop2Id), query.criteria("stop2Id").equal(stop1Id)));
         MongoDbEdge edge = query.find().tryNext();
+        if (edge == null) {
+            return null;
+        }
         injector.injectMembers(edge);
         edge.setGtfs(gtfs);
         return edge;
-    }
-
-    @Override
-    public Edge getEdgeByString(GtfsConfig gtfs, String edgeName) {
-        String[] stops = edgeName.split("-");
-        if (stops.length != 2) {
-            return null;
-        }
-        Stop stop1 = stopsModel.getPrimaryByName(gtfs, stops[0].trim());
-        if (stop1 == null) {
-            return null;
-        }
-        Stop stop2 = stopsModel.getPrimaryByName(gtfs, stops[1].trim());
-        if (stop2 == null) {
-            return null;
-        }
-        Edge edge = getEdgeBetween(gtfs, stop1, stop2);
-        if (edge.getStop1().equals(stop1)) {
-            return edge;
-        }
-        return new ReverseEdge(edge);
     }
 }

@@ -10,7 +10,7 @@
 )
 
 @template(request, "Create Edge", user, gtfsConfigs, cc) {
-    <script src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
+    <script id="timetablejs" data-cc="@cc" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
     @form(request, routes.TopologyController.edgesCreatePost(cc)) {
         @formInputText("Stop 1", "stop1", if(stop1!=null){stop1.getName}else{""}, errors)

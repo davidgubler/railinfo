@@ -9,6 +9,8 @@ public interface Stop extends Comparable<Stop> {
 
     String getName();
 
+    String getNormalizedName();
+
     Double getLat();
 
     Double getLng();

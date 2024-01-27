@@ -15,11 +15,6 @@ public class ReverseEdge implements Edge {
         return "-" + edge.getId();
     }
 
-    @Override
-    public String getIdReverse() {
-        return edge.getId();
-    }
-
     public void addJourney(Integer seconds) {
         edge.addJourney(seconds);
     }
@@ -94,5 +89,15 @@ public class ReverseEdge implements Edge {
     @Override
     public String getDisplayName() {
         return getStop1().getName() + " - " + getStop2().getName();
+    }
+
+    @Override
+    public String getNormalizedName() {
+        return getStop1().getNormalizedName() + "-" + getStop2().getNormalizedName();
+    }
+
+    @Override
+    public String getNormalizedNameReverse() {
+        return getStop2().getNormalizedName() + "-" + getStop1().getNormalizedName();
     }
 }

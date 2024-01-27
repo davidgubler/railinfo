@@ -23,7 +23,7 @@
                 <td>@edge.getStop1.getName</td>
                 <td>@edge.getStop2.getName</td>
                 <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
-                <td><a href="@routes.TopologyController.edgesView(cc, edge.getId)">view</a> @if(user!=null){<a href="@routes.TopologyController.edgesEdit(cc, edge.getId())">edit</a> <a href="@routes.TopologyController.edgesDelete(cc, edge.getId())">delete</a>}</td>
+                <td><a href="@routes.TopologyController.edgesView(cc, edge.getNormalizedName())">view</a> @if(user!=null){<a href="@routes.TopologyController.edgesEdit(cc, edge.getNormalizedName())">edit</a> <a href="@routes.TopologyController.edgesDelete(cc, edge.getNormalizedName())">delete</a>}</td>
             </tr>
         }
         </tbody>
