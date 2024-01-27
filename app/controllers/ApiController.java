@@ -134,7 +134,7 @@ public class ApiController extends Controller {
             }
             List<RealizedPass> realizedPasses = realizerModel.getPasses(gtfs, nearbyEdge.getEdge(), lookupStart);
             for (RealizedPass realizedPass : realizedPasses) {
-                LocalDateTime passTime = realizedPass.getIntermediate(true, nearbyEdge.getPos());
+                LocalDateTime passTime = realizedPass.getIntermediate(realizedPass.isForward(nearbyEdge.getEdge().getStop1()), nearbyEdge.getPos());
                 Duration diff = Duration.between(passTime, dateTime);
                 if (diff.getSeconds() > -300) {
                     candidates.add(new LateRealizedPass(realizedPass, diff.getSeconds()));
