@@ -8,7 +8,7 @@
 
 @template(request, "Edit Edge", user, gtfsConfigs, cc) {
 } {
-    @form(request, routes.TopologyController.edgesEditPost(cc, edge.getId)) {
+    @form(request, routes.TopologyController.edgesEditPost(cc, edge.getNormalizedName())) {
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
         <div class="mt-3"></div>
         @formButtons("Save", routes.TopologyController.edgesList(cc))
