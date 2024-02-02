@@ -4,7 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
-import dev.morphia.InsertOptions;
+import dev.morphia.InsertManyOptions;
+import dev.morphia.query.FindOptions;
+import dev.morphia.query.Sort;
+import dev.morphia.query.filters.Filters;
 import entities.Stop;
 import entities.StopTime;
 import entities.Trip;
@@ -25,7 +28,7 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     private MongoDb mongoDb;
 
     private Query<MongoDbStopTime> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbStopTime.class);
+        return gtfs.getDs().find(MongoDbStopTime.class);
     }
 
     @Override
@@ -43,20 +46,20 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<MongoDbStopTime> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbStopTime(data)).collect(Collectors.toList());
-        gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(serviceCalendarExceptions, new InsertManyOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
     public List<? extends StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops) {
         List<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toList());
-        List<MongoDbStopTime> stopTimes = query(gtfs).field("stopId").in(stopIds).asList();
+        List<MongoDbStopTime> stopTimes = query(gtfs).filter(Filters.in("stopId", stopIds)).iterator().toList();
         stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
         return stopTimes;
     }
 
     @Override
     public List<MongoDbStopTime> getByTrip(GtfsConfig gtfs, Trip trip) {
-        List<MongoDbStopTime> stopTimes = query(gtfs).field("tripId").equal(trip.getTripId()).order("stopSequence").asList();
+        List<MongoDbStopTime> stopTimes = query(gtfs).filter(Filters.eq("tripId", trip.getTripId())).iterator(new FindOptions().sort(Sort.ascending("stopSequence"))).toList();
         stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
         return stopTimes;
     }
@@ -73,7 +76,7 @@ public class MongoDbStopTimesModel implements StopTimesModel {
             tripsMap.put(trip.getTripId(), trip);
         }
         List<String> tripIds = trips.stream().map(Trip::getTripId).collect(Collectors.toList());
-        for (MongoDbStopTime stopTime : query(gtfs).field("tripId").in(tripIds).asList()) {
+        for (MongoDbStopTime stopTime : query(gtfs).filter(Filters.in("tripId", tripIds)).iterator().toList()) {
             injector.injectMembers(stopTime);
             stopTime.setGtfs(gtfs);
             Trip trip = tripsMap.get(stopTime.getTripId());

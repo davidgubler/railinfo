@@ -2,7 +2,9 @@ package models.mongodb;
 
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
+import dev.morphia.InsertManyOptions;
 import dev.morphia.InsertOptions;
+import dev.morphia.query.filters.Filters;
 import entities.ServiceCalendar;
 import entities.mongodb.MongoDbServiceCalendar;
 import entities.Trip;
@@ -15,7 +17,7 @@ import java.util.stream.Collectors;
 public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
 
     private Query<MongoDbServiceCalendar> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbServiceCalendar.class);
+        return gtfs.getDs().find(MongoDbServiceCalendar.class);
     }
 
     @Override
@@ -33,19 +35,19 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<ServiceCalendar> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbServiceCalendar(data)).collect(Collectors.toList());
-        gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(serviceCalendarExceptions, new InsertManyOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
     public ServiceCalendar getByServiceId(GtfsConfig gtfs, String serviceId) {
-        return query(gtfs).field("serviceId").equal(serviceId).get();
+        return query(gtfs).filter(Filters.eq("serviceId", serviceId)).first();
     }
 
     @Override
     public Map<String, ServiceCalendar> getByTrips(GtfsConfig gtfs, Collection<Trip> trips) {
         Set<String> serviceIds = trips.stream().map(Trip::getServiceId).collect(Collectors.toSet());
         Map<String, ServiceCalendar> serviceCalendarByServiceId = new HashMap<>();
-        for (ServiceCalendar serviceCalendar : query(gtfs).field("serviceId").in(serviceIds).asList() ) {
+        for (ServiceCalendar serviceCalendar : query(gtfs).filter(Filters.in("serviceId", serviceIds)).iterator().toList() ) {
             serviceCalendarByServiceId.put(serviceCalendar.getServiceId(), serviceCalendar);
         }
         return serviceCalendarByServiceId;

@@ -12,7 +12,7 @@ import org.bson.types.ObjectId;
 
 import java.util.*;
 
-@Entity(value = "edges", noClassnameStored = true)
+@Entity(value = "edges", useDiscriminator = false)
 public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Id
     private ObjectId _id;

@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Entity(value = "users", noClassnameStored = true)
+@Entity(value = "users", useDiscriminator = false)
 public class MongoDbUser implements User {
     @Id
     private ObjectId _id;

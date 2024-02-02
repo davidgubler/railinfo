@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Entity(value = "trips", noClassnameStored = true)
+@Entity(value = "trips", useDiscriminator = false)
 public class MongoDbTrip implements Trip {
     @Id
     private ObjectId _id;

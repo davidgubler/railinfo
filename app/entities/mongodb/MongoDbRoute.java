@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import java.util.Map;
 import java.util.Objects;
 
-@Entity(value = "routes", noClassnameStored = true)
+@Entity(value = "routes", useDiscriminator = false)
 public class MongoDbRoute implements entities.Route {
     @Id
     private ObjectId _id;

@@ -9,7 +9,7 @@ scalaVersion := "2.13.5"
 
 libraryDependencies ++= Seq(
   guice,
-  "org.mongodb" % "mongo-java-driver" % "3.12.8",
-  "dev.morphia.morphia" % "core" % "1.6.1",
+  "org.mongodb" % "mongodb-driver-sync" % "4.11.1",
+  "dev.morphia.morphia" % "morphia-core" % "2.4.11",
   "commons-codec" % "commons-codec" % "1.15"
 )

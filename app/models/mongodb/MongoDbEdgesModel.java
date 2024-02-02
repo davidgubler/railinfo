@@ -1,11 +1,12 @@
 package models.mongodb;
 
-import akka.japi.Pair;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.filters.Filters;
 import configs.GtfsConfig;
 import dev.morphia.query.Query;
-import dev.morphia.query.UpdateOperations;
+import dev.morphia.query.updates.UpdateOperators;
 import entities.Edge;
 import entities.NearbyEdge;
 import entities.ReverseEdge;
@@ -29,15 +30,11 @@ public class MongoDbEdgesModel implements EdgesModel {
     private StopsModel stopsModel;
 
     private Query<MongoDbEdge> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbEdge.class);
+        return gtfs.getDs().find(MongoDbEdge.class);
     }
 
     private Query<MongoDbEdge> queryId(GtfsConfig gtfs, ObjectId objectId) {
-        return query(gtfs).field("_id").equal(objectId);
-    }
-
-    private UpdateOperations<MongoDbEdge> ops(GtfsConfig gtfs) {
-        return gtfs.getDs().createUpdateOperations(MongoDbEdge.class);
+        return query(gtfs).filter(Filters.eq("_id", objectId));
     }
 
     @Override
@@ -53,14 +50,14 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public List<? extends Edge> getAll(GtfsConfig gtfs) {
-        List<? extends MongoDbEdge> edges = query(gtfs).find().toList();
+        List<? extends MongoDbEdge> edges = query(gtfs).iterator().toList();
         edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setGtfs(gtfs); });
         return edges;
     }
 
     @Override
     public List<? extends Edge> getModified(GtfsConfig gtfs) {
-        List<? extends MongoDbEdge> edges = query(gtfs).field("modified").equal(true).find().toList();
+        List<? extends MongoDbEdge> edges = query(gtfs).filter(Filters.eq("modified", true)).iterator().toList();
         edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setGtfs(gtfs); });
         return edges;
     }
@@ -78,7 +75,7 @@ public class MongoDbEdgesModel implements EdgesModel {
         } catch (Exception e) {
             return null;
         }
-        MongoDbEdge edge = query(gtfs).field("_id").equal(objectId).first();
+        MongoDbEdge edge = queryId(gtfs, objectId).first();
 
         if (edge == null) {
             return null;
@@ -135,22 +132,19 @@ public class MongoDbEdgesModel implements EdgesModel {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
         mongoDbEdge.setTypicalTime(typicalTime);
         mongoDbEdge.setModified(true);
-        gtfs.getDs().update(queryId(gtfs, mongoDbEdge.getObjectId()), ops(gtfs).set("typicalTime", mongoDbEdge.getTypicalTime()).set("modified", Boolean.TRUE));
+        queryId(gtfs, mongoDbEdge.getObjectId()).update(new UpdateOptions(), UpdateOperators.set("typicalTime", mongoDbEdge.getTypicalTime()), UpdateOperators.set("modified", Boolean.TRUE));
     }
 
     @Override
     public void delete(GtfsConfig gtfs, Edge edge) {
         MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
-        gtfs.getDs().delete(queryId(gtfs, mongoDbEdge.getObjectId()));
+        queryId(gtfs, mongoDbEdge.getObjectId()).delete();
     }
 
     @Override
     public List<? extends Edge> getEdgesFrom(GtfsConfig gtfs, Stop stop) {
         String stopId = stop.getBaseId();
-
-        Query<MongoDbEdge> query = query(gtfs);
-        query.or(query.or(query.criteria("stop1Id").equal(stopId), query.criteria("stop2Id").equal(stopId)));
-        List<MongoDbEdge> edges = query.asList();
+        List<MongoDbEdge> edges = query(gtfs).filter(Filters.or(Filters.eq("stop1Id", stopId), Filters.eq("stop2Id", stopId))).iterator().toList();
         for(MongoDbEdge edge : edges) {
             injector.injectMembers(edge);
             edge.setGtfs(gtfs);
@@ -160,8 +154,12 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public List<NearbyEdge> getByPoint(GtfsConfig gtfs, Point point) {
-        Query<MongoDbEdge> query = query(gtfs);
-        List<? extends Edge> edges = query.field("bbNorth").greaterThan(point.getLat()).field("bbSouth").lessThan(point.getLat()).field("bbEast").greaterThan(point.getLng()).field("bbWest").lessThan(point.getLng()).asList();
+        List<? extends Edge> edges = query(gtfs).filter(
+                Filters.gt("bbNorth", point.getLat()),
+                Filters.lt("bbSouth", point.getLat()),
+                Filters.gt("bbEast", point.getLng()),
+                Filters.lt("bbWest", point.getLng())
+        ).iterator().toList();
         edges.stream().forEach(e -> { injector.injectMembers(e); ((MongoDbEdge)e).setGtfs(gtfs); });
 
         List<NearbyEdge> nearbyEdges = new LinkedList<>();
@@ -179,9 +177,10 @@ public class MongoDbEdgesModel implements EdgesModel {
     public Edge getEdgeBetween(GtfsConfig gtfs, Stop stop1, Stop stop2) {
         String stop1Id = stop1.getBaseId();
         String stop2Id = stop2.getBaseId();
-        Query<MongoDbEdge> query = query(gtfs);
-        query.or(query.and(query.criteria("stop1Id").equal(stop1Id), query.criteria("stop2Id").equal(stop2Id)), query.and(query.criteria("stop1Id").equal(stop2Id), query.criteria("stop2Id").equal(stop1Id)));
-        MongoDbEdge edge = query.find().tryNext();
+        MongoDbEdge edge = query(gtfs).filter(Filters.or(
+                Filters.and(Filters.eq("stop1Id", stop1Id), Filters.eq("stop2Id", stop2Id)),
+                Filters.and(Filters.eq("stop1Id", stop2Id), Filters.eq("stop2Id", stop1Id))
+        )).first();
         if (edge == null) {
             return null;
         }

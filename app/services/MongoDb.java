@@ -2,17 +2,15 @@ package services;
 
 import akka.actor.ActorSystem;
 import com.google.inject.Inject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import configs.CH;
 import configs.GtfsConfig;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.MapperOptions;
 import entities.mongodb.*;
-import utils.Config;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MongoDb {
     private static final int TIMEOUT_CONNECT = 15 * 1000; // 15 seconds
 
-    private final Map<String, DatabaseConnection> connections = new ConcurrentHashMap<>();
+    private final Map<String, Datastore> connections = new ConcurrentHashMap<>(1);
 
     private MongoClient client;
 
@@ -28,18 +26,17 @@ public class MongoDb {
 
     private MongoClient getClient() {
         if (client == null) {
-            boolean tls = false;
+            Boolean tls = false;
             String hostname = "localhost";
             String username = null;
             String password = null;
-            MongoClientOptions options = MongoClientOptions.builder().connectTimeout(TIMEOUT_CONNECT).sslEnabled(tls).build();
+            String mongoUrl;
             if (username != null && password != null) {
-                MongoCredential credential = MongoCredential.createCredential(username, Config.GLOBAL_DB, password.toCharArray());
-                new ServerAddress(hostname);
-                client = new MongoClient(new ServerAddress(hostname), Arrays.asList(credential), options);
+                mongoUrl = "mongodb://" + username + ":" + password + "@" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
             } else {
-                client = new MongoClient(hostname, options);
+                mongoUrl = "mongodb://" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
             }
+            client = MongoClients.create(mongoUrl);
             actorSystem.registerOnTermination(() -> client.close());
         }
         return client;
@@ -72,30 +69,29 @@ public class MongoDb {
 
     private void connect(String databaseName) {
         MongoClient client = getClient();
-        Morphia morphia;
         Datastore ds;
-        MongoDatabase db = client.getDatabase(databaseName);
 
-        morphia = new Morphia();
+        MapperOptions mapperOptions = MapperOptions.builder().storeEmpties(false).storeNulls(false).build();
+        ds = Morphia.createDatastore(client, databaseName, mapperOptions);
+
         if (!databaseName.contains("-")) {
             // it is the global database
-            morphia.map(MongoDbUser.class);
+            ds.getMapper().map(MongoDbUser.class);
         } else {
             // it is a timetable database
-            morphia.map(MongoDbEdge.class);
-            morphia.map(MongoDbStop.class);
-            morphia.map(MongoDbStopTime.class);
-            morphia.map(MongoDbTrip.class);
-            morphia.map(MongoDbRoute.class);
-            morphia.map(MongoDbServiceCalendar.class);
-            morphia.map(MongoDbServiceCalendarException.class);
+            ds.getMapper().map(MongoDbEdge.class);
+            ds.getMapper().map(MongoDbStop.class);
+            ds.getMapper().map(MongoDbStopTime.class);
+            ds.getMapper().map(MongoDbTrip.class);
+            ds.getMapper().map(MongoDbRoute.class);
+            ds.getMapper().map(MongoDbServiceCalendar.class);
+            ds.getMapper().map(MongoDbServiceCalendarException.class);
         }
 
-        ds = morphia.createDatastore(client, databaseName);
         ds.ensureIndexes();
         ds.ensureCaps();
 
-        connections.put(databaseName, new DatabaseConnection(client, db, morphia, ds));
+        connections.put(databaseName, ds);
     }
 
     @Inject
@@ -110,7 +106,7 @@ public class MongoDb {
         if (!connections.containsKey(databaseName)) {
             connect(databaseName);
         }
-        return connections.get(databaseName).db;
+        return connections.get(databaseName).getDatabase();
     }
 
     public Datastore getDs(String databaseName) {
@@ -120,19 +116,6 @@ public class MongoDb {
         if (!connections.containsKey(databaseName)) {
             connect(databaseName);
         }
-        return connections.get(databaseName).ds;
-    }
-
-    private class DatabaseConnection {
-        DatabaseConnection(MongoClient mongoClient, MongoDatabase db, Morphia morphia, Datastore ds) {
-            this.mongoClient = mongoClient;
-            this.db = db;
-            this.morphia = morphia;
-            this.ds = ds;
-        }
-        final MongoClient mongoClient;
-        final MongoDatabase db;
-        final Morphia morphia;
-        final Datastore ds;
+        return connections.get(databaseName);
     }
 }
