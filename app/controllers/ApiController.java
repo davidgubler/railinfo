@@ -14,6 +14,7 @@ import entities.api.ApiEdgePass;
 import entities.api.ApiEdgeTraffic;
 import entities.realized.RealizedPass;
 import entities.realized.RealizedPassPos;
+import entities.realized.RealizedTrip;
 import geometry.Point;
 import models.*;
 import play.libs.Json;
@@ -101,7 +102,7 @@ public class ApiController extends Controller {
                 late = " mit +" + Math.round(getLateSeconds()/300.0)*5;
             }
             if (getLateSeconds() > 3600) {
-                late = " mit +" + Math.round(getLateSeconds()/600)*10;
+                late = " mit +" + Math.round(getLateSeconds()/600.0)*10;
             }
             return shortName + " " + tripShortName + " " +start + " - " + end + late;
         }
@@ -144,6 +145,19 @@ public class ApiController extends Controller {
 
         Collections.sort(candidates);
 
+        // There may be duplicate entries, because the same train may be on more than one edge we're considering.
+        // In case of duplicates we keep the one which is less late
+        RealizedTrip prev = null;
+        Iterator<LateRealizedPass> iter = candidates.iterator();
+        while (iter.hasNext()) {
+            LateRealizedPass lateRealizedPass = iter.next();
+            if (lateRealizedPass.getRealizedPass().getTrip().equals(prev)) {
+                iter.remove();
+            } else {
+                prev = lateRealizedPass.getRealizedPass().getTrip();
+            }
+        }
+
         // Take the first five candidates and all which are less than 5 minutes late, whichever is more
         int i = 0;
         for (LateRealizedPass p : candidates) {
@@ -172,7 +186,7 @@ public class ApiController extends Controller {
         Map<Edge, Double> edges = new HashMap<>();
 
         for (Map.Entry<String, String[]> param : request.queryString().entrySet()) {
-            Double position;
+            double position;
             try {
                 position = Double.parseDouble(param.getValue()[0]);
             } catch (Exception e) {

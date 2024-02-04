@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity(value = "trips", useDiscriminator = false)
@@ -154,5 +155,18 @@ public class MongoDbTrip implements Trip {
     @Override
     public int compareTo(Trip trip) {
         return tripShortName.compareTo(trip.getTripShortName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MongoDbTrip that = (MongoDbTrip) o;
+        return Objects.equals(tripId, that.tripId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tripId);
     }
 }
