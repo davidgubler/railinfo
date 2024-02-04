@@ -4,8 +4,9 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
-import dev.morphia.InsertOptions;
+import dev.morphia.InsertManyOptions;
 import dev.morphia.query.Query;
+import dev.morphia.query.filters.Filters;
 import entities.mongodb.MongoDbRoute;
 import models.RoutesModel;
 
@@ -19,7 +20,7 @@ public class MongoDbRoutesModel implements RoutesModel {
     private Injector injector;
 
     private Query<MongoDbRoute> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbRoute.class);
+        return gtfs.getDs().find(MongoDbRoute.class);
     }
 
     @Override
@@ -37,17 +38,16 @@ public class MongoDbRoutesModel implements RoutesModel {
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<MongoDbRoute> routes = dataBatch.stream().map(data -> new MongoDbRoute(data)).collect(Collectors.toList());
-        gtfs.getDs().save(routes, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(routes, new InsertManyOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
     public MongoDbRoute getByRouteId(GtfsConfig gtfs, String id) {
-        MongoDbRoute route = query(gtfs).field("routeId").equal(id).get();
-        return route;
+        return query(gtfs).filter(Filters.eq("routeId", id)).first();
     }
 
     @Override
     public List<MongoDbRoute> getByType(GtfsConfig gtfs, int min, int max) {
-        return query(gtfs).field("type").greaterThanOrEq(min).field("type").lessThanOrEq(max).asList();
+        return query(gtfs).filter(Filters.gte("type", min), Filters.lte("type", max)).iterator().toList();
     }
 }

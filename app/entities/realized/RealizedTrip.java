@@ -121,4 +121,17 @@ public class RealizedTrip {
     public Stop getEnds() {
         return realizedStopTimesWithIntermediate.get(realizedStopTimesWithIntermediate.size() - 1).getStop();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RealizedTrip that = (RealizedTrip) o;
+        return Objects.equals(trip, that.trip) && Objects.equals(startDate, that.startDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(trip, startDate);
+    }
 }

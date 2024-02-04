@@ -2,8 +2,11 @@ package models.mongodb;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
-import dev.morphia.query.UpdateOperations;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperator;
+import dev.morphia.query.updates.UpdateOperators;
 import entities.Session;
 import entities.User;
 import entities.mongodb.MongoDbSession;
@@ -29,25 +32,21 @@ public class MongoDbUsersModel implements UsersModel {
     private MongoDb mongoDb;
 
     private Query<MongoDbUser> query() {
-        return mongoDb.getDs(Config.GLOBAL_DB).createQuery(MongoDbUser.class);
+        return mongoDb.getDs(Config.GLOBAL_DB).find(MongoDbUser.class);
     }
 
     private Query<MongoDbUser> query(User user) {
-        return query().field("_id").equal(((MongoDbUser)user).getObjectId());
-    }
-
-    private UpdateOperations<MongoDbUser> ops() {
-        return mongoDb.getDs(Config.GLOBAL_DB).createUpdateOperations(MongoDbUser.class);
+        return query().filter(Filters.eq("_id", ((MongoDbUser)user).getObjectId()));
     }
 
     @Override
     public List<? extends User> getAll() {
-        return query().asList();
+        return query().iterator().toList();
     }
 
     @Override
     public User getByEmailAndPassword(String email, String password) {
-        User user = query().field("email").equal(email).first();
+        User user = query().filter(Filters.eq("email", email)).first();
         if (user == null) {
             return null;
         }
@@ -59,7 +58,7 @@ public class MongoDbUsersModel implements UsersModel {
 
     @Override
     public User get(String id) {
-        return query().field("_id").equal(new ObjectId(id)).first();
+        return query().filter(Filters.eq("_id", new ObjectId(id))).first();
     }
 
     @Override
@@ -72,7 +71,7 @@ public class MongoDbUsersModel implements UsersModel {
         if (sessionId == null) {
             return null;
         }
-        User user = query().field("sessions.sessionId").equal(sessionId).first();
+        User user = query().filter(Filters.eq("sessions.sessionId", sessionId)).first();
         if (user == null) {
             return null;
         }
@@ -92,8 +91,7 @@ public class MongoDbUsersModel implements UsersModel {
         Session session = user.getSessions().stream().filter(s -> s.getSessionId().equals(sessionId)).collect(Collectors.toList()).get(0);
         if (session.getLastActive().getTime() < (new Date().getTime() - LAST_ACTIVE_REFRESH_MS)) {
             ((MongoDbSession)session).setLastActive(new Date());
-            UpdateOperations<MongoDbUser> ops = ops().set("sessions.$.lastActive", session.getLastActive());
-            mongoDb.getDs(Config.GLOBAL_DB).update(query().field("sessions.sessionId").equal(sessionId), ops);
+            query().filter(Filters.eq("sessions.sessionId", sessionId)).update(new UpdateOptions(), UpdateOperators.set("sessions.$.lastActive", session.getLastActive()));
         }
         return user;
     }
@@ -108,42 +106,41 @@ public class MongoDbUsersModel implements UsersModel {
     @Override
     public void update(User user, String email, String name, String password) {
         MongoDbUser mongoDbUser = (MongoDbUser)user;
-        UpdateOperations<MongoDbUser> ops = ops();
+        ArrayList<UpdateOperator> ops = new ArrayList<>();
         mongoDbUser.setEmail(email);
-        ops.set("email", mongoDbUser.getEmail());
+        ops.add(UpdateOperators.set("email", mongoDbUser.getEmail()));
         mongoDbUser.setName(name);
-        ops.set("name", mongoDbUser.getName());
+        ops.add(UpdateOperators.set("name", mongoDbUser.getName()));
         if (password != null) {
             mongoDbUser.setPassword(password);
-            ops.set("passwordSalt", mongoDbUser.getPasswordSalt());
-            ops.set("passwordHash", mongoDbUser.getPasswordHash());
+            ops.add(UpdateOperators.set("passwordSalt", mongoDbUser.getPasswordSalt()));
+            ops.add(UpdateOperators.set("passwordHash", mongoDbUser.getPasswordHash()));
         }
-        mongoDb.getDs(Config.GLOBAL_DB).update(query(mongoDbUser), ops);
+        query(user).update(new UpdateOptions(), ops.toArray(UpdateOperator[]::new));
     }
 
     @Override
     public void delete(User user) {
-        mongoDb.getDs(Config.GLOBAL_DB).delete(query(user));
+        query(user).delete();
     }
 
     @Override
     public void startSession(User user) {
         MongoDbUser mongoDbUser = ((MongoDbUser)user);
         MongoDbSession mongoDbSession = mongoDbUser.startSession();
-        UpdateOperations<MongoDbUser> ops = ops();
+        List<UpdateOperator> ops = new LinkedList<>();
         if (mongoDbUser.getSessions().size() == 1) {
-            ops.set("sessions", Arrays.asList(mongoDbSession));
+            ops.add(UpdateOperators.set("sessions", Arrays.asList(mongoDbSession)));
         } else {
-            ops.push("sessions", mongoDbSession);
+            ops.add(UpdateOperators.push("sessions", mongoDbSession));
         }
-        mongoDb.getDs(Config.GLOBAL_DB).update(query(mongoDbUser), ops);
+        query(user).update(new UpdateOptions(), ops.toArray(UpdateOperator[]::new));
     }
 
     @Override
     public void killSessions(User user) {
         MongoDbUser mongoDbUser = ((MongoDbUser)user);
         mongoDbUser.killSessions();
-        UpdateOperations<MongoDbUser> ops = ops().unset("sessions");
-        mongoDb.getDs(Config.GLOBAL_DB).update(query(mongoDbUser), ops);
+        query(user).update(new UpdateOptions(), UpdateOperators.unset("sessions"));
     }
 }

@@ -13,7 +13,7 @@ import utils.StringUtils;
 
 import java.util.*;
 
-@Entity(value = "stops", noClassnameStored = true)
+@Entity(value = "stops", useDiscriminator = false)
 @Indexes(@Index(fields = @Field(value = "name", type = IndexType.TEXT)))
 public class MongoDbStop implements Stop {
     @Id

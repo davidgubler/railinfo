@@ -2,8 +2,9 @@ package models.mongodb;
 
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
-import dev.morphia.InsertOptions;
+import dev.morphia.InsertManyOptions;
 import dev.morphia.query.Query;
+import dev.morphia.query.filters.Filters;
 import entities.ServiceCalendarException;
 import entities.mongodb.MongoDbServiceCalendarException;
 import entities.Trip;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExceptionsModel {
 
     private Query<MongoDbServiceCalendarException> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbServiceCalendarException.class);
+        return gtfs.getDs().find(MongoDbServiceCalendarException.class);
     }
 
     @Override
@@ -34,12 +35,12 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<ServiceCalendarException> serviceCalendarExceptions = dataBatch.stream().map(data -> new MongoDbServiceCalendarException(data)).collect(Collectors.toList());
-        gtfs.getDs().save(serviceCalendarExceptions, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(serviceCalendarExceptions, new InsertManyOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
     }
 
     @Override
     public List<? extends ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId) {
-        return query(gtfs).field("serviceId").equal(serviceId).asList();
+        return query(gtfs).filter(Filters.eq("serviceId", serviceId)).iterator().toList();
     }
 
     @Override
@@ -47,7 +48,7 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
         Set<String> serviceIds = trips.stream().map(Trip::getServiceId).collect(Collectors.toSet());
         Set<String> dates = localDates.stream().map(LocalDate::toString).collect(Collectors.toSet());
         Map<String, List<ServiceCalendarException>> exceptionsByServiceId = new HashMap<>();
-        for (ServiceCalendarException sce : query(gtfs).field("serviceId").in(serviceIds).field("date").in(dates).asList() ) {
+        for (ServiceCalendarException sce : query(gtfs).filter(Filters.in("serviceId", serviceIds), Filters.in("date", dates)).iterator().toList() ) {
             if (!exceptionsByServiceId.containsKey(sce.getServiceId())) {
                 exceptionsByServiceId.put(sce.getServiceId(), new LinkedList<>());
             }

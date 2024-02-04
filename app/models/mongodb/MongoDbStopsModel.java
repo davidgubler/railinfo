@@ -4,9 +4,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
-import dev.morphia.InsertOptions;
-import dev.morphia.query.UpdateOperations;
-import dev.morphia.query.internal.MorphiaCursor;
+import dev.morphia.InsertManyOptions;
+import dev.morphia.UpdateOptions;
+import dev.morphia.query.MorphiaCursor;
+import dev.morphia.query.filters.Filters;
+import dev.morphia.query.updates.UpdateOperators;
 import entities.Stop;
 import entities.mongodb.MongoDbStop;
 import models.StopsModel;
@@ -25,19 +27,15 @@ public class MongoDbStopsModel implements StopsModel {
     private Injector injector;
 
     private Query<MongoDbStop> query(GtfsConfig gtfs) {
-        return gtfs.getDs().createQuery(MongoDbStop.class);
+        return gtfs.getDs().find(MongoDbStop.class);
     }
 
     private Query<MongoDbStop> query(GtfsConfig gtfs, MongoDbStop stop) {
-        return gtfs.getDs().createQuery(MongoDbStop.class).field("_id").equal(stop.getObjectId());
+        return query(gtfs).filter(Filters.eq("_id", stop.getObjectId()));
     }
 
     private Query<MongoDbStop> queryId(GtfsConfig gtfs, ObjectId objectId) {
-        return query(gtfs).field("_id").equal(objectId);
-    }
-
-    private UpdateOperations<MongoDbStop> ops(GtfsConfig gtfs) {
-        return gtfs.getDs().createUpdateOperations(MongoDbStop.class);
+        return query(gtfs).filter(Filters.eq("_id", objectId));
     }
 
     public void drop(GtfsConfig gtfs) {
@@ -56,7 +54,7 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch) {
         List<MongoDbStop> stops = dataBatch.stream().map(data -> new MongoDbStop(data)).collect(Collectors.toList());
-        gtfs.getDs().save(stops, new InsertOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
+        gtfs.getDs().save(stops, new InsertManyOptions().writeConcern(WriteConcern.UNACKNOWLEDGED));
         stops.remove(gtfs);
     }
 
@@ -88,7 +86,7 @@ public class MongoDbStopsModel implements StopsModel {
         } catch (Exception e) {
             return null;
         }
-        MongoDbStop stop = query(gtfs).field("_id").equal(objectId).first();
+        MongoDbStop stop = queryId(gtfs, objectId).first();
         if (stop != null) {
             injector.injectMembers(stop);
             stop.setGtfs(gtfs);
@@ -109,7 +107,7 @@ public class MongoDbStopsModel implements StopsModel {
         if (stopId == null) {
             return null;
         }
-        MongoDbStop stop = query(gtfs).field("stopId").equal(stopId).first();
+        MongoDbStop stop = query(gtfs).filter(Filters.eq("stopId", stopId)).first();
         if (stop == null) {
             return null;
         }
@@ -121,7 +119,7 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public Set<? extends Stop> getByName(GtfsConfig gtfs, String name) {
         Set<MongoDbStop> stops = new HashSet<>();
-        stops.addAll(query(gtfs).field("normalizedName").equal(StringUtils.normalizeName(name)).asList());
+        stops.addAll(query(gtfs).filter(Filters.eq("normalizedName", StringUtils.normalizeName(name))).iterator().toList());
         stops.stream().forEach(s -> { injector.injectMembers(s); s.setGtfs(gtfs);});
         return stops;
     }
@@ -151,7 +149,7 @@ public class MongoDbStopsModel implements StopsModel {
 
     @Override
     public List<? extends MongoDbStop> getByPartialName(GtfsConfig gtfs, String name) {
-        List<MongoDbStop> stops = query(gtfs).search(name).find().toList();
+        List<MongoDbStop> stops = query(gtfs).filter(Filters.text(name)).iterator().toList();
         stops.stream().forEach(s -> { injector.injectMembers(s); s.setGtfs(gtfs);});
         return stops;
     }
@@ -159,8 +157,7 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public void updateImportance(GtfsConfig gtfs, Set<Stop> stops, Integer importance) {
         Set<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toSet());
-        UpdateOperations<MongoDbStop> ops = ops(gtfs).set("importance", importance);
-        gtfs.getDs().update(query(gtfs).field("stopId").in(stopIds), ops);
+        query(gtfs).filter(Filters.eq("stopId", stopIds)).update(new UpdateOptions(), UpdateOperators.set("importance", importance));
         stops.remove(gtfs);
     }
 
@@ -169,7 +166,7 @@ public class MongoDbStopsModel implements StopsModel {
     private Map<String, MongoDbStop> getStops(GtfsConfig gtfs) {
         if (!stops.containsKey(gtfs)) {
             Map<String, MongoDbStop> stops = new HashMap<>();
-            MorphiaCursor<MongoDbStop> stopsCursor = query(gtfs).find();
+            MorphiaCursor<MongoDbStop> stopsCursor = query(gtfs).iterator();
             while (stopsCursor.hasNext()) {
                 MongoDbStop stop = stopsCursor.next();
                 injector.injectMembers(stop);
@@ -208,15 +205,13 @@ public class MongoDbStopsModel implements StopsModel {
         mongoDbStop.setLat(lat);
         mongoDbStop.setLng(lng);
         mongoDbStop.setModified(true);
-        UpdateOperations<MongoDbStop> ops = ops(gtfs).set("name", name).set("normalizedName", mongoDbStop.getNormalizedName()).set("lat", lat).set("lng", lng).set("modified", Boolean.TRUE);
-        gtfs.getDs().update(query(gtfs, mongoDbStop), ops);
+        query(gtfs, mongoDbStop).update(new UpdateOptions(), UpdateOperators.set("name", name), UpdateOperators.set("normalizedName", mongoDbStop.getNormalizedName()), UpdateOperators.set("lat", lat), UpdateOperators.set("lng", lng), UpdateOperators.set("modified", Boolean.TRUE));
         stops.remove(gtfs);
     }
 
     @Override
     public void delete(GtfsConfig gtfs, Stop stop) {
-        MongoDbStop mongoDbStop = (MongoDbStop)stop;
-        gtfs.getDs().delete(query(gtfs, mongoDbStop));
+        query(gtfs, (MongoDbStop)stop).delete();
         stops.remove(gtfs);
     }
 }

@@ -10,7 +10,7 @@ import org.bson.types.ObjectId;
 
 import java.util.Map;
 
-@Entity(value = "stopTimes", noClassnameStored = true)
+@Entity(value = "stopTimes", useDiscriminator = false)
 public class MongoDbStopTime implements StopTime {
     @Id
     private ObjectId _id;

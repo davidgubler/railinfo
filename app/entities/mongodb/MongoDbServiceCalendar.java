@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-@Entity(value = "serviceCalendars", noClassnameStored = true)
+@Entity(value = "serviceCalendars", useDiscriminator = false)
 public class MongoDbServiceCalendar implements entities.ServiceCalendar {
     @Id
     private ObjectId _id;
