@@ -200,7 +200,7 @@ public class Importer {
             // nobody likes a byte order mark
             header[0] = header[0].substring(1);
         }
-        int batchSize = 100;
+        int batchSize = 1000;
         List<Map<String, String>> dataMapBatch = new ArrayList<>(batchSize);
         String line;
         int c = 0;
