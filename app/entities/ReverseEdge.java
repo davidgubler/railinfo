@@ -59,6 +59,11 @@ public class ReverseEdge implements Edge {
         return edge.isModified();
     }
 
+    @Override
+    public boolean isDisabled() {
+        return edge.isDisabled();
+    }
+
     public List<Point> getBoundingBox() {
         return edge.getBoundingBox();
     }

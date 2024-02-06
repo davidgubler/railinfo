@@ -49,8 +49,12 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
-    public List<? extends Edge> getAll(GtfsConfig gtfs) {
-        List<? extends MongoDbEdge> edges = query(gtfs).iterator().toList();
+    public List<? extends Edge> getAll(GtfsConfig gtfs, boolean includeDisabled) {
+        Query<MongoDbEdge> query = query(gtfs);
+        if (!includeDisabled) {
+            query = query.filter(Filters.ne("disabled", true));
+        }
+        List<? extends MongoDbEdge> edges = query.iterator().toList();
         edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setGtfs(gtfs); });
         return edges;
     }
@@ -142,6 +146,22 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
+    public void disable(GtfsConfig gtfs, Edge edge) {
+        MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
+        mongoDbEdge.setModified(true);
+        mongoDbEdge.setDisabled(true);
+        queryId(gtfs, mongoDbEdge.getObjectId()).update(new UpdateOptions(), UpdateOperators.set("disabled", Boolean.TRUE), UpdateOperators.set("modified", Boolean.TRUE));
+    }
+
+    @Override
+    public void enable(GtfsConfig gtfs, Edge edge) {
+        MongoDbEdge mongoDbEdge = (MongoDbEdge)edge;
+        mongoDbEdge.setModified(true);
+        mongoDbEdge.setDisabled(false);
+        queryId(gtfs, mongoDbEdge.getObjectId()).update(new UpdateOptions(), UpdateOperators.unset("disabled"), UpdateOperators.set("modified", Boolean.TRUE));
+    }
+
+    @Override
     public List<? extends Edge> getEdgesFrom(GtfsConfig gtfs, Stop stop) {
         String stopId = stop.getBaseId();
         List<MongoDbEdge> edges = query(gtfs).filter(Filters.or(Filters.eq("stop1Id", stopId), Filters.eq("stop2Id", stopId))).iterator().toList();
@@ -158,7 +178,8 @@ public class MongoDbEdgesModel implements EdgesModel {
                 Filters.gt("bbNorth", point.getLat()),
                 Filters.lt("bbSouth", point.getLat()),
                 Filters.gt("bbEast", point.getLng()),
-                Filters.lt("bbWest", point.getLng())
+                Filters.lt("bbWest", point.getLng()),
+                Filters.ne("disabled", true)
         ).iterator().toList();
         edges.stream().forEach(e -> { injector.injectMembers(e); ((MongoDbEdge)e).setGtfs(gtfs); });
 

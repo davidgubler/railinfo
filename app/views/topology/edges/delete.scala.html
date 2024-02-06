@@ -8,7 +8,7 @@
 @template(request, "Delete Edge", user, gtfsConfigs, cc) {
 
 } {
-    @form(request, routes.TopologyController.edgesDeletePost(cc, edge.getNormalizedName())) {
+    @form(request, routes.TopologyController.edgeDeletePost(cc, edge.getNormalizedName())) {
         @edge.getStop1().getName - @edge.getStop2().getName in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
         @formButtons("Delete Edge", routes.TopologyController.edgesList(cc))
     }

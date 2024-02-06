@@ -13,7 +13,7 @@ public interface EdgesModel {
 
     Edge save(GtfsConfig v, Edge edge);
 
-    List<? extends Edge> getAll(GtfsConfig gtfs);
+    List<? extends Edge> getAll(GtfsConfig gtfs, boolean includeDisabled);
 
     List<? extends Edge> getModified(GtfsConfig gtfs);
 
@@ -28,6 +28,10 @@ public interface EdgesModel {
     void update(GtfsConfig gtfs, Edge edge, Integer typicalTime);
 
     void delete(GtfsConfig gtfs, Edge edge);
+
+    void disable(GtfsConfig gtfs, Edge edge);
+
+    void enable(GtfsConfig gtfs, Edge edge);
 
     List<? extends Edge> getEdgesFrom(GtfsConfig gtfs, Stop stop);
 

@@ -264,7 +264,7 @@ public class PathFinder {
     public void recalculatePaths(GtfsConfig gtfs) {
         List<? extends Route> railRoutes = gtfs.getRailRoutes(routesModel);
         Map<String, List<Edge>> edgesLookupTable = new HashMap<>();
-        for (Edge edge : edgesModel.getAll(gtfs)) {
+        for (Edge edge : edgesModel.getAll(gtfs, false)) {
             if (!edgesLookupTable.containsKey(edge.getStop1Id())) {
                 edgesLookupTable.put(edge.getStop1Id(), new LinkedList<>());
             }

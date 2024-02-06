@@ -33,6 +33,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     private Double bbWest = null;
 
     private Boolean modified = null;
+    private Boolean disabled = null;
 
     @Transient
     private GtfsConfig gtfs;
@@ -179,6 +180,15 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
 
     public void setModified(Boolean modified) {
         this.modified = modified != null && modified ? true : null;
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return disabled != null && disabled;
+    }
+
+    public void setDisabled(Boolean disabled) {
+        this.disabled = disabled != null && disabled ? true : null;
     }
 
     public void recalculateBoundingBox() {

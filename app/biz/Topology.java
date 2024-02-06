@@ -97,6 +97,38 @@ public class Topology {
         RailinfoLogger.info(request, user + " deleted " + edge);
     }
 
+    public void edgeDisable(Http.RequestHeader request, GtfsConfig gtfs, Edge edge, User user) {
+        // ACCESS
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+
+        // INPUT
+
+        // BUSINESS
+        edgesModel.disable(gtfs, edge);
+        pathFinder.clearCache(gtfs);
+
+        // LOG
+        RailinfoLogger.info(request, user + " disabled " + edge);
+    }
+
+    public void edgeEnable(Http.RequestHeader request, GtfsConfig gtfs, Edge edge, User user) {
+        // ACCESS
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+
+        // INPUT
+
+        // BUSINESS
+        edgesModel.enable(gtfs, edge);
+        pathFinder.clearCache(gtfs);
+
+        // LOG
+        RailinfoLogger.info(request, user + " enabled " + edge);
+    }
+
     public void recalculateEdges(Http.RequestHeader request, GtfsConfig gtfs, User user) {
         // ACCESS
         if (user == null) {

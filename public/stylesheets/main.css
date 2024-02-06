@@ -71,3 +71,15 @@ tr.modified {
 span.navbar-brand a {
     color: #ffffff;
 }
+
+tr.strikethrough td {
+	position: relative;
+}
+tr.strikethrough td:before {
+	content: " ";
+	position: absolute;
+	top: 50%;
+	left: 0;
+	border-bottom: 2px solid #ff6666;
+	width: 100%;
+}

@@ -1,11 +1,15 @@
 @(  submitLabel: String,
     cancel: Call = null,
+    stylePrimary: String = null,
+    styleCancel: String = null,
+    classPrimary: String = null,
+    classCancel: String = null,
 )
 
 
 <div class="col-12">
     @if(cancel != null){
-        <a href="@cancel" class="btn btn-link ps-0">Cancel</a>
+        <a href="@cancel" class="btn btn-link ps-0 @if(classCancel!=null){@classCancel}" @if(styleCancel!=null){style="@styleCancel"}>Cancel</a>
     }
-    <input class="btn btn-primary" type="submit" name="submit" value="@submitLabel">
+    <input class="btn btn-primary @if(classPrimary!=null){@classPrimary}" @if(stylePrimary!=null){style="@stylePrimary"} type="submit" name="submit" value="@submitLabel">
 </div>

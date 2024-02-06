@@ -29,6 +29,8 @@ public interface Edge extends Comparable<Edge> {
 
     boolean isModified();
 
+    boolean isDisabled();
+
     List<Point> getBoundingBox();
 
     String toString(Stop from);

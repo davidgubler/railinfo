@@ -1,8 +1,9 @@
 @(  request: Http.Request,
-    action: Call = null
+    action: Call = null,
+    style: String = null,
 )(content: Html)
 
-<form method="post" @if(action != null){action="@action"}>
+<form method="post" @if(action != null){action="@action"}@if(style!=null){ style="@style"}>
     <input type="hidden" name="csrfToken" @if(request.cookies.get("csrfToken").orElse(null) != null){value="@request.cookies.get("csrfToken").orElse(null).value()"}></input>
     @content
 </form>
