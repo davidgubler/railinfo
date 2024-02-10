@@ -177,7 +177,7 @@ public class TopologyController extends GtfsController {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         check(gtfs);
-        return ok(views.html.topology.map.render(request, edgesModel.getAll(gtfs, false), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.topology.map.render(request, edgesModel.getAll(gtfs, false), false, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
     public Result stopsSearch(Http.Request request, String cc) {
