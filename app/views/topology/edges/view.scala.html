@@ -1,4 +1,5 @@
 @(  implicit request: Http.Request,
+    partialName: String,
     edge: entities.Edge,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
@@ -23,12 +24,12 @@
     </div>
     <div class="col-12 mt-4">
         @if(user != null) {
-            <a href="@routes.TopologyController.edgeEdit(cc, edge.getNormalizedName)" class="btn btn-warning">Edit</a>
-            <a href="@routes.TopologyController.edgeDelete(cc, edge.getNormalizedName)" class="btn btn-danger">Delete</a>
+            <a href="@routes.TopologyController.edgeEdit(cc, partialName, edge.getNormalizedName)" class="btn btn-warning">Edit</a>
+            <a href="@routes.TopologyController.edgeDelete(cc, partialName, edge.getNormalizedName)" class="btn btn-danger">Delete</a>
             @if(edge.isDisabled) {
-                @form(request, routes.TopologyController.edgeEnablePost(cc, edge.getNormalizedName()), style = "display: inline-block;") { @formButtons("Enable", classPrimary="btn-light") }
+                @form(request, routes.TopologyController.edgeEnablePost(cc, partialName, edge.getNormalizedName()), style = "display: inline-block;") { @formButtons("Enable", classPrimary="btn-light") }
             } else {
-                @form(request, routes.TopologyController.edgeDisablePost(cc, edge.getNormalizedName()), style = "display: inline-block;") { @formButtons("Disable", classPrimary="btn-dark") }
+                @form(request, routes.TopologyController.edgeDisablePost(cc, partialName, edge.getNormalizedName()), style = "display: inline-block;") { @formButtons("Disable", classPrimary="btn-dark") }
             }
         }
         <a href="@routes.TimetableController.edge(cc, edge.getNormalizedName)" class="btn btn-primary">View all trains</a>

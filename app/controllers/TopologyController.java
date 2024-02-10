@@ -51,14 +51,57 @@ public class TopologyController extends GtfsController {
     @Inject
     private GtfsConfigModel gtfsConfigModel;
 
-
-
-    public Result edgesList(Http.Request request, String cc) {
+    public Result edgesSearch(Http.Request request, String cc) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         check(gtfs);
-        List<? extends Edge> edges = edgesModel.getAll(gtfs, true);
-        return ok(views.html.topology.edges.list.render(request, edges, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.topology.edges.search.render(request, null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+    }
+
+    public Result edgesSearchPost(Http.Request request, String cc) {
+        User user = usersModel.getFromRequest(request);
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+        Map<String, String[]> data = request.body().asFormUrlEncoded();
+        String partialName = InputUtils.trimToNull(data.get("partialName"));
+        List<? extends Stop> stops = stopsModel.getByPartialName(gtfs, partialName);
+        if (stops.isEmpty()) {
+            return ok(views.html.topology.edges.search.render(request, partialName, Map.of("partialName", ErrorMessages.EDGE_NOT_FOUND), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        }
+        boolean edgesExist = false;
+        for (Stop stop : stops) {
+            if (!edgesModel.getEdgesFrom(gtfs, stop).isEmpty()) {
+                edgesExist = true;
+                break;
+            }
+        }
+        if (!edgesExist) {
+            return ok(views.html.topology.edges.search.render(request, partialName, Map.of("partialName", ErrorMessages.EDGE_NOT_FOUND), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        }
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), partialName));
+    }
+
+    public Result edgesList(Http.Request request, String cc, String partialName) {
+        User user = usersModel.getFromRequest(request);
+        GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
+        check(gtfs);
+        List<? extends Edge> edges = Collections.emptyList();
+        if ("_".equals(partialName)) {
+            return redirect(controllers.routes.TopologyController.edgesSearch(gtfs.getCode()));
+        }
+        if ("_modified".equals(partialName)) {
+            edges = edgesModel.getModified(gtfs);
+        } else {
+            List<? extends Stop> stops = stopsModel.getByPartialName(gtfs, partialName);
+            if (stops.isEmpty()) {
+                throw new NotFoundException("Edge");
+            }
+            Set<Edge> edgesSet = new HashSet<>();
+            stops.forEach(s -> edgesSet.addAll(edgesModel.getEdgesFrom(gtfs, s)));
+            edges = new ArrayList<>(edgesSet);
+        }
+        Collections.sort(edges);
+        return ok(views.html.topology.edges.list.render(request, partialName, edges, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
     public Result edgeCreate(Http.Request request, String cc) {
@@ -81,26 +124,26 @@ public class TopologyController extends GtfsController {
         } catch (InputValidationException e) {
             return ok(views.html.topology.edges.create.render(request, stop1, stop2, time, stopsModel.getAll(gtfs), e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
         }
-        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), "_modified"));
     }
 
-    public Result edgeView(Http.Request request, String cc, String edgeName) {
+    public Result edgeView(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(gtfs, edge);
-        return ok(views.html.topology.edges.view.render(request, edge, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.topology.edges.view.render(request, partialName, edge, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edgeEdit(Http.Request request, String cc, String edgeName) {
+    public Result edgeEdit(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(user, gtfs, edge);
-        return ok(views.html.topology.edges.edit.render(request, edge, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.topology.edges.edit.render(request, partialName, edge, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edgeEditPost(Http.Request request, String cc, String edgeName) {
+    public Result edgeEditPost(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
@@ -110,44 +153,44 @@ public class TopologyController extends GtfsController {
         try {
             topology.edgeUpdate(request, gtfs, edge, time, user);
         } catch (InputValidationException e) {
-            return ok(views.html.topology.edges.edit.render(request, edge, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+            return ok(views.html.topology.edges.edit.render(request, partialName, edge, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
         }
-        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), partialName));
     }
 
-    public Result edgeDelete(Http.Request request, String cc, String edgeName) {
+    public Result edgeDelete(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(user, gtfs, edge);
-        return ok(views.html.topology.edges.delete.render(request, edge, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.topology.edges.delete.render(request, partialName, edge, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
     }
 
-    public Result edgeDeletePost(Http.Request request, String cc, String edgeName) {
+    public Result edgeDeletePost(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(user, gtfs, edge);
         topology.edgeDelete(request, gtfs, edge, user);
-        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), partialName));
     }
 
-    public Result edgeDisablePost(Http.Request request, String cc, String edgeName) {
+    public Result edgeDisablePost(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(user, gtfs, edge);
         topology.edgeDisable(request, gtfs, edge, user);
-        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), partialName));
     }
 
-    public Result edgeEnablePost(Http.Request request, String cc, String edgeName) {
+    public Result edgeEnablePost(Http.Request request, String cc, String partialName, String edgeName) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         Edge edge = edgesModel.getByName(gtfs, edgeName);
         check(user, gtfs, edge);
         topology.edgeEnable(request, gtfs, edge, user);
-        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.edgesList(gtfs.getCode(), partialName));
     }
 
     public Result recalculate(Http.Request request, String cc) {

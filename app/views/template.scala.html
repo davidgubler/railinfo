@@ -54,7 +54,7 @@
                         <ul id="topology" class="submenu collapse @if(request.path.startsWith("/" + cc + "/topology")){show}">
                             <li><a href="@routes.TopologyController.map(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/map")){active}">Map</a></li>
                             <li><a href="@routes.TopologyController.stopsSearch(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/stops")){active}">Stops</a></li>
-                            <li><a href="@routes.TopologyController.edgesList(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/edges")){active}">Edges</a></li>
+                            <li><a href="@routes.TopologyController.edgesSearch(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/edges")){active}">Edges</a></li>
                             @if(user != null) {
                             <li><a href="@routes.TopologyController.recalculate(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/recalculate")){active}">Recalculate</a></li>
                             }

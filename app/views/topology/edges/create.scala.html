@@ -17,6 +17,6 @@
         @formInputText("Stop 2", "stop2", if(stop2!=null){stop2.getName}else{""}, errors)
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(time), errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.TopologyController.edgesList(cc))
+        @formButtons("Save", routes.TopologyController.edgesSearch(cc))
     }
 }

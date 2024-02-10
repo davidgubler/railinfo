@@ -1,4 +1,5 @@
 @(  implicit request: Http.Request,
+    partialName: String,
     edge: entities.Edge,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
@@ -8,8 +9,8 @@
 @template(request, "Delete Edge", user, gtfsConfigs, cc) {
 
 } {
-    @form(request, routes.TopologyController.edgeDeletePost(cc, edge.getNormalizedName())) {
+    @form(request, routes.TopologyController.edgeDeletePost(cc, partialName, edge.getNormalizedName())) {
         @edge.getStop1().getName - @edge.getStop2().getName in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
-        @formButtons("Delete Edge", routes.TopologyController.edgesList(cc))
+        @formButtons("Delete Edge", routes.TopologyController.edgesList(cc, partialName))
     }
 }

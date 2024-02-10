@@ -1,11 +1,12 @@
 @(	request: Http.Request,
+    partialName: String,
     edges: List[_ <: entities.Edge],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
     cc: String,
 )
 
-@template(request, "Edges", user, gtfsConfigs, cc) {
+@template(request, if(partialName=="_modified"){"Modified edges"}else{"Edges containing \"" + partialName + "\""}, user, gtfsConfigs, cc) {
 } {
     <a href="@routes.TopologyController.edgeCreate(cc)">Create new edge...</a>
     <table class="dataTable" data-paging="false" data-ordering="false">
@@ -23,7 +24,7 @@
                 <td>@edge.getStop1.getName</td>
                 <td>@edge.getStop2.getName</td>
                 <td>@utils.StringUtils.formatSeconds(edge.getTypicalTime)</td>
-                <td><a href="@routes.TopologyController.edgeView(cc, edge.getNormalizedName())">view</a> @if(user!=null){<a href="@routes.TopologyController.edgeEdit(cc, edge.getNormalizedName())">edit</a> <a href="@routes.TopologyController.edgeDelete(cc, edge.getNormalizedName())">delete</a>}</td>
+                <td><a href="@routes.TopologyController.edgeView(cc, partialName, edge.getNormalizedName())">view</a> @if(user!=null){<a href="@routes.TopologyController.edgeEdit(cc, partialName, edge.getNormalizedName())">edit</a> <a href="@routes.TopologyController.edgeDelete(cc, partialName, edge.getNormalizedName())">delete</a>}</td>
             </tr>
         }
         </tbody>
