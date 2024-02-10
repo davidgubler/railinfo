@@ -162,7 +162,7 @@ public class Importer {
         edges.forEach(edge -> {
             Stop stop1 = stopsModel.getByStopId(newDb, edge.getStop1Id());
             Stop stop2 = stopsModel.getByStopId(newDb, edge.getStop2Id());
-            edgesModel.create(newDb, stop1, stop2, edge.getTypicalTime());
+            edgesModel.create(newDb, stop1, stop2, edge.getTypicalTime(), edge.isDisabled());
         });
     }
 

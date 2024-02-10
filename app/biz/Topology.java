@@ -53,7 +53,7 @@ public class Topology {
         }
 
         // BUSINESS
-        Edge edge = edgesModel.create(gtfs, stop1, stop2, time);
+        Edge edge = edgesModel.create(gtfs, stop1, stop2, time, false);
         pathFinder.clearCache(gtfs);
 
         // LOG

@@ -62,13 +62,14 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
         recalculateBoundingBox();
     }
 
-    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, Boolean modified) {
+    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean modified, boolean disabled) {
         this.stopsModel = stopsModel;
         this.gtfs = gtfs;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
         this.typicalTime = typicalTime;
         setModified(modified);
+        setDisabled(disabled);
         recalculateBoundingBox();
     }
 

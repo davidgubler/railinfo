@@ -119,13 +119,13 @@ public class MongoDbEdgesModel implements EdgesModel {
     }
 
     @Override
-    public Edge create(GtfsConfig gtfs, Stop stop1, Stop stop2, Integer typicalTime) {
-        return create(gtfs, stop1.getBaseId(), stop2.getBaseId(), typicalTime);
+    public Edge create(GtfsConfig gtfs, Stop stop1, Stop stop2, Integer typicalTime, boolean disabled) {
+        return create(gtfs, stop1.getBaseId(), stop2.getBaseId(), typicalTime, disabled);
     }
 
     @Override
-    public Edge create(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime) {
-        MongoDbEdge edge = new MongoDbEdge(stopsModel, gtfs, stop1Id, stop2Id, typicalTime, true);
+    public Edge create(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean disabled) {
+        MongoDbEdge edge = new MongoDbEdge(stopsModel, gtfs, stop1Id, stop2Id, typicalTime, true, disabled);
         gtfs.getDs().save(edge);
         edge.setGtfs(gtfs);
         return edge;

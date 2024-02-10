@@ -21,9 +21,9 @@ public interface EdgesModel {
 
     Edge getByName(GtfsConfig gtfs, String name);
 
-    Edge create(GtfsConfig gtfs, Stop stop1, Stop stop2, Integer typicalTime);
+    Edge create(GtfsConfig gtfs, Stop stop1, Stop stop2, Integer typicalTime, boolean disabled);
 
-    Edge create(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime);
+    Edge create(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean disabled);
 
     void update(GtfsConfig gtfs, Edge edge, Integer typicalTime);
 
