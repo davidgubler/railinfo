@@ -95,6 +95,11 @@ public class FR_TER implements GtfsConfig {
     }
 
     @Override
+    public String extractProduct(Route route) {
+        return route.getDesc();
+    }
+
+    @Override
     public int subtractStopTime(int edgeSeconds) {
         // we assume that a stop takes 2 min, thus we subtract this
         edgeSeconds -= 120;

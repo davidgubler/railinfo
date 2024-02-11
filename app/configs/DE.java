@@ -55,13 +55,13 @@ public class DE implements GtfsConfig {
 
     @Override
     public List<? extends Route> getRailRoutes(RoutesModel routesModel) {
-        // 0 - ?
-        // 1 - ?
-        // 2 - S-Bahn
+        // 0 - Tram
+        // 1 - S-Bahn Düsseldorf/Essen/Dortmund, Frankfurt, Nürnberg, Berlin, Hamburg, München, Stuttgart
+        // 2 - S-Bahn, Fernverkehr
         // 3 - Bus
         // 4 - ?
         // 7 - Seilbahnen
-        return routesModel.getByType(this, 2, 2);
+        return routesModel.getByType(this, 1, 2);
     }
 
     @Override
@@ -76,6 +76,11 @@ public class DE implements GtfsConfig {
             return parentId;
         }
         return stop.getStopId();
+    }
+
+    @Override
+    public String extractProduct(Route route) {
+        return route.getShortName().replace("[^a-zA-Z]", "");
     }
 
     @Override

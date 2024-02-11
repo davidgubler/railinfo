@@ -29,6 +29,8 @@ public interface GtfsConfig {
 
     String extractBaseId(Stop stop);
 
+    String extractProduct(Route route);
+
     int subtractStopTime(int edgeSeconds);
 
     List<? extends Route> getRailRoutes(RoutesModel routesModel);

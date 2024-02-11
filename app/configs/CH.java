@@ -72,6 +72,11 @@ public class CH implements GtfsConfig {
     }
 
     @Override
+    public String extractProduct(Route route) {
+        return route.getDesc();
+    }
+
+    @Override
     public int subtractStopTime(int edgeSeconds) {
         // we assume that a stop takes 1 min, thus we subtract this
         edgeSeconds -= 60;

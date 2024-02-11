@@ -1,6 +1,8 @@
 package entities;
 
 public interface Route {
+    String getProduct();
+
     String getRouteId();
 
     String getAgencyId();
