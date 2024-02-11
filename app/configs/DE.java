@@ -85,8 +85,8 @@ public class DE implements GtfsConfig {
 
     @Override
     public int subtractStopTime(int edgeSeconds) {
-        // we assume that a stop takes 1 min, thus we subtract this
-        edgeSeconds -= 60;
+        // we assume that a stop takes 2 min, thus we subtract this
+        edgeSeconds -= 120;
         if (edgeSeconds < 30) {
             // the minimum assumed travel time between stops is 30s
             edgeSeconds = 30;
