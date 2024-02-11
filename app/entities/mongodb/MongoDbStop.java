@@ -133,7 +133,7 @@ public class MongoDbStop implements Stop {
     }
 
     public String getBaseId() {
-        return gtfs.extractBaseId(this.getStopId());
+        return gtfs.extractBaseId(this);
     }
 
     public String getParentId() {

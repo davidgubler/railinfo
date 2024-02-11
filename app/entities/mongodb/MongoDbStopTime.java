@@ -68,7 +68,7 @@ public class MongoDbStopTime implements StopTime {
 
     @Override
     public String getStopBaseId() {
-        return gtfs.extractBaseId(this.getStopId());
+        return gtfs.extractBaseId(getStop());
     }
 
     @Override

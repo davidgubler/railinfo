@@ -165,7 +165,7 @@ public class PathFinder {
         List<? extends Route> railRoutes = gtfs.getRailRoutes(routesModel);
         System.out.println(railRoutes.size() + " in " + (System.currentTimeMillis() - start) + " ms");
 
-        System.out.print("extracting edges... ");
+        System.out.println("extracting edges... ");
         for (Route route : railRoutes) {
             System.out.println(route + " " + route.getShortName());
             List<? extends Trip> trips = gtfs.getRailTripsByRoute(tripsModel, route);

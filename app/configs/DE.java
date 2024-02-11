@@ -3,6 +3,7 @@ package configs;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
+import entities.Stop;
 import entities.Trip;
 import models.RoutesModel;
 import models.TripsModel;
@@ -54,6 +55,12 @@ public class DE implements GtfsConfig {
 
     @Override
     public List<? extends Route> getRailRoutes(RoutesModel routesModel) {
+        // 0 - ?
+        // 1 - ?
+        // 2 - S-Bahn
+        // 3 - Bus
+        // 4 - ?
+        // 7 - Seilbahnen
         return routesModel.getByType(this, 2, 2);
     }
 
@@ -63,11 +70,12 @@ public class DE implements GtfsConfig {
     }
 
     @Override
-    public String extractBaseId(String stopId) {
-        String baseId = stopId.split(":")[0];
-        // base ID can contain stuff like "Parent" or "P"
-        baseId = baseId.replaceAll("[^0-9]", "");
-        return baseId;
+    public String extractBaseId(Stop stop) {
+        String parentId = stop.getParentId();
+        if (parentId != null) {
+            return parentId;
+        }
+        return stop.getStopId();
     }
 
     @Override

@@ -3,6 +3,7 @@ package configs;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
+import entities.Stop;
 import entities.Trip;
 import models.RoutesModel;
 import models.TripsModel;
@@ -82,7 +83,8 @@ public class FR_TER implements GtfsConfig {
     }
 
     @Override
-    public String extractBaseId(String stopId) {
+    public String extractBaseId(Stop stop) {
+        String stopId = stop.getStopId();
         if (stopId.contains("-")) {
             return stopId.substring(stopId.lastIndexOf("-") + 1);
         }

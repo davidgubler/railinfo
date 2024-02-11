@@ -3,6 +3,7 @@ package configs;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
+import entities.Stop;
 import entities.Trip;
 import models.RoutesModel;
 import models.TripsModel;
@@ -63,8 +64,8 @@ public class CH implements GtfsConfig {
     }
 
     @Override
-    public String extractBaseId(String stopId) {
-        String baseId = stopId.split(":")[0];
+    public String extractBaseId(Stop stop) {
+        String baseId = stop.getStopId().split(":")[0];
         // base ID can contain stuff like "Parent" or "P"
         baseId = baseId.replaceAll("[^0-9]", "");
         return baseId;

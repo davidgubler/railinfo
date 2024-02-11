@@ -3,6 +3,7 @@ package configs;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
+import entities.Stop;
 import entities.Trip;
 import models.RoutesModel;
 import models.TripsModel;
@@ -26,7 +27,7 @@ public interface GtfsConfig {
 
     String getDownloadUrl();
 
-    String extractBaseId(String stopId);
+    String extractBaseId(Stop stop);
 
     int subtractStopTime(int edgeSeconds);
 
