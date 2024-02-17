@@ -93,6 +93,25 @@ public class FR_TER implements GtfsConfig {
     }
 
     @Override
+    public String extractTrainNr(Trip trip) {
+        Matcher m = tripPattern.matcher(trip.getTripId());
+        if (m.matches()) {
+            return m.group(1);
+        }
+        return "";
+    }
+
+    @Override
+    public String extractProduct(Route route) {
+        return "R";
+    }
+
+    @Override
+    public String extractLineName(Route route) {
+        return "TER " + route.getShortName();
+    }
+
+    @Override
     public int subtractStopTime(int edgeSeconds) {
         // we assume that a stop takes 2 min, thus we subtract this
         edgeSeconds -= 120;

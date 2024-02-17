@@ -28,6 +28,12 @@ public interface GtfsConfig {
 
     String extractBaseId(String stopId);
 
+    String extractTrainNr(Trip trip);
+
+    String extractProduct(Route route);
+
+    String extractLineName(Route route);
+
     int subtractStopTime(int edgeSeconds);
 
     List<? extends Route> getRailRoutes(RoutesModel routesModel);

@@ -1,5 +1,6 @@
 package entities.mongodb;
 
+import configs.GtfsConfig;
 import dev.morphia.annotations.*;
 import org.bson.types.ObjectId;
 
@@ -24,6 +25,9 @@ public class MongoDbRoute implements entities.Route {
 
     private Integer type;
 
+    @Transient
+    private GtfsConfig gtfs;
+
     public MongoDbRoute() {
         // dummy constructor for morphia
     }
@@ -35,6 +39,10 @@ public class MongoDbRoute implements entities.Route {
         this.longName = data.get("route_long_name");
         this.desc = data.get("route_desc");
         this.type = Integer.parseInt(data.get("route_type"));
+    }
+
+    public void setGtfs(GtfsConfig gtfs) {
+        this.gtfs = gtfs;
     }
 
     @Override
@@ -65,6 +73,16 @@ public class MongoDbRoute implements entities.Route {
     @Override
     public Integer getType() {
         return type;
+    }
+
+    @Override
+    public String getProduct() {
+        return gtfs.extractProduct(this);
+    }
+
+    @Override
+    public String getLineName() {
+        return gtfs.extractLineName(this);
     }
 
     public String toString() {

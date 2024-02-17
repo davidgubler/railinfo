@@ -43,11 +43,17 @@ public class MongoDbRoutesModel implements RoutesModel {
 
     @Override
     public MongoDbRoute getByRouteId(GtfsConfig gtfs, String id) {
-        return query(gtfs).filter(Filters.eq("routeId", id)).first();
+        MongoDbRoute route = query(gtfs).filter(Filters.eq("routeId", id)).first();
+        if (route != null) {
+            route.setGtfs(gtfs);
+        }
+        return route;
     }
 
     @Override
     public List<MongoDbRoute> getByType(GtfsConfig gtfs, int min, int max) {
-        return query(gtfs).filter(Filters.gte("type", min), Filters.lte("type", max)).iterator().toList();
+        List<MongoDbRoute> routes = query(gtfs).filter(Filters.gte("type", min), Filters.lte("type", max)).iterator().toList();
+        routes.forEach(r -> r.setGtfs(gtfs));
+        return routes;
     }
 }

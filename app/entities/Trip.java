@@ -16,6 +16,8 @@ public interface Trip extends Comparable<Trip> {
 
     String getDirectionId();
 
+    String getTrainNr();
+
     boolean isActive(LocalDate date, List<? extends ServiceCalendarException> serviceCalendarExceptions, ServiceCalendar serviceCalendar);
 
     List<? extends StopTime> getStopTimes();
