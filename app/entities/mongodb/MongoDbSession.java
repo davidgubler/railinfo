@@ -7,7 +7,7 @@ import utils.Generator;
 
 import java.util.Date;
 
-@Embedded
+@Embedded(useDiscriminator = false)
 public class MongoDbSession implements Session {
     @Indexed
     private String sessionId;

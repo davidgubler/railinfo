@@ -12,4 +12,8 @@ public interface Route {
     String getDesc();
 
     Integer getType();
+
+    String getProduct();
+
+    String getLineName();
 }

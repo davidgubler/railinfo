@@ -90,6 +90,11 @@ public class MongoDbTrip implements Trip {
     }
 
     @Override
+    public String getTrainNr() {
+        return gtfs.extractTrainNr(this);
+    }
+
+    @Override
     public String getDirectionId() {
         return directionId;
     }

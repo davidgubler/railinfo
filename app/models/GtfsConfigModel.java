@@ -1,8 +1,7 @@
 package models;
 
 import com.google.inject.Inject;
-import configs.CH;
-import configs.FR_TER;
+import configs.*;
 import configs.GtfsConfig;
 import services.MongoDb;
 
@@ -14,7 +13,7 @@ public class GtfsConfigModel {
     @Inject
     private MongoDb mongoDb;
 
-    private static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR_TER());
+    private static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR_IC(), new FR_TER());
 
     public GtfsConfig getConfig(String cc) {
         if (cc == null) {
