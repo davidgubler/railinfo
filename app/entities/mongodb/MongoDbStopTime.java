@@ -34,10 +34,6 @@ public class MongoDbStopTime implements StopTime {
     @Transient
     private GtfsConfig gtfs;
 
-    @Transient
-    @Inject
-    private StopsModel stopsModel;
-
     public MongoDbStopTime() {
         // dummy constructor for morphia
     }
@@ -73,7 +69,7 @@ public class MongoDbStopTime implements StopTime {
 
     @Override
     public Stop getStop() {
-        return stopsModel.getByStopId(gtfs, stopId);
+        return gtfs.getStopsModel().getByStopId(gtfs, stopId);
     }
 
     @Override
@@ -89,6 +85,11 @@ public class MongoDbStopTime implements StopTime {
     @Override
     public String getDeparture() {
         return departure;
+    }
+
+    @Override
+    public GtfsConfig getSourceGtfs() {
+        return gtfs;
     }
 
     @Override

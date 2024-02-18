@@ -1,11 +1,11 @@
 package configs;
 
+import com.google.inject.Inject;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
-import models.RoutesModel;
-import models.TripsModel;
+import models.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -16,6 +16,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FR_TER implements GtfsConfig {
+    @Inject
+    private StopsModel stopsModel;
+
+    @Inject
+    private StopTimesModel stopTimesModel;
+
+    @Inject
+    private RoutesModel routesModel;
+
+    @Inject
+    private ServiceCalendarsModel serviceCalendarsModel;
+
+    @Inject
+    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
+
+    @Inject
+    private TripsModel tripsModel;
+
+    @Inject
+    private EdgesModel edgesModel;
+
     @Override
     public ZoneId getZoneId() {
         return ZoneId.of("Europe/Paris");
@@ -37,7 +58,7 @@ public class FR_TER implements GtfsConfig {
     }
 
     @Override
-    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds) {
+    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds, GtfsConfigModel gtfsConfigModel) {
         if (db == null || ds == null) {
             return null;
         }
@@ -56,7 +77,7 @@ public class FR_TER implements GtfsConfig {
     }
 
     @Override
-    public List<? extends Route> getRailRoutes(RoutesModel routesModel) {
+    public List<? extends Route> getRailRoutes() {
         return routesModel.getByType(this, 2, 3);
     }
 
@@ -64,9 +85,9 @@ public class FR_TER implements GtfsConfig {
     private Pattern tripPattern = Pattern.compile("OCESN([0-9]+)([FR]).*");
 
     @Override
-    public List<? extends Trip> getRailTripsByRoute(TripsModel tripsModel, Route route) {
+    public List<? extends Trip> getRailTripsByRoute(Route route) {
         // trips can return both trains and buses, therefore we have to remove the "R" trips (rue)
-        List<? extends Trip> trips = tripsModel.getByRoute(this, route);
+        List<? extends Trip> trips = tripsModel.getByRoute(route);
         Iterator<? extends Trip> iter = trips.iterator();
         while (iter.hasNext()) {
             Trip trip = iter.next();
@@ -94,11 +115,7 @@ public class FR_TER implements GtfsConfig {
 
     @Override
     public String extractTrainNr(Trip trip) {
-        Matcher m = tripPattern.matcher(trip.getTripId());
-        if (m.matches()) {
-            return m.group(1);
-        }
-        return "";
+        return trip.getTripHeadsign();
     }
 
     @Override
@@ -108,7 +125,7 @@ public class FR_TER implements GtfsConfig {
 
     @Override
     public String extractLineName(Route route) {
-        return "TER " + route.getShortName();
+        return "TER";
     }
 
     @Override
@@ -132,6 +149,41 @@ public class FR_TER implements GtfsConfig {
     public FR_TER(MongoDatabase db, Datastore ds) {
         this.db = db;
         this.ds = ds;
+    }
+
+    @Override
+    public StopsModel getStopsModel() {
+        return stopsModel;
+    }
+
+    @Override
+    public StopTimesModel getStopTimesModel() {
+        return stopTimesModel;
+    }
+
+    @Override
+    public RoutesModel getRoutesModel() {
+        return routesModel;
+    }
+
+    @Override
+    public ServiceCalendarsModel getServiceCalendarsModel() {
+        return serviceCalendarsModel;
+    }
+
+    @Override
+    public ServiceCalendarExceptionsModel getServiceCalendarExceptionsModel() {
+        return serviceCalendarExceptionsModel;
+    }
+
+    @Override
+    public TripsModel getTripsModel() {
+        return tripsModel;
+    }
+
+    @Override
+    public EdgesModel getEdgesModel() {
+        return edgesModel;
     }
 
     @Override

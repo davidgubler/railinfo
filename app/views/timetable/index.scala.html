@@ -4,13 +4,13 @@
     errors: Map[String, String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Timetable", user, gtfsConfigs, cc) {
-    <script id="timetablejs" data-cc="@cc" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
+@template(request, "Timetable", user, gtfsConfigs, gtfs) {
+    <script id="timetablejs" data-cc="@gtfs.getCode" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
-    @form(request, routes.TimetableController.indexPost(cc)) {
+    @form(request, routes.TimetableController.indexPost(gtfs.getCode)) {
         <div class="row">
             <div class="col-xl-6 col-lg-5 col-md-8">
                 @formInputText("Stop", "stop", stop, errors, xlWidth=9, lgWidth=8, mdWidth=6)

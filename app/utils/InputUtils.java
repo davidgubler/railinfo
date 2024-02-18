@@ -65,7 +65,7 @@ public class InputUtils {
     }
 
     public static Double toDouble(String input) {
-        if (input.isEmpty()) {
+        if (input == null || input.isEmpty()) {
             return null;
         }
         input = input.trim();

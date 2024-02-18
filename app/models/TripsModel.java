@@ -17,7 +17,7 @@ public interface TripsModel {
 
     Trip getByTripId(GtfsConfig gtfs, String id);
 
-    List<? extends Trip> getByRoute(GtfsConfig gtfs, Route route);
+    List<? extends Trip> getByRoute(Route route);
 
     List<? extends Trip> getAll(GtfsConfig gtfs);
 }

@@ -35,19 +35,10 @@ public class ApiController extends Controller {
     private MongoDb mongoDb;
 
     @Inject
-    private StopsModel stopsModel;
-
-    @Inject
     private EdgesModel edgesModel;
 
     @Inject
     private PathFinder pathFinder;
-
-    @Inject
-    private TripsModel tripsModel;
-
-    @Inject
-    private RoutesModel routesModel;
 
     @Inject
     private RealizerModel realizerModel;

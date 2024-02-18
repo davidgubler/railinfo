@@ -21,12 +21,6 @@ import java.util.stream.Collectors;
 
 public class MongoDbStopTimesModel implements StopTimesModel {
 
-    @Inject
-    private Injector injector;
-
-    @Inject
-    private MongoDb mongoDb;
-
     private Query<MongoDbStopTime> query(GtfsConfig gtfs) {
         return gtfs.getDs().find(MongoDbStopTime.class);
     }
@@ -53,14 +47,14 @@ public class MongoDbStopTimesModel implements StopTimesModel {
     public List<? extends StopTime> getByStops(GtfsConfig gtfs, Collection<? extends Stop> stops) {
         List<String> stopIds = stops.stream().map(Stop::getStopId).collect(Collectors.toList());
         List<MongoDbStopTime> stopTimes = query(gtfs).filter(Filters.in("stopId", stopIds)).iterator().toList();
-        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
+        stopTimes.stream().forEach(st -> { st.setGtfs(gtfs); });
         return stopTimes;
     }
 
     @Override
     public List<MongoDbStopTime> getByTrip(GtfsConfig gtfs, Trip trip) {
         List<MongoDbStopTime> stopTimes = query(gtfs).filter(Filters.eq("tripId", trip.getTripId())).iterator(new FindOptions().sort(Sort.ascending("stopSequence"))).toList();
-        stopTimes.stream().forEach(st -> { injector.injectMembers(st); st.setGtfs(gtfs); });
+        stopTimes.stream().forEach(st -> { st.setGtfs(gtfs); });
         return stopTimes;
     }
 
@@ -77,7 +71,6 @@ public class MongoDbStopTimesModel implements StopTimesModel {
         }
         List<String> tripIds = trips.stream().map(Trip::getTripId).collect(Collectors.toList());
         for (MongoDbStopTime stopTime : query(gtfs).filter(Filters.in("tripId", tripIds)).iterator().toList()) {
-            injector.injectMembers(stopTime);
             stopTime.setGtfs(gtfs);
             Trip trip = tripsMap.get(stopTime.getTripId());
             if (!stopTimes.containsKey(trip)) {

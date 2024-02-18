@@ -16,7 +16,7 @@ public interface ServiceCalendarsModel {
 
     void create(GtfsConfig gtfs, List<Map<String, String>> dataBatch);
 
-    ServiceCalendar getByServiceId(GtfsConfig gtfs, String serviceId);
+    ServiceCalendar getByTrip(Trip trip);
 
     Map<String, ServiceCalendar> getByTrips(GtfsConfig gtfs, Collection<Trip> trips);
 }

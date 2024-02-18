@@ -3,10 +3,10 @@
     stops: List[_ <: entities.Stop],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Stops containing \"" + partialName + "\"", user, gtfsConfigs, cc) {
+@template(request, "Stops containing \"" + partialName + "\"", user, gtfsConfigs, gtfs) {
 } {
     <table class="dataTable" data-paging="false" data-ordering="false">
         <thead>
@@ -16,7 +16,9 @@
                 <th>Parent ID</th>
                 <th>Base ID</th>
                 <th>Location</th>
+                @if(user != null && gtfs.isEditable){
                 <th>Actions</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -37,12 +39,12 @@
                 <td>
                     @if(stop.getLat != null && stop.getLng != null){<a href="https://maps.google.com/maps/place/@stop.getLat,@stop.getLng" target="_blank">@stop.getLat,@stop.getLng</a>}
                 </td>
+                @if(user != null && gtfs.isEditable){
                 <td>
-                    @if(user!=null){
-                        <a href="@routes.TopologyController.stopsEdit(cc, partialName, stop.getId)">edit</a>
-                        <a href="@routes.TopologyController.stopsDelete(cc, partialName, stop.getId)">delete</a>
-                    }
+                    <a href="@routes.TopologyController.stopsEdit(gtfs.getCode, partialName, stop.getId)">edit</a>
+                    <a href="@routes.TopologyController.stopsDelete(gtfs.getCode, partialName, stop.getId)">delete</a>
                 </td>
+                }
             </tr>
             }
         </tbody>

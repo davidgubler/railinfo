@@ -3,13 +3,13 @@
     stop: entities.Stop,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Delete Stop", user, gtfsConfigs, cc) {
+@template(request, "Delete Stop", user, gtfsConfigs, gtfs) {
 
 } {
-    @form(request, routes.TopologyController.stopsDeletePost(cc, partialName, stop.getId)) {
+    @form(request, routes.TopologyController.stopsDeletePost(gtfs.getCode, partialName, stop.getId)) {
         <table class="mb-4">
             <tbody>
                 <tr>
@@ -30,6 +30,6 @@
                 </tr>
             </tbody>
         </table>
-        @formButtons("Delete Stop", routes.TopologyController.stopsList(cc, partialName))
+        @formButtons("Delete Stop", routes.TopologyController.stopsList(gtfs.getCode, partialName))
     }
 }

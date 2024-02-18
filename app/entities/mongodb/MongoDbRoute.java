@@ -90,6 +90,11 @@ public class MongoDbRoute implements entities.Route {
     }
 
     @Override
+    public GtfsConfig getSourceGtfs() {
+        return gtfs;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

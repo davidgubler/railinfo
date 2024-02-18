@@ -1,7 +1,5 @@
 package models;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import configs.GtfsConfig;
 import entities.*;
 import entities.mongodb.MongoDbRoute;
@@ -16,32 +14,14 @@ import java.util.*;
 
 public class RealizerModel {
 
-    @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private TripsModel tripsModel;
-
-    @Inject
-    private PathFinder pathFinder;
-
-    @Inject
-    private Injector injector;
-
     public Set<RealizedTrip> realizeTrips(GtfsConfig gtfs, LocalDate d1, Collection<Trip> trips) {
         Set<RealizedTrip> realizedTrips = new HashSet<>();
 
         LocalDate d0 = d1.plusDays(-1);
         LocalDate d2 = d1.plusDays(1);
 
-        Map<String, List<ServiceCalendarException>> serviceCalendarExceptionsByServiceId = serviceCalendarExceptionsModel.getByTripsAndDates(gtfs, trips, Arrays.asList(d0, d1, d2));
-        Map<String, ServiceCalendar> serviceCalendarByServiceId = serviceCalendarsModel.getByTrips(gtfs, trips);
+        Map<String, List<ServiceCalendarException>> serviceCalendarExceptionsByServiceId = gtfs.getServiceCalendarExceptionsModel().getByTripsAndDates(gtfs, trips, Arrays.asList(d0, d1, d2));
+        Map<String, ServiceCalendar> serviceCalendarByServiceId = gtfs.getServiceCalendarsModel().getByTrips(gtfs, trips);
         for (Trip trip : trips) {
             List<ServiceCalendarException> serviceCalendarExceptions = serviceCalendarExceptionsByServiceId.get(trip.getServiceId());
             ServiceCalendar serviceCalendar = serviceCalendarByServiceId.get(trip.getServiceId());
@@ -56,22 +36,21 @@ public class RealizerModel {
             }
         }
         for (RealizedTrip realizedTrip : realizedTrips) {
-            injector.injectMembers(realizedTrip);
             realizedTrip.setGtfs(gtfs);
         }
         return realizedTrips;
     }
 
     public List<RealizedPass> getPasses(GtfsConfig gtfs, Edge edge, LocalDateTime dateTime) {
-        Set<String> routeIds = pathFinder.getRouteIdsByEdge(gtfs, edge);
+        Set<String> routeIds = PathFinder.getRouteIdsByEdge(gtfs, edge);
         Set<MongoDbRoute> routes = new HashSet<>();
         for (String routeId : routeIds) {
-            routes.add(routesModel.getByRouteId(gtfs, routeId));
+            routes.add(gtfs.getRoutesModel().getByRouteId(gtfs, routeId));
         }
 
         Set<Trip> trips = new HashSet<>();
         for (MongoDbRoute route : routes) {
-            trips.addAll(tripsModel.getByRoute(gtfs, route));
+            trips.addAll(gtfs.getTripsModel().getByRoute(route));
         }
 
         Set<RealizedTrip> realizedTrips = realizeTrips(gtfs, dateTime.toLocalDate(), trips);

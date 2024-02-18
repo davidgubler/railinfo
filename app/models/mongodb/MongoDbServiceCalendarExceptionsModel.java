@@ -39,8 +39,8 @@ public class MongoDbServiceCalendarExceptionsModel implements ServiceCalendarExc
     }
 
     @Override
-    public List<? extends ServiceCalendarException> getByServiceId(GtfsConfig gtfs, String serviceId) {
-        return query(gtfs).filter(Filters.eq("serviceId", serviceId)).iterator().toList();
+    public List<? extends ServiceCalendarException> getByTrip(Trip trip) {
+        return query(trip.getSourceGtfs()).filter(Filters.eq("serviceId", trip.getServiceId())).iterator().toList();
     }
 
     @Override

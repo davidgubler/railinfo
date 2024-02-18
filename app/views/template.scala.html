@@ -2,7 +2,7 @@
     title: String,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
     mainClasses: String = "",
 )(head: Html)(content: Html)
 <!DOCTYPE html>
@@ -33,7 +33,7 @@
             <a href="/">railinfo@if(user != null){ - @user.getEmail}</a>
             <select name="db">
                 @for(c <- gtfsConfigs) {
-                <option value="@c.getCode"@if(c.getCode == cc){selected="selected"}>@c.getCode</option>
+                <option value="@c.getCode"@if(c == gtfs){selected="selected"}>@c.getCode</option>
                 }
             </select>
         </span>
@@ -47,34 +47,34 @@
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item has-submenu">
-                        <a href="@routes.TimetableController.index(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/timetable")){active}">Timetable</a>
+                        <a href="@routes.TimetableController.index(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/timetable")){active}">Timetable</a>
                     </li>
                     <li class="nav-item has-submenu">
-                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/" + cc + "/topology")){active}" data-bs-toggle="collapse" data-bs-target="ul#topology">Topology</a>
-                        <ul id="topology" class="submenu collapse @if(request.path.startsWith("/" + cc + "/topology")){show}">
-                            <li><a href="@routes.TopologyController.map(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/map")){active}">Map</a></li>
-                            <li><a href="@routes.TopologyController.stopsSearch(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/stops")){active}">Stops</a></li>
-                            <li><a href="@routes.TopologyController.edgesSearch(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/edges")){active}">Edges</a></li>
+                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/" + gtfs.getCode + "/topology")){active}" data-bs-toggle="collapse" data-bs-target="ul#topology">Topology</a>
+                        <ul id="topology" class="submenu collapse @if(request.path.startsWith("/" + gtfs.getCode + "/topology")){show}">
+                            <li><a href="@routes.TopologyController.map(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/topology/map")){active}">Map</a></li>
+                            <li><a href="@routes.TopologyController.stopsSearch(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/topology/stops")){active}">Stops</a></li>
+                            <li><a href="@routes.TopologyController.edgesSearch(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/topology/edges")){active}">Edges</a></li>
                             @if(user != null) {
-                            <li><a href="@routes.TopologyController.recalculate(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/topology/recalculate")){active}">Recalculate</a></li>
+                            <li><a href="@routes.TopologyController.recalculate(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/topology/recalculate")){active}">Recalculate</a></li>
                             }
                         </ul>
                     </li>
                     @if(user != null) {
                     <li class="nav-item has-submenu">
-                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/" + cc + "/admin")){active}" data-bs-toggle="collapse" data-bs-target="ul#admin">Admin</a>
-                        <ul id="admin" class='submenu collapse @if(request.path.startsWith("/" + cc + "/admin")){show}'>
-                            <li><a href="@routes.AdminController.usersList(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/admin/users")){active}">Users</a></li>
-                            <li><a href="@routes.DataImportController.listDatabases(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/admin/databases")){active}">Databases</a></li>
-                            <li><a href="@routes.DataImportController.index(cc)" class="nav-link @if(request.path.startsWith("/" + cc + "/admin/import")){active}">Data Import</a></li>
+                        <a href="#" class="nav-link dropdown-toggle @if(request.path.startsWith("/" + gtfs.getCode + "/admin")){active}" data-bs-toggle="collapse" data-bs-target="ul#admin">Admin</a>
+                        <ul id="admin" class='submenu collapse @if(request.path.startsWith("/" + gtfs.getCode + "/admin")){show}'>
+                            <li><a href="@routes.AdminController.usersList(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/admin/users")){active}">Users</a></li>
+                            <li><a href="@routes.DataImportController.listDatabases(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/admin/databases")){active}">Databases</a></li>
+                            <li><a href="@routes.DataImportController.index(gtfs.getCode)" class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/admin/import")){active}">Data Import</a></li>
                         </ul>
                     </li>
                     }
                     <li class="nav-item">
                         @if(user == null) {
-                        <a class="nav-link @if(request.path.startsWith("/" + cc + "/login")){active}"" href="@routes.LoginController.login(cc)">Log in</a>
+                        <a class="nav-link @if(request.path.startsWith("/" + gtfs.getCode + "/login")){active}"" href="@routes.LoginController.login(gtfs.getCode)">Log in</a>
                         } else {
-                        <a href="@routes.LoginController.logout(cc)" class="nav-link">Log out</a>
+                        <a href="@routes.LoginController.logout(gtfs.getCode)" class="nav-link">Log out</a>
                         }
                     </li>
                 </ul>

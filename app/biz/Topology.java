@@ -5,9 +5,6 @@ import com.google.inject.Injector;
 import configs.GtfsConfig;
 import entities.*;
 import models.EdgesModel;
-import models.RoutesModel;
-import models.StopsModel;
-import models.TripsModel;
 import play.mvc.Http;
 import services.MongoDb;
 import utils.*;
@@ -18,15 +15,6 @@ import java.util.Map;
 public class Topology {
     @Inject
     private EdgesModel edgesModel;
-
-    @Inject
-    private StopsModel stopsModel;
-
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private TripsModel tripsModel;
 
     @Inject
     private Injector injector;
@@ -177,7 +165,7 @@ public class Topology {
         }
 
         // BUSINESS
-        Stop stop = stopsModel.create(gtfs, name, lat, lng);
+        Stop stop = gtfs.getStopsModel().create(gtfs, name, lat, lng);
 
         // LOG
         RailinfoLogger.info(request, user + " created " + stop);
@@ -197,7 +185,7 @@ public class Topology {
         }
 
         // BUSINESS
-        stopsModel.update(gtfs, stop, name, lat, lng);
+        gtfs.getStopsModel().update(gtfs, stop, name, lat, lng);
 
         // LOG
         RailinfoLogger.info(request, user + " updated " + stop);
@@ -213,7 +201,7 @@ public class Topology {
         // nothing
 
         // BUSINESS
-        stopsModel.delete(gtfs, stop);
+        gtfs.getStopsModel().delete(gtfs, stop);
 
         // LOG
         RailinfoLogger.info(request, user + " deleted " + stop);

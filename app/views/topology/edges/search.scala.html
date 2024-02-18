@@ -3,14 +3,14 @@
     errors: Map[String, String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Edges", user, gtfsConfigs, cc) {
+@template(request, "Edges", user, gtfsConfigs, gtfs) {
 } {
-    <a href="@routes.TopologyController.edgeCreate(cc)">Create new edge...</a><br />
-    <a href="@routes.TopologyController.edgesList(cc, "_modified")">List modified edges...</a>
-    @form(request, routes.TopologyController.edgesSearchPost(cc)) {
+    <a href="@routes.TopologyController.edgeCreate(gtfs.getCode)">Create new edge...</a><br />
+    <a href="@routes.TopologyController.edgesList(gtfs.getCode, "_modified")">List modified edges...</a>
+    @form(request, routes.TopologyController.edgesSearchPost(gtfs.getCode)) {
         <div class="row mt-4">
             <div class="col-xl-6 col-lg-5 col-md-8">
                 @formInputText("Name", "partialName", partialName, errors, xlWidth=9, lgWidth=8, mdWidth=6)

@@ -1,5 +1,7 @@
 package entities;
 
+import configs.GtfsConfig;
+
 public interface StopTime extends Comparable<StopTime> {
     String getTripId();
 
@@ -14,4 +16,6 @@ public interface StopTime extends Comparable<StopTime> {
     String getArrival();
 
     String getDeparture();
+
+    GtfsConfig getSourceGtfs();
 }

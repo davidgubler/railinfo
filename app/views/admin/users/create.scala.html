@@ -5,16 +5,16 @@
     errors: Map[String, String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, title = "Create User", user, gtfsConfigs, cc) {
+@template(request, title = "Create User", user, gtfsConfigs, gtfs) {
 } {
-    @form(request, routes.AdminController.usersCreatePost(cc)) {
+    @form(request, routes.AdminController.usersCreatePost(gtfs.getCode)) {
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputText("Name", "name", name, errors)
         @formInputPassword("Password", "password", password, errors)
         <div class="mt-3"></div>
-        @formButtons("Create", routes.AdminController.usersList(cc))
+        @formButtons("Create", routes.AdminController.usersList(gtfs.getCode))
     }
 }

@@ -4,14 +4,14 @@
     errors: Map[String, String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Edit Edge", user, gtfsConfigs, cc) {
+@template(request, "Edit Edge", user, gtfsConfigs, gtfs) {
 } {
-    @form(request, routes.TopologyController.edgeEditPost(cc, partialName, edge.getNormalizedName())) {
+    @form(request, routes.TopologyController.edgeEditPost(gtfs.getCode, partialName, edge.getNormalizedName())) {
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(edge.getTypicalTime), errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.TopologyController.edgesList(cc, partialName))
+        @formButtons("Save", routes.TopologyController.edgesList(gtfs.getCode, partialName))
     }
 }

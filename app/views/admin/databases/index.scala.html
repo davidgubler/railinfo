@@ -2,10 +2,10 @@
     databases: List[String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Databases", user, gtfsConfigs, cc) {
+@template(request, "Databases", user, gtfsConfigs, gtfs) {
 
 } {
     @for(database <- databases) {

@@ -6,33 +6,16 @@ import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
 import models.*;
+import models.merged.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class FR_IC implements GtfsConfig {
-    @Inject
-    private StopsModel stopsModel;
-
-    @Inject
-    private StopTimesModel stopTimesModel;
-
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Inject
-    private TripsModel tripsModel;
+public class FR implements GtfsConfig {
+    private final List<GtfsConfig> subConfigs;
 
     @Inject
     private EdgesModel edgesModel;
@@ -54,7 +37,7 @@ public class FR_IC implements GtfsConfig {
 
     @Override
     public String getCode() {
-        return "fr-ic";
+        return "fr";
     }
 
     @Override
@@ -62,7 +45,15 @@ public class FR_IC implements GtfsConfig {
         if (db == null || ds == null) {
             return null;
         }
-        return new FR_IC(db, ds);
+        List<GtfsConfig> subConfigsWithDatabase = new LinkedList<>();
+        for (GtfsConfig subConfig : subConfigs) {
+            GtfsConfig subConfigWithDatbase = gtfsConfigModel.getConfig(subConfig.getCode());
+            if (subConfigWithDatbase == null) {
+                return null;
+            }
+            subConfigsWithDatabase.add(subConfigWithDatbase);
+        }
+        return new FR(db, ds, subConfigsWithDatabase);
     }
 
     @Override
@@ -73,117 +64,96 @@ public class FR_IC implements GtfsConfig {
 
     @Override
     public String getDownloadUrl() {
-        return "https://eu.ftp.opendatasoft.com/sncf/gtfs/export-intercites-gtfs-last.zip";
+        return null;
     }
 
     @Override
     public List<? extends Route> getRailRoutes() {
-        return routesModel.getByType(this, 2, 2);
+        return new MergedRoutesModel(subConfigs).getRailRoutes();
     }
-
-    // group(1) is the train number, group(2) is F for train and R for bus
-    private Pattern tripPattern = Pattern.compile("OCESN([0-9]+)([FR]).*");
 
     @Override
     public List<? extends Trip> getRailTripsByRoute(Route route) {
-        // trips can return both trains and buses, therefore we have to remove the "R" trips (rue)
-        List<? extends Trip> trips = tripsModel.getByRoute(route);
-        Iterator<? extends Trip> iter = trips.iterator();
-        while (iter.hasNext()) {
-            Trip trip = iter.next();
-            Matcher m = tripPattern.matcher(trip.getTripId());
-            if (!m.matches()) {
-                continue;
-            }
-            if ("R".equals(m.group(2))) {
-                iter.remove();
-            }
-        }
-        return trips;
+        // FIXME this may not make sense
+        return new MergedTripsModel(subConfigs).getRailTripsByRoute(route);
     }
 
     @Override
     public String extractBaseId(String stopId) {
-        if (stopId.contains("-")) {
-            return stopId.substring(stopId.lastIndexOf("-") + 1);
-        }
-        if (stopId.contains("OCE")) {
-            return stopId.substring(stopId.lastIndexOf("OCE") + 3);
-        }
-        return stopId;
+        throw new IllegalStateException();
     }
 
     @Override
     public String extractTrainNr(Trip trip) {
-        return trip.getTripHeadsign();
+        throw new IllegalStateException();
     }
 
     @Override
     public String extractProduct(Route route) {
-        return "IC";
+        throw new IllegalStateException();
     }
 
     @Override
     public String extractLineName(Route route) {
-        return "IC";
+        throw new IllegalStateException();
     }
 
     @Override
     public int subtractStopTime(int edgeSeconds) {
-        // we assume that a stop takes 2 min, thus we subtract this
-        edgeSeconds -= 120;
-        if (edgeSeconds < 30) {
-            // the minimum assumed travel time between stops is 30s
-            edgeSeconds = 30;
-        }
-        return edgeSeconds;
+        throw new IllegalStateException();
     }
 
     private MongoDatabase db;
     private Datastore ds;
 
-    public FR_IC() {
-
+    public FR() {
+        subConfigs = List.of(new FR_IC(), new FR_TER());
     }
 
-    public FR_IC(MongoDatabase db, Datastore ds) {
+    public FR(MongoDatabase db, Datastore ds, List<GtfsConfig> subConfigs) {
         this.db = db;
         this.ds = ds;
+        this.subConfigs = subConfigs;
     }
 
     @Override
     public StopsModel getStopsModel() {
-        return stopsModel;
+        return new MergedStopsModel(subConfigs);
     }
 
     @Override
     public StopTimesModel getStopTimesModel() {
-        return stopTimesModel;
+        return new MergedStopTimesModel(subConfigs);
     }
 
     @Override
     public RoutesModel getRoutesModel() {
-        return routesModel;
+        return new MergedRoutesModel(subConfigs);
     }
 
     @Override
     public ServiceCalendarsModel getServiceCalendarsModel() {
-        return serviceCalendarsModel;
+        return new MergedServiceCalendarsModel(subConfigs);
     }
 
     @Override
     public ServiceCalendarExceptionsModel getServiceCalendarExceptionsModel() {
-        return serviceCalendarExceptionsModel;
+        return new MergedServiceCalendarExceptionsModel(subConfigs);
     }
 
     @Override
     public TripsModel getTripsModel() {
-        return tripsModel;
+        return new MergedTripsModel(subConfigs);
     }
 
     @Override
     public EdgesModel getEdgesModel() {
         return edgesModel;
+    }
+
+    @Override
+    public boolean isEditable() {
+        return false;
     }
 
     @Override
@@ -195,8 +165,8 @@ public class FR_IC implements GtfsConfig {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        FR_IC frIc = (FR_IC) o;
-        return Objects.equals(db.getName(), frIc.db.getName());
+        FR fr = (FR) o;
+        return Objects.equals(db.getName(), fr.db.getName());
     }
 
     @Override

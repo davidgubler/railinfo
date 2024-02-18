@@ -1,7 +1,5 @@
 package models.mongodb;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertManyOptions;
@@ -15,9 +13,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MongoDbRoutesModel implements RoutesModel {
-
-    @Inject
-    private Injector injector;
 
     private Query<MongoDbRoute> query(GtfsConfig gtfs) {
         return gtfs.getDs().find(MongoDbRoute.class);

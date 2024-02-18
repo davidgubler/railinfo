@@ -20,6 +20,6 @@ public class HomeController extends Controller {
             return redirect("/ch");
         }
         User user = usersModel.getFromRequest(request);
-        return ok(views.html.index.render(request, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.index.render(request, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 }

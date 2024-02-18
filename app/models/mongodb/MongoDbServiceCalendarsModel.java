@@ -3,7 +3,6 @@ package models.mongodb;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertManyOptions;
-import dev.morphia.InsertOptions;
 import dev.morphia.query.filters.Filters;
 import entities.ServiceCalendar;
 import entities.mongodb.MongoDbServiceCalendar;
@@ -39,8 +38,8 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
     }
 
     @Override
-    public ServiceCalendar getByServiceId(GtfsConfig gtfs, String serviceId) {
-        return query(gtfs).filter(Filters.eq("serviceId", serviceId)).first();
+    public ServiceCalendar getByTrip(Trip trip) {
+        return query(trip.getSourceGtfs()).filter(Filters.eq("serviceId", trip.getServiceId())).first();
     }
 
     @Override

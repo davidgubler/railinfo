@@ -4,10 +4,10 @@
     pos: Double,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, edge.getStop1.getName + " – " + edge.getStop2.getName, user, gtfsConfigs, cc, mainClasses="departureBoard") {
+@template(request, edge.getStop1.getName + " – " + edge.getStop2.getName, user, gtfsConfigs, gtfs, mainClasses="departureBoard") {
     <script src='@routes.Assets.versioned("javascripts/highlightPasstime.js")'></script>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/products.css")'>
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/departureBoard.css")'>
@@ -30,13 +30,13 @@
         <tbody>
         <p>
             @if(pos ==null) {
-            <a href="@routes.TimetableController.edge(cc, edge.getNormalizedNameReverse())">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edge(gtfs.getCode, edge.getNormalizedNameReverse())">&larr;reverse&rarr;</a></p>
             } else {
-            <a href="@routes.TimetableController.edgePos(cc, edge.getNormalizedNameReverse(), Math.round(100.0 * (1.0 - pos)) / 100.0)">&larr;reverse&rarr;</a></p>
+            <a href="@routes.TimetableController.edgePos(gtfs.getCode, edge.getNormalizedNameReverse(), Math.round(100.0 * (1.0 - pos)) / 100.0)">&larr;reverse&rarr;</a></p>
             }
         @for(pass <- passes) {
             <tr>
-                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(cc, pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getProduct.toLowerCase">@pass.getTrip.getRoute.getLineName</span> @pass.getTrip.getTrip.getTrainNr @pass.getTrip.getBegins.getName &ndash; @pass.getTrip.getEnds.getName</a></td>
+                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(gtfs.getCode, pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getProduct.toLowerCase">@pass.getTrip.getRoute.getLineName</span> @pass.getTrip.getTrip.getTrainNr @pass.getTrip.getBegins.getName &ndash; @pass.getTrip.getEnds.getName</a></td>
             </tr>
             <tr>
                 <td style="text-align: center; border-top: 0px;">

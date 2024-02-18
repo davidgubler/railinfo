@@ -32,7 +32,7 @@ public class DataImportController extends GtfsController {
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         checkDbOptional(user, gtfs);
         List<String> databases = mongoDb.getTimetableDatabases(gtfs.getCode());
-        return ok(views.html.admin.databases.index.render(request, databases, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.databases.index.render(request, databases, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result index(Http.Request request, String cc) {
@@ -40,7 +40,7 @@ public class DataImportController extends GtfsController {
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         checkDbOptional(user, gtfs);
         String databaseName = "railinfo-" + gtfs.getCode() + "-" + LocalDate.now();
-        return ok(views.html.admin.dataimport.index.render(request, gtfs.getDownloadUrl(), databaseName, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.dataimport.index.render(request, gtfs.getDownloadUrl(), databaseName, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result importGtfsPost(Http.Request request, String cc) {
@@ -53,7 +53,7 @@ public class DataImportController extends GtfsController {
         try {
             importer.importGtfs(request, gtfs, url, databaseName, user);
         } catch (InputValidationException e ) {
-            return ok(views.html.admin.dataimport.index.render(request, url, databaseName, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+            return ok(views.html.admin.dataimport.index.render(request, url, databaseName, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs));
         }
         return redirect(routes.DataImportController.index(gtfs.getCode()));
     }

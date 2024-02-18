@@ -2,12 +2,12 @@
     deleteUser: entities.User,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, title = "Delete User: " + deleteUser.getEmail(), user, gtfsConfigs, cc) {
+@template(request, title = "Delete User: " + deleteUser.getEmail(), user, gtfsConfigs, gtfs) {
 } {
-    @form(request, routes.AdminController.usersDeletePost(cc, deleteUser.getId)) {
-        @formButtons("Delete", routes.AdminController.usersList(cc))
+    @form(request, routes.AdminController.usersDeletePost(gtfs.getCode, deleteUser.getId)) {
+        @formButtons("Delete", routes.AdminController.usersList(gtfs.getCode))
     }
 }
