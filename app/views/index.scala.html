@@ -1,10 +1,10 @@
 @(  implicit request: Http.Request,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, title = "Welcome to railinfo", user, gtfsConfigs, cc) {
+@template(request, title = "Welcome to railinfo", user, gtfsConfigs, gtfs) {
 } {
   Nothing here.
 }

@@ -2,10 +2,10 @@
     departures: List[entities.realized.RealizedDeparture],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Timetable", user, gtfsConfigs, cc) {
+@template(request, "Timetable", user, gtfsConfigs, gtfs) {
     <link rel="stylesheet" type="text/css" href='@routes.Assets.versioned("stylesheets/timetable.css")'>
 } {
     <table>

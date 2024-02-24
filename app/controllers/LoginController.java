@@ -39,7 +39,7 @@ public class LoginController extends Controller {
         if (gtfs == null) {
             return redirect("/ch");
         }
-        return ok(views.html.login.login.render(request, null, null, InputUtils.NOERROR, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.login.login.render(request, null, null, InputUtils.NOERROR, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result loginPost(Http.Request request, String cc) {
@@ -58,7 +58,7 @@ public class LoginController extends Controller {
             Http.Cookie csrfTokenCookie = Http.Cookie.builder("csrfToken", Generator.generateSessionId()).withMaxAge(Duration.ofDays(365)).build();
             return redirect(routes.HomeController.index(gtfs.getCode())).withCookies(sessionCookie, csrfTokenCookie);
         } catch (InputValidationException e) {
-            return ok(views.html.login.login.render(request, email, password, e.getErrors(), gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+            return ok(views.html.login.login.render(request, email, password, e.getErrors(), gtfsConfigModel.getSelectorChoices(), gtfs));
         }
     }
 

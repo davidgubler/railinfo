@@ -6,17 +6,17 @@
     errors: Map[String, String],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Create Edge", user, gtfsConfigs, cc) {
-    <script id="timetablejs" data-cc="@cc" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
+@template(request, "Create Edge", user, gtfsConfigs, gtfs) {
+    <script id="timetablejs" data-cc="@gtfs.getCode" src='@routes.Assets.versioned("javascripts/timetable.js")'></script>
 } {
-    @form(request, routes.TopologyController.edgeCreatePost(cc)) {
+    @form(request, routes.TopologyController.edgeCreatePost(gtfs.getCode)) {
         @formInputText("Stop 1", "stop1", if(stop1!=null){stop1.getName}else{""}, errors)
         @formInputText("Stop 2", "stop2", if(stop2!=null){stop2.getName}else{""}, errors)
         @formInputText("Time", "time", utils.StringUtils.formatSeconds(time), errors)
         <div class="mt-3"></div>
-        @formButtons("Save", routes.TopologyController.edgesSearch(cc))
+        @formButtons("Save", routes.TopologyController.edgesSearch(gtfs.getCode))
     }
 }

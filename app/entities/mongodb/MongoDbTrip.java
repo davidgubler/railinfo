@@ -1,10 +1,7 @@
 package entities.mongodb;
 
-import com.google.inject.Inject;
 import configs.GtfsConfig;
 import entities.*;
-import models.RoutesModel;
-import models.StopTimesModel;
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.*;
 
@@ -39,14 +36,6 @@ public class MongoDbTrip implements Trip {
 
     @Transient
     private GtfsConfig gtfs;
-
-    @Transient
-    @Inject
-    private StopTimesModel stopTimesModel;
-
-    @Transient
-    @Inject
-    private RoutesModel routesModel;
 
     public MongoDbTrip() {
         // dummy constructor for morphia
@@ -149,12 +138,17 @@ public class MongoDbTrip implements Trip {
 
     @Override
     public List<? extends StopTime> getStopTimes() {
-        return stopTimesModel.getByTrip(gtfs, this);
+        return gtfs.getStopTimesModel().getByTrip(gtfs, this);
     }
 
     @Override
     public MongoDbRoute getRoute() {
-        return routesModel.getByRouteId(gtfs, routeId);
+        return gtfs.getRoutesModel().getByRouteId(gtfs, routeId);
+    }
+
+    @Override
+    public GtfsConfig getSourceGtfs() {
+        return gtfs;
     }
 
     @Override

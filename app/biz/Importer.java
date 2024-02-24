@@ -1,6 +1,7 @@
 package biz;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import configs.GtfsConfig;
 import entities.Edge;
 import entities.Stop;
@@ -24,28 +25,13 @@ import java.util.zip.ZipInputStream;
 public class Importer {
 
     @Inject
-    private StopsModel stopsModel;
-
-    @Inject
     private EdgesModel edgesModel;
 
     @Inject
-    private StopTimesModel stopTimesModel;
-
-    @Inject
-    private TripsModel tripsModel;
-
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Inject
     private MongoDb mongoDb;
+
+    @Inject
+    private Injector injector;
 
     public static final String UTF8_BOM = "\uFEFF";
 
@@ -71,8 +57,10 @@ public class Importer {
 
         // BUSINESS
         String oldDbName = mongoDb.getTimetableDatabases(gtfs.getCode()).stream().findFirst().orElse(null);
-        GtfsConfig oldDb = gtfs.withDatabase(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName));
-        GtfsConfig newDb = gtfs.withDatabase(mongoDb.get(newDbName), mongoDb.getDs(newDbName));
+        GtfsConfig oldDb = gtfs.withDatabase(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName), null);
+        injector.injectMembers(oldDb);
+        GtfsConfig newDb = gtfs.withDatabase(mongoDb.get(newDbName), mongoDb.getDs(newDbName), null);
+        injector.injectMembers(newDb);
 
         new Thread(() -> {
             try {
@@ -91,23 +79,23 @@ public class Importer {
                     BufferedReader reader = new BufferedReader(zipInReader);
 
                     if ("stops.txt".equals(entry.getName())) {
-                        stopsModel.drop(newDb);
-                        stops = parseFile(zipIn, dataMap -> { stopsModel.create(newDb, dataMap); return null; });
+                        newDb.getStopsModel().drop(newDb);
+                        stops = parseFile(zipIn, dataMap -> { newDb.getStopsModel().create(newDb, dataMap); return null; });
                     } else if ("trips.txt".equals(entry.getName())) {
-                        tripsModel.drop(newDb);
-                        trips = parseFile(zipIn, dataMap -> { tripsModel.create(newDb, dataMap); return null; });
+                        newDb.getTripsModel().drop(newDb);
+                        trips = parseFile(zipIn, dataMap -> { newDb.getTripsModel().create(newDb, dataMap); return null; });
                     } else if ("routes.txt".equals(entry.getName())) {
-                        routesModel.drop(newDb);
-                        routes = parseFile(zipIn, dataMap -> { routesModel.create(newDb, dataMap); return null; });
+                        newDb.getRoutesModel().drop(newDb);
+                        routes = parseFile(zipIn, dataMap -> { newDb.getRoutesModel().create(newDb, dataMap); return null; });
                     } else if ("stop_times.txt".equals(entry.getName())) {
-                        stopTimesModel.drop(newDb);
-                        stopTimes = parseFile(zipIn, dataMap -> { stopTimesModel.create(newDb, dataMap); return null; });
+                        newDb.getStopTimesModel().drop(newDb);
+                        stopTimes = parseFile(zipIn, dataMap -> { newDb.getStopTimesModel().create(newDb, dataMap); return null; });
                     } else if ("calendar.txt".equals(entry.getName())) {
-                        serviceCalendarsModel.drop(newDb);
-                        serviceCalendars = parseFile(zipIn, dataMap -> { serviceCalendarsModel.create(newDb, dataMap); return null; });
+                        newDb.getServiceCalendarsModel().drop(newDb);
+                        serviceCalendars = parseFile(zipIn, dataMap -> { newDb.getServiceCalendarsModel().create(newDb, dataMap); return null; });
                     } else if ("calendar_dates.txt".equals(entry.getName())) {
-                        serviceCalendarExceptionsModel.drop(newDb);
-                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> { serviceCalendarExceptionsModel.create(newDb, dataMap); return null; });
+                        newDb.getServiceCalendarExceptionsModel().drop(newDb);
+                        serviceCalendarExceptions = parseFile(zipIn, dataMap -> { newDb.getServiceCalendarExceptionsModel().create(newDb, dataMap); return null; });
                     } else {
                         String line;
                         while ((line = reader.readLine()) != null) {
@@ -147,9 +135,9 @@ public class Importer {
             return;
         }
         // only add stop if no stop with the same name exists
-        Stream<Stop> stops = stopsModel.getModified(oldDb).filter(s -> stopsModel.getByName(newDb, s.getName()).isEmpty());
+        Stream<Stop> stops = oldDb.getStopsModel().getModified(oldDb).filter(s -> newDb.getStopsModel().getByName(newDb, s.getName()).isEmpty());
         stops.forEach(s -> {
-            stopsModel.create(newDb, s.getStopId(), s.getName(), s.getLat(), s.getLng());
+            newDb.getStopsModel().create(newDb, s.getStopId(), s.getName(), s.getLat(), s.getLng());
         });
     }
 
@@ -158,10 +146,10 @@ public class Importer {
             return;
         }
         // only add edge if it references valid stops
-        Stream<? extends Edge> edges = edgesModel.getModified(oldDb).stream().filter(e -> stopsModel.getByStopId(newDb, e.getStop1Id()) != null && stopsModel.getByStopId(newDb, e.getStop2Id()) != null);
+        Stream<? extends Edge> edges = edgesModel.getModified(oldDb).stream().filter(e -> newDb.getStopsModel().getByStopId(newDb, e.getStop1Id()) != null && newDb.getStopsModel().getByStopId(newDb, e.getStop2Id()) != null);
         edges.forEach(edge -> {
-            Stop stop1 = stopsModel.getByStopId(newDb, edge.getStop1Id());
-            Stop stop2 = stopsModel.getByStopId(newDb, edge.getStop2Id());
+            Stop stop1 = newDb.getStopsModel().getByStopId(newDb, edge.getStop1Id());
+            Stop stop2 = newDb.getStopsModel().getByStopId(newDb, edge.getStop2Id());
             edgesModel.create(newDb, stop1, stop2, edge.getTypicalTime(), edge.isDisabled());
         });
     }

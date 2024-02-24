@@ -1,7 +1,5 @@
 package models.mongodb;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.filters.Filters;
 import configs.GtfsConfig;
@@ -14,7 +12,6 @@ import entities.Stop;
 import entities.mongodb.MongoDbEdge;
 import geometry.Point;
 import models.EdgesModel;
-import models.StopsModel;
 import org.bson.types.ObjectId;
 
 import java.util.Collections;
@@ -23,11 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MongoDbEdgesModel implements EdgesModel {
-    @Inject
-    private Injector injector;
-
-    @Inject
-    private StopsModel stopsModel;
 
     private Query<MongoDbEdge> query(GtfsConfig gtfs) {
         return gtfs.getDs().find(MongoDbEdge.class);
@@ -55,14 +47,14 @@ public class MongoDbEdgesModel implements EdgesModel {
             query = query.filter(Filters.ne("disabled", true));
         }
         List<? extends MongoDbEdge> edges = query.iterator().toList();
-        edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setGtfs(gtfs); });
+        edges.stream().forEach(edge -> { edge.setGtfs(gtfs); });
         return edges;
     }
 
     @Override
     public List<? extends Edge> getModified(GtfsConfig gtfs) {
         List<? extends MongoDbEdge> edges = query(gtfs).filter(Filters.eq("modified", true)).iterator().toList();
-        edges.stream().forEach(edge -> { injector.injectMembers(edge); edge.setGtfs(gtfs); });
+        edges.stream().forEach(edge -> { edge.setGtfs(gtfs); });
         return edges;
     }
 
@@ -85,7 +77,6 @@ public class MongoDbEdgesModel implements EdgesModel {
             return null;
         }
         if (edge != null) {
-            injector.injectMembers(edge);
             edge.setGtfs(gtfs);
 
         }
@@ -98,11 +89,11 @@ public class MongoDbEdgesModel implements EdgesModel {
         if (stopNames.length != 2) {
             return null;
         }
-        Stop stop1 = stopsModel.getPrimaryByName(gtfs, stopNames[0]);
+        Stop stop1 = gtfs.getStopsModel().getPrimaryByName(gtfs, stopNames[0]);
         if (stop1 == null) {
             return null;
         }
-        Stop stop2 = stopsModel.getPrimaryByName(gtfs, stopNames[1]);
+        Stop stop2 = gtfs.getStopsModel().getPrimaryByName(gtfs, stopNames[1]);
         if (stop2 == null) {
             return null;
         }
@@ -125,7 +116,7 @@ public class MongoDbEdgesModel implements EdgesModel {
 
     @Override
     public Edge create(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean disabled) {
-        MongoDbEdge edge = new MongoDbEdge(stopsModel, gtfs, stop1Id, stop2Id, typicalTime, true, disabled);
+        MongoDbEdge edge = new MongoDbEdge(gtfs, stop1Id, stop2Id, typicalTime, true, disabled);
         gtfs.getDs().save(edge);
         edge.setGtfs(gtfs);
         return edge;
@@ -166,7 +157,6 @@ public class MongoDbEdgesModel implements EdgesModel {
         String stopId = stop.getBaseId();
         List<MongoDbEdge> edges = query(gtfs).filter(Filters.or(Filters.eq("stop1Id", stopId), Filters.eq("stop2Id", stopId))).iterator().toList();
         for(MongoDbEdge edge : edges) {
-            injector.injectMembers(edge);
             edge.setGtfs(gtfs);
         }
         return edges;
@@ -181,7 +171,7 @@ public class MongoDbEdgesModel implements EdgesModel {
                 Filters.lt("bbWest", point.getLng()),
                 Filters.ne("disabled", true)
         ).iterator().toList();
-        edges.stream().forEach(e -> { injector.injectMembers(e); ((MongoDbEdge)e).setGtfs(gtfs); });
+        edges.stream().forEach(e -> { ((MongoDbEdge)e).setGtfs(gtfs); });
 
         List<NearbyEdge> nearbyEdges = new LinkedList<>();
         for (Edge edge : edges) {
@@ -205,7 +195,6 @@ public class MongoDbEdgesModel implements EdgesModel {
         if (edge == null) {
             return null;
         }
-        injector.injectMembers(edge);
         edge.setGtfs(gtfs);
         return edge;
     }

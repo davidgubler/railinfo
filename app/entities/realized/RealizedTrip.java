@@ -6,7 +6,6 @@ import configs.GtfsConfig;
 import entities.*;
 import entities.Stop;
 import entities.mongodb.MongoDbRoute;
-import models.*;
 import utils.PathFinder;
 
 import java.time.LocalDate;
@@ -22,21 +21,6 @@ public class RealizedTrip {
     private List<RealizedStopTime> realizedStopTimes;
 
     private GtfsConfig gtfs;
-
-    @Inject
-    private ServiceCalendarsModel serviceCalendarsModel;
-
-    @Inject
-    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
-
-    @Inject
-    private StopTimesModel stopTimesModel;
-
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private StopsModel stopsModel;
 
     @Inject
     private Topology topology;
@@ -67,7 +51,7 @@ public class RealizedTrip {
 
     public List<RealizedStopTime> getRealizedStopTimes() {
         if (realizedStopTimes == null) {
-            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, stopsModel, gtfs)).collect(Collectors.toList()));
+            this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, gtfs)).collect(Collectors.toList()));
             // At least in some cases the first and last stop have invalid arrivals/departures, fix this
             this.realizedStopTimes.get(0).setArrival(null);
             this.realizedStopTimes.get(realizedStopTimes.size()-1).setDeparture(null);

@@ -1,6 +1,7 @@
 package models;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import configs.*;
 import configs.GtfsConfig;
 import services.MongoDb;
@@ -9,11 +10,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class GtfsConfigModel {
+    @Inject
+    private Injector injector;
 
     @Inject
     private MongoDb mongoDb;
 
-    private static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR_IC(), new FR_TER());
+    public static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR(), new FR_IC(), new FR_TER());
 
     public GtfsConfig getConfig(String cc) {
         if (cc == null) {
@@ -25,7 +28,8 @@ public class GtfsConfigModel {
                 if (databases.isEmpty()) {
                     return country;
                 } else {
-                    GtfsConfig gtfs = country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0)));
+                    GtfsConfig gtfs = country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0)), this);
+                    injector.injectMembers(gtfs);
                     return gtfs;
                 }
             }
@@ -42,10 +46,10 @@ public class GtfsConfigModel {
             if (databases.isEmpty()) {
                 choices.add(country);
             } else {
-                choices.add(country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0))));
+                choices.add(country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0)), this));
             }
             for (String database : databases) {
-                secondaryChoices.add(country.withDatabase(mongoDb.get(database), mongoDb.getDs(database)));
+                secondaryChoices.add(country.withDatabase(mongoDb.get(database), mongoDb.getDs(database), this));
             }
         }
 

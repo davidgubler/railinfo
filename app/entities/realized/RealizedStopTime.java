@@ -21,8 +21,6 @@ public class RealizedStopTime implements RealizedLocation {
 
     private String stopId;
 
-    private StopsModel stopsModel;
-
     private GtfsConfig gtfs;
 
     private LocalDateTime realizeGoogleTransportTime(String googleTransportTime, LocalDate startDate) {
@@ -38,12 +36,11 @@ public class RealizedStopTime implements RealizedLocation {
         return LocalDateTime.of(startDate, LocalTime.of(hour, minute, second));
     }
 
-    public RealizedStopTime(StopTime stopTime, LocalDate startDate, StopsModel stopsModel, GtfsConfig gtfs) {
+    public RealizedStopTime(StopTime stopTime, LocalDate startDate, GtfsConfig gtfs) {
         this.startDate = startDate;
         arrival = realizeGoogleTransportTime(stopTime.getArrival(), startDate);
         departure = realizeGoogleTransportTime(stopTime.getDeparture(), startDate);
         stopId = stopTime.getStopId();
-        this.stopsModel = stopsModel;
         this.gtfs = gtfs;
     }
 
@@ -68,7 +65,7 @@ public class RealizedStopTime implements RealizedLocation {
     }
 
     public Stop getStop() {
-        return stopsModel.getByStopId(gtfs, stopId);
+        return gtfs.getStopsModel().getByStopId(gtfs, stopId);
     }
 
     @Override

@@ -15,14 +15,6 @@ import utils.NotFoundException;
 import java.util.*;
 
 public class AdminController extends GtfsController {
-    @Inject
-    private RoutesModel routesModel;
-
-    @Inject
-    private TripsModel tripsModel;
-
-    @Inject
-    private StopsModel stopsModel;
 
     @Inject
     private EdgesModel edgesModel;
@@ -44,14 +36,14 @@ public class AdminController extends GtfsController {
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         checkDbOptional(user, gtfs);
         List<? extends User> users = usersModel.getAll();
-        return ok(views.html.admin.users.list.render(request, users, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.users.list.render(request, users, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result usersCreate(Http.Request request, String cc) {
         User user = usersModel.getFromRequest(request);
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         checkDbOptional(user, gtfs);
-        return ok(views.html.admin.users.create.render(request, null, null, null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.users.create.render(request, null, null, null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result usersCreatePost(Http.Request request, String cc) {
@@ -66,7 +58,7 @@ public class AdminController extends GtfsController {
             users.create(request, email, name, password, user);
             return redirect(controllers.routes.AdminController.usersList(gtfs.getCode()));
         } catch (InputValidationException e) {
-            return ok(views.html.admin.users.create.render(request, email, name, password, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+            return ok(views.html.admin.users.create.render(request, email, name, password, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs));
         }
     }
 
@@ -78,7 +70,7 @@ public class AdminController extends GtfsController {
         if (editUser == null) {
             throw new NotFoundException("User");
         }
-        return ok(views.html.admin.users.edit.render(request, editUser, editUser.getEmail(), editUser.getName(), null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.users.edit.render(request, editUser, editUser.getEmail(), editUser.getName(), null, InputUtils.NOERROR, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result usersEditPost(Http.Request request, String cc, String uid) {
@@ -94,7 +86,7 @@ public class AdminController extends GtfsController {
             users.update(request, editUser, email, name, password, user);
             return redirect(controllers.routes.AdminController.usersList(gtfs.getCode()));
         } catch (InputValidationException e) {
-            return ok(views.html.admin.users.edit.render(request, editUser, email, name, password, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+            return ok(views.html.admin.users.edit.render(request, editUser, email, name, password, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs));
         }
     }
 
@@ -106,7 +98,7 @@ public class AdminController extends GtfsController {
         if (deleteUser == null) {
             throw new NotFoundException("User");
         }
-        return ok(views.html.admin.users.delete.render(request, deleteUser, user, gtfsConfigModel.getSelectorChoices(), gtfs.getCode()));
+        return ok(views.html.admin.users.delete.render(request, deleteUser, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result usersDeletePost(Http.Request request, String cc, String uid) {

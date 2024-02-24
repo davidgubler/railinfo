@@ -1,5 +1,7 @@
 package entities;
 
+import configs.GtfsConfig;
+
 public interface Route {
     String getRouteId();
 
@@ -16,4 +18,6 @@ public interface Route {
     String getProduct();
 
     String getLineName();
+
+    GtfsConfig getSourceGtfs();
 }

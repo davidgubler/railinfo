@@ -23,9 +23,6 @@ import java.util.stream.Stream;
 
 public class MongoDbStopsModel implements StopsModel {
 
-    @Inject
-    private Injector injector;
-
     private Query<MongoDbStop> query(GtfsConfig gtfs) {
         return gtfs.getDs().find(MongoDbStop.class);
     }
@@ -44,7 +41,6 @@ public class MongoDbStopsModel implements StopsModel {
 
     public MongoDbStop create(GtfsConfig gtfs, Map<String, String> data) {
         MongoDbStop stop = new MongoDbStop(data);
-        injector.injectMembers(stop);
         stop.setGtfs(gtfs);
         gtfs.getDs().save(stop);
         stops.remove(gtfs);
@@ -71,7 +67,6 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public Stop create(GtfsConfig gtfs, String stopId, String name, Double lat, Double lng) {
         MongoDbStop stop = new MongoDbStop(stopId, name, lat, lng);
-        injector.injectMembers(stop);
         stop.setGtfs(gtfs);
         gtfs.getDs().save(stop);
         stops.remove(gtfs);
@@ -88,7 +83,6 @@ public class MongoDbStopsModel implements StopsModel {
         }
         MongoDbStop stop = queryId(gtfs, objectId).first();
         if (stop != null) {
-            injector.injectMembers(stop);
             stop.setGtfs(gtfs);
         }
         return stop;
@@ -111,7 +105,6 @@ public class MongoDbStopsModel implements StopsModel {
         if (stop == null) {
             return null;
         }
-        injector.injectMembers(stop);
         stop.setGtfs(gtfs);
         return stop;
     }
@@ -120,7 +113,7 @@ public class MongoDbStopsModel implements StopsModel {
     public Set<? extends Stop> getByName(GtfsConfig gtfs, String name) {
         Set<MongoDbStop> stops = new HashSet<>();
         stops.addAll(query(gtfs).filter(Filters.eq("normalizedName", StringUtils.normalizeName(name))).iterator().toList());
-        stops.stream().forEach(s -> { injector.injectMembers(s); s.setGtfs(gtfs);});
+        stops.stream().forEach(s -> { s.setGtfs(gtfs);});
         return stops;
     }
 
@@ -150,7 +143,7 @@ public class MongoDbStopsModel implements StopsModel {
     @Override
     public List<? extends MongoDbStop> getByPartialName(GtfsConfig gtfs, String name) {
         List<MongoDbStop> stops = query(gtfs).filter(Filters.text(name)).iterator().toList();
-        stops.stream().forEach(s -> { injector.injectMembers(s); s.setGtfs(gtfs);});
+        stops.stream().forEach(s -> { s.setGtfs(gtfs);});
         return stops;
     }
 
@@ -169,7 +162,6 @@ public class MongoDbStopsModel implements StopsModel {
             MorphiaCursor<MongoDbStop> stopsCursor = query(gtfs).iterator();
             while (stopsCursor.hasNext()) {
                 MongoDbStop stop = stopsCursor.next();
-                injector.injectMembers(stop);
                 stop.setGtfs(gtfs);
                 
                 stops.put(stop.getStopId(), stop);

@@ -1,5 +1,6 @@
 package entities;
 
+import configs.GtfsConfig;
 import entities.mongodb.MongoDbRoute;
 
 import java.time.LocalDate;
@@ -23,4 +24,6 @@ public interface Trip extends Comparable<Trip> {
     List<? extends StopTime> getStopTimes();
 
     MongoDbRoute getRoute();
+
+    GtfsConfig getSourceGtfs();
 }

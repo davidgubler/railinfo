@@ -1,7 +1,5 @@
 package models.mongodb;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertManyOptions;
@@ -17,9 +15,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MongoDbTripsModel implements TripsModel {
-
-    @Inject
-    private Injector injector;
 
     private Query<MongoDbTrip> query(GtfsConfig gtfs) {
         return gtfs.getDs().find(MongoDbTrip.class);
@@ -46,15 +41,16 @@ public class MongoDbTripsModel implements TripsModel {
     @Override
     public Trip getByTripId(GtfsConfig gtfs, String id) {
         MongoDbTrip trip = query(gtfs).filter(Filters.eq("tripId", id)).first();
-        injector.injectMembers(trip);
-        trip.setGtfs(gtfs);
+        if (trip != null) {
+            trip.setGtfs(gtfs);
+        }
         return trip;
     }
 
     @Override
-    public List<? extends Trip> getByRoute(GtfsConfig gtfs, Route route) {
-        List<MongoDbTrip> trips = query(gtfs).filter(Filters.eq("routeId", route.getRouteId())).iterator().toList();
-        trips.stream().forEach(t -> { injector.injectMembers(t); t.setGtfs(gtfs); });
+    public List<? extends Trip> getByRoute(Route route) {
+        List<MongoDbTrip> trips = query(route.getSourceGtfs()).filter(Filters.eq("routeId", route.getRouteId())).iterator().toList();
+        trips.stream().forEach(t -> { t.setGtfs(route.getSourceGtfs()); });
         return trips;
     }
 

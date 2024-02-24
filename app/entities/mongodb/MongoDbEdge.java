@@ -7,7 +7,6 @@ import entities.Edge;
 import entities.Stop;
 import geometry.Point;
 import geometry.PolarCoordinates;
-import models.StopsModel;
 import org.bson.types.ObjectId;
 
 import java.util.*;
@@ -46,24 +45,18 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Transient
     private Map<Integer, Integer> travelTimes = new HashMap<>(); // key are seconds, value is #journeys
 
-    @Transient
-    @Inject
-    private StopsModel stopsModel;
-
     public MongoDbEdge() {
         // dummy constructor for morphia
     }
 
-    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id) {
-        this.stopsModel = stopsModel;
+    public MongoDbEdge(GtfsConfig gtfs, String stop1Id, String stop2Id) {
         this.gtfs = gtfs;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
         recalculateBoundingBox();
     }
 
-    public MongoDbEdge(StopsModel stopsModel, GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean modified, boolean disabled) {
-        this.stopsModel = stopsModel;
+    public MongoDbEdge(GtfsConfig gtfs, String stop1Id, String stop2Id, Integer typicalTime, boolean modified, boolean disabled) {
         this.gtfs = gtfs;
         this.stop1Id = stop1Id;
         this.stop2Id = stop2Id;
@@ -122,7 +115,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop1() {
         if (stop1 == null) {
-            stop1 = stopsModel.getByStopId(gtfs, stop1Id);
+            stop1 = gtfs.getStopsModel().getByStopId(gtfs, stop1Id);
         }
         return stop1;
     }
@@ -143,7 +136,7 @@ public class MongoDbEdge implements Edge, Comparable<Edge> {
     @Override
     public Stop getStop2() {
         if (stop2 == null) {
-            stop2 = stopsModel.getByStopId(gtfs, stop2Id);
+            stop2 = gtfs.getStopsModel().getByStopId(gtfs, stop2Id);
         }
         return stop2;
     }

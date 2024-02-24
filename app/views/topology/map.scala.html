@@ -3,10 +3,10 @@
     showCaptureArea: Boolean,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Topology Map", user, gtfsConfigs, cc) {
+@template(request, "Topology Map", user, gtfsConfigs, gtfs) {
 } {
     <div id='mapCanvas' style='height: calc(100vh - 140px);'></div>
     <script src='https://maps.googleapis.com/maps/api/js?v=beta&key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap&libraries=marker' async></script>
@@ -83,7 +83,7 @@
 
             map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
             @for(edge <- edges) {
-                addEdge(map, @edge.getStop1Coordinates.getLat, @edge.getStop1Coordinates.getLng, @edge.getStop2Coordinates.getLat, @edge.getStop2Coordinates.getLng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgeView(cc, "_", edge.getNormalizedName)");
+                addEdge(map, @edge.getStop1Coordinates.getLat, @edge.getStop1Coordinates.getLng, @edge.getStop2Coordinates.getLat, @edge.getStop2Coordinates.getLng, "@utils.StringUtils.formatSeconds(edge.getTypicalTime)", "@routes.TopologyController.edgeView(gtfs.getCode, "_", edge.getNormalizedName)");
                 @if(showCaptureArea) {
                 var polyLine = new google.maps.Polyline({
                     path: [

@@ -3,15 +3,15 @@
     password: String,
     errors: Map[String, String],
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Log in", null, gtfsConfigs, cc) {
+@template(request, "Log in", null, gtfsConfigs, gtfs) {
 } {
-    @form(request, routes.LoginController.loginPost(cc)) {
+    @form(request, routes.LoginController.loginPost(gtfs.getCode)) {
         @formInputText("E-Mail Address", "email", email, errors)
         @formInputPassword("Password", "password", password, errors)
         <div class="mt-3"></div>
-        @formButtons("Log in", routes.HomeController.index(cc))
+        @formButtons("Log in", routes.HomeController.index(gtfs.getCode))
     }
 }

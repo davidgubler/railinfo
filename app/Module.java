@@ -2,13 +2,11 @@ import com.google.inject.AbstractModule;
 import models.*;
 import models.mongodb.*;
 import services.MongoDb;
-import utils.PathFinder;
 
 public class Module extends AbstractModule {
     @Override
     protected void configure() {
         bind(MongoDb.class).asEagerSingleton();
-        bind(PathFinder.class).asEagerSingleton();
         bind(ServiceCalendarsModel.class).to(MongoDbServiceCalendarsModel.class).asEagerSingleton();
         bind(ServiceCalendarExceptionsModel.class).to(MongoDbServiceCalendarExceptionsModel.class).asEagerSingleton();
         bind(StopsModel.class).to(MongoDbStopsModel.class).asEagerSingleton();

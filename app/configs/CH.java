@@ -1,19 +1,39 @@
 package configs;
 
+import com.google.inject.Inject;
 import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
-import models.RoutesModel;
-import models.TripsModel;
+import models.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
 
 public class CH implements GtfsConfig {
+    @Inject
+    private StopsModel stopsModel;
+
+    @Inject
+    private StopTimesModel stopTimesModel;
+
+    @Inject
+    private RoutesModel routesModel;
+
+    @Inject
+    private ServiceCalendarsModel serviceCalendarsModel;
+
+    @Inject
+    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
+
+    @Inject
+    private TripsModel tripsModel;
+
+    @Inject
+    private EdgesModel edgesModel;
+
     @Override
     public ZoneId getZoneId() {
         return ZoneId.of("Europe/Zurich");
@@ -35,7 +55,7 @@ public class CH implements GtfsConfig {
     }
 
     @Override
-    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds) {
+    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds, GtfsConfigModel gtfsConfigModel) {
         if (db == null || ds == null) {
             return null;
         }
@@ -54,13 +74,13 @@ public class CH implements GtfsConfig {
     }
 
     @Override
-    public List<? extends Route> getRailRoutes(RoutesModel routesModel) {
+    public List<? extends Route> getRailRoutes() {
         return routesModel.getByType(this, 100, 199);
     }
 
     @Override
-    public List<? extends Trip> getRailTripsByRoute(TripsModel tripsModel, Route route) {
-        return tripsModel.getByRoute(this, route); // no further filtering necessary as rail routes never contain bus trips
+    public List<? extends Trip> getRailTripsByRoute(Route route) {
+        return tripsModel.getByRoute(route); // no further filtering necessary as rail routes never contain bus trips
     }
 
     @Override
@@ -106,6 +126,41 @@ public class CH implements GtfsConfig {
     public CH(MongoDatabase db, Datastore ds) {
         this.db = db;
         this.ds = ds;
+    }
+
+    @Override
+    public StopsModel getStopsModel() {
+        return stopsModel;
+    }
+
+    @Override
+    public StopTimesModel getStopTimesModel() {
+        return stopTimesModel;
+    }
+
+    @Override
+    public RoutesModel getRoutesModel() {
+        return routesModel;
+    }
+
+    @Override
+    public ServiceCalendarsModel getServiceCalendarsModel() {
+        return serviceCalendarsModel;
+    }
+
+    @Override
+    public ServiceCalendarExceptionsModel getServiceCalendarExceptionsModel() {
+        return serviceCalendarExceptionsModel;
+    }
+
+    @Override
+    public TripsModel getTripsModel() {
+        return tripsModel;
+    }
+
+    @Override
+    public EdgesModel getEdgesModel() {
+        return edgesModel;
     }
 
     @Override

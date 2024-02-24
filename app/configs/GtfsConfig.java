@@ -4,8 +4,7 @@ import com.mongodb.client.MongoDatabase;
 import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
-import models.RoutesModel;
-import models.TripsModel;
+import models.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -20,7 +19,7 @@ public interface GtfsConfig {
 
     String getCode();
 
-    GtfsConfig withDatabase(MongoDatabase db, Datastore ds);
+    GtfsConfig withDatabase(MongoDatabase db, Datastore ds, GtfsConfigModel gtfsConfigModel);
 
     LocalDate getDate();
 
@@ -36,7 +35,25 @@ public interface GtfsConfig {
 
     int subtractStopTime(int edgeSeconds);
 
-    List<? extends Route> getRailRoutes(RoutesModel routesModel);
+    List<? extends Route> getRailRoutes();
 
-    List<? extends Trip> getRailTripsByRoute(TripsModel tripsModel, Route route);
+    List<? extends Trip> getRailTripsByRoute(Route route);
+
+    StopsModel getStopsModel();
+
+    RoutesModel getRoutesModel();
+
+    ServiceCalendarsModel getServiceCalendarsModel();
+
+    ServiceCalendarExceptionsModel getServiceCalendarExceptionsModel();
+
+    TripsModel getTripsModel();
+
+    StopTimesModel getStopTimesModel();
+
+    EdgesModel getEdgesModel();
+
+    default boolean isEditable() {
+        return true;
+    }
 }

@@ -9,6 +9,13 @@ import utils.NotAllowedException;
 import utils.NotFoundException;
 
 public class GtfsController extends Controller {
+    protected void check(User user, GtfsConfig gtfs, boolean editableRequired, Stop stop) {
+        check(user, gtfs, editableRequired);
+        if (stop == null) {
+            throw new NotFoundException("Stop");
+        }
+    }
+
     protected void check(User user, GtfsConfig gtfs, Stop stop) {
         check(user, gtfs);
         if (stop == null) {
@@ -32,7 +39,12 @@ public class GtfsController extends Controller {
 
     protected void check(User user, GtfsConfig gtfs) {
         check(user);
-        check(gtfs);
+        check(gtfs, false);
+    }
+
+    protected void check(User user, GtfsConfig gtfs, boolean editableRequired) {
+        check(user);
+        check(gtfs, editableRequired);
     }
 
     protected void check(User user) {
@@ -42,8 +54,15 @@ public class GtfsController extends Controller {
     }
 
     protected void check(GtfsConfig gtfs) {
+        check(gtfs, false);
+    }
+
+    protected void check(GtfsConfig gtfs, boolean editableRequired) {
         if (gtfs == null || gtfs.getDatabase() == null) {
             throw new NotFoundException("Database");
+        }
+        if (editableRequired && !gtfs.isEditable()) {
+            throw new NotAllowedException();
         }
     }
 

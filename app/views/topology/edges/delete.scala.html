@@ -3,14 +3,14 @@
     edge: entities.Edge,
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
-    cc: String,
+    gtfs: configs.GtfsConfig,
 )
 
-@template(request, "Delete Edge", user, gtfsConfigs, cc) {
+@template(request, "Delete Edge", user, gtfsConfigs, gtfs) {
 
 } {
-    @form(request, routes.TopologyController.edgeDeletePost(cc, partialName, edge.getNormalizedName())) {
+    @form(request, routes.TopologyController.edgeDeletePost(gtfs.getCode, partialName, edge.getNormalizedName())) {
         @edge.getStop1().getName - @edge.getStop2().getName in @utils.StringUtils.formatSeconds(edge.getTypicalTime())
-        @formButtons("Delete Edge", routes.TopologyController.edgesList(cc, partialName))
+        @formButtons("Delete Edge", routes.TopologyController.edgesList(gtfs.getCode, partialName))
     }
 }

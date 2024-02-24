@@ -44,14 +44,6 @@ public class MongoDbStop implements Stop {
     @Transient
     private GtfsConfig gtfs;
 
-    @Transient
-    @Inject
-    private StopsModel stopsModel;
-
-    @Transient
-    @Inject
-    private StopTimesModel stopTimesModel;
-
     public MongoDbStop() {
         // dummy constructor for Morphia
     }
@@ -142,9 +134,9 @@ public class MongoDbStop implements Stop {
 
     public Integer getImportance() {
         if (importance == null) {
-            Set<Stop> stops = new HashSet<>(stopsModel.getByName(gtfs, getName()));
-            importance = stopTimesModel.getByStops(gtfs, stops).size();
-            stopsModel.updateImportance(gtfs, stops, importance);
+            Set<Stop> stops = new HashSet<>(gtfs.getStopsModel().getByName(gtfs, getName()));
+            importance = gtfs.getStopTimesModel().getByStops(gtfs, stops).size();
+            gtfs.getStopsModel().updateImportance(gtfs, stops, importance);
         }
         return importance;
     }

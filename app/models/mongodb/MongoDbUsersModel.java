@@ -1,7 +1,6 @@
 package models.mongodb;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import dev.morphia.UpdateOptions;
 import dev.morphia.query.Query;
 import dev.morphia.query.filters.Filters;
@@ -24,9 +23,6 @@ import java.util.stream.Collectors;
 public class MongoDbUsersModel implements UsersModel {
 
     private static final long LAST_ACTIVE_REFRESH_MS = 1000L * 60L * 5L;
-
-    @Inject
-    private Injector injector;
 
     @Inject
     private MongoDb mongoDb;
