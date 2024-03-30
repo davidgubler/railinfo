@@ -1,10 +1,13 @@
 package models.merged;
 
 import configs.GtfsConfig;
+import entities.LocalDateRange;
 import entities.ServiceCalendar;
 import entities.Trip;
+import entities.tmp.TmpLocalDateRange;
 import models.ServiceCalendarsModel;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,5 +46,23 @@ public class MergedServiceCalendarsModel implements ServiceCalendarsModel {
             scs.putAll(subCfg.getServiceCalendarsModel().getByTrips(subCfg, tripsFromThisSubCfg));
         }
         return scs;
+    }
+
+    @Override
+    public LocalDateRange getDateRange(GtfsConfig gtfs) {
+        LocalDate maxStart = null;
+        LocalDate minEnd = null;
+        for (GtfsConfig subCfg : subConfigs) {
+            if (maxStart == null || maxStart.isBefore(subCfg.getStart())) {
+                maxStart = subCfg.getStart();
+            }
+            if (minEnd == null || minEnd.isAfter(subCfg.getEnd())) {
+                minEnd = subCfg.getEnd();
+            }
+        }
+        if (maxStart == null || minEnd == null) {
+            return null;
+        }
+        return new TmpLocalDateRange(maxStart, minEnd);
     }
 }

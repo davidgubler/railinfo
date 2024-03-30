@@ -1,6 +1,7 @@
 package models;
 
 import configs.GtfsConfig;
+import entities.LocalDateRange;
 import entities.ServiceCalendar;
 import entities.Trip;
 
@@ -19,4 +20,6 @@ public interface ServiceCalendarsModel {
     ServiceCalendar getByTrip(Trip trip);
 
     Map<String, ServiceCalendar> getByTrips(GtfsConfig gtfs, Collection<Trip> trips);
+
+    LocalDateRange getDateRange(GtfsConfig gtfs);
 }

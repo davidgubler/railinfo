@@ -2,6 +2,7 @@ package controllers;
 
 import biz.Importer;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import configs.GtfsConfig;
 import entities.User;
 import models.*;
@@ -11,6 +12,8 @@ import utils.InputUtils;
 import utils.InputValidationException;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +28,9 @@ public class DataImportController extends GtfsController {
     private MongoDb mongoDb;
 
     @Inject
+    private Injector injector;
+
+    @Inject
     private GtfsConfigModel gtfsConfigModel;
 
     public Result listDatabases(Http.Request request, String cc) {
@@ -32,7 +38,16 @@ public class DataImportController extends GtfsController {
         GtfsConfig gtfs = gtfsConfigModel.getConfig(cc);
         checkDbOptional(user, gtfs);
         List<String> databases = mongoDb.getTimetableDatabases(gtfs.getCode());
-        return ok(views.html.admin.databases.index.render(request, databases, user, gtfsConfigModel.getSelectorChoices(), gtfs));
+        List<GtfsConfig> gtfsConfigs = new LinkedList<>();
+
+        for (String database : databases) {
+            GtfsConfig dbGtfs = gtfs.withDatabase(mongoDb, database, gtfsConfigModel);
+            injector.injectMembers(dbGtfs);
+            gtfsConfigs.add(dbGtfs);
+        }
+        Collections.sort(gtfsConfigs);
+        Collections.reverse(gtfsConfigs);
+        return ok(views.html.admin.databases.index.render(request, gtfsConfigs, user, gtfsConfigModel.getSelectorChoices(), gtfs));
     }
 
     public Result index(Http.Request request, String cc) {

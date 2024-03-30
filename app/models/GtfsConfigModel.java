@@ -24,14 +24,9 @@ public class GtfsConfigModel {
         }
         for (GtfsConfig country : COUNTRIES) {
             if (country.getCode().equals(cc)) {
-                List<String> databases = mongoDb.getTimetableDatabases(country.getCode());
-                if (databases.isEmpty()) {
-                    return country;
-                } else {
-                    GtfsConfig gtfs = country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0)), this);
-                    injector.injectMembers(gtfs);
-                    return gtfs;
-                }
+                GtfsConfig gtfs = country.withDatabase(mongoDb, this);
+                injector.injectMembers(gtfs);
+                return gtfs;
             }
         }
         return null;
@@ -46,10 +41,10 @@ public class GtfsConfigModel {
             if (databases.isEmpty()) {
                 choices.add(country);
             } else {
-                choices.add(country.withDatabase(mongoDb.get(databases.get(0)), mongoDb.getDs(databases.get(0)), this));
+                choices.add(country.withDatabase(mongoDb, this));
             }
             for (String database : databases) {
-                secondaryChoices.add(country.withDatabase(mongoDb.get(database), mongoDb.getDs(database), this));
+                secondaryChoices.add(country.withDatabase(mongoDb, this));
             }
         }
 

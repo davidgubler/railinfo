@@ -31,9 +31,11 @@ public class MongoDbServiceCalendar implements entities.ServiceCalendar {
 
     private Boolean sunday;
 
-    private java.time.LocalDate start;
+    @Indexed
+    private String start;
 
-    private java.time.LocalDate end;
+    @Indexed
+    private String end;
 
     public MongoDbServiceCalendar() {
         // dummy constructor for morphia
@@ -48,8 +50,8 @@ public class MongoDbServiceCalendar implements entities.ServiceCalendar {
         this.friday = "1".equals(data.get("friday"));
         this.saturday = "1".equals(data.get("saturday"));
         this.sunday = "1".equals(data.get("sunday"));
-        this.start = LocalDate.parse(data.get("start_date"), DateTimeFormatter.BASIC_ISO_DATE);
-        this.end = LocalDate.parse(data.get("end_date"), DateTimeFormatter.BASIC_ISO_DATE);
+        this.start = LocalDate.parse(data.get("start_date"), DateTimeFormatter.BASIC_ISO_DATE).format(DateTimeFormatter.ISO_DATE);
+        this.end = LocalDate.parse(data.get("end_date"), DateTimeFormatter.BASIC_ISO_DATE).format(DateTimeFormatter.ISO_DATE);
     }
 
     @Override
@@ -94,11 +96,11 @@ public class MongoDbServiceCalendar implements entities.ServiceCalendar {
 
     @Override
     public LocalDate getStart() {
-        return start;
+        return LocalDate.parse(start, DateTimeFormatter.ISO_DATE);
     }
 
     @Override
     public LocalDate getEnd() {
-        return end;
+        return LocalDate.parse(end, DateTimeFormatter.ISO_DATE);
     }
 }

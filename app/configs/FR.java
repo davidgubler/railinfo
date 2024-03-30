@@ -7,14 +7,16 @@ import entities.Route;
 import entities.Trip;
 import models.*;
 import models.merged.*;
+import services.MongoDb;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class FR implements GtfsConfig {
+public class FR extends GtfsConfig {
     private final List<GtfsConfig> subConfigs;
 
     @Inject
@@ -26,40 +28,43 @@ public class FR implements GtfsConfig {
     }
 
     @Override
-    public Datastore getDs() {
-        return ds;
-    }
-
-    @Override
-    public MongoDatabase getDatabase() {
-        return db;
-    }
-
-    @Override
     public String getCode() {
         return "fr";
     }
 
     @Override
-    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds, GtfsConfigModel gtfsConfigModel) {
-        if (db == null || ds == null) {
-            return null;
-        }
+    public GtfsConfig withDatabase(MongoDb mongoDb, GtfsConfigModel gtfsConfigModel) {
         List<GtfsConfig> subConfigsWithDatabase = new LinkedList<>();
         for (GtfsConfig subConfig : subConfigs) {
-            GtfsConfig subConfigWithDatbase = gtfsConfigModel.getConfig(subConfig.getCode());
-            if (subConfigWithDatbase == null) {
-                return null;
+            subConfig = gtfsConfigModel.getConfig(subConfig.getCode());
+            if (subConfig.getDatabase() == null) {
+                return this;
             }
-            subConfigsWithDatabase.add(subConfigWithDatbase);
+            subConfigsWithDatabase.add(subConfig);
         }
+
+        LocalDate maxDate = Collections.max(subConfigsWithDatabase.stream().map(GtfsConfig::getDate).collect(Collectors.toList()));
+        String dbName = "railinfo-fr-" + maxDate;
+        MongoDatabase db = mongoDb.get(dbName);
+        Datastore ds = mongoDb.getDs(dbName);
+
         return new FR(db, ds, subConfigsWithDatabase);
     }
 
     @Override
-    public LocalDate getDate() {
-        int i = db.getName().indexOf(getCode());
-        return LocalDate.parse(db.getName().substring(i + getCode().length() + 1));
+    public GtfsConfig withDatabase(MongoDb mongoDb, String dbName, GtfsConfigModel gtfsConfigModel) {
+        List<GtfsConfig> subConfigsWithDatabase = new LinkedList<>();
+        // FIXME we get the latest subconfigs here instead of the ones that fit the dbName. This is OK for now but will need to be fixed at some point.
+        for (GtfsConfig subConfig : subConfigs) {
+            subConfig = gtfsConfigModel.getConfig(subConfig.getCode());
+            if (subConfig.getDatabase() == null) {
+                return this;
+            }
+            subConfigsWithDatabase.add(subConfig);
+        }
+        MongoDatabase db = mongoDb.get(dbName);
+        Datastore ds = mongoDb.getDs(dbName);
+        return new FR(db, ds, subConfigsWithDatabase);
     }
 
     @Override
@@ -103,11 +108,8 @@ public class FR implements GtfsConfig {
         throw new IllegalStateException();
     }
 
-    private MongoDatabase db;
-    private Datastore ds;
-
     public FR() {
-        subConfigs = List.of(new FR_IC(), new FR_TER());
+        this.subConfigs = List.of(new FR_IC(), new FR_TER());
     }
 
     public FR(MongoDatabase db, Datastore ds, List<GtfsConfig> subConfigs) {
@@ -154,23 +156,5 @@ public class FR implements GtfsConfig {
     @Override
     public boolean isEditable() {
         return false;
-    }
-
-    @Override
-    public String toString() {
-        return db == null ? "railinfo-" + getCode() : db.getName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FR fr = (FR) o;
-        return Objects.equals(db.getName(), fr.db.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return db.getName().hashCode();
     }
 }

@@ -56,9 +56,11 @@ public class MongoDb {
     public List<String> getTimetableDatabases(String countryCode) {
         List<String> databases = new LinkedList<>();
         Iterator<String> i = getClient().listDatabaseNames().iterator();
+        String prefix = "railinfo-" + countryCode + "-";
+        int length = prefix.length() + 10; // 10 for the ISO date
         while (i.hasNext()) {
             String dbName = i.next();
-            if (dbName.startsWith("railinfo-" + countryCode + "-")) {
+            if (dbName.startsWith(prefix) && dbName.length() == length) {
                 databases.add(dbName);
             }
         }

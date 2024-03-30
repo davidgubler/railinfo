@@ -1,7 +1,7 @@
 package models.merged;
 
 import configs.GtfsConfig;
-import entities.ServiceCalendar;
+import entities.LocalDateRange;
 import entities.ServiceCalendarException;
 import entities.Trip;
 import models.ServiceCalendarExceptionsModel;
@@ -46,4 +46,10 @@ public class MergedServiceCalendarExceptionsModel implements ServiceCalendarExce
         }
         return sces;
     }
+
+    @Override
+    public LocalDateRange getDateRange(GtfsConfig gtfs) {
+        throw new IllegalStateException();
+    }
+
 }

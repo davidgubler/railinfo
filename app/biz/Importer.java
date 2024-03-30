@@ -57,9 +57,9 @@ public class Importer {
 
         // BUSINESS
         String oldDbName = mongoDb.getTimetableDatabases(gtfs.getCode()).stream().findFirst().orElse(null);
-        GtfsConfig oldDb = gtfs.withDatabase(mongoDb.get(oldDbName), mongoDb.getDs(oldDbName), null);
+        GtfsConfig oldDb = gtfs.withDatabase(mongoDb, oldDbName, null);
         injector.injectMembers(oldDb);
-        GtfsConfig newDb = gtfs.withDatabase(mongoDb.get(newDbName), mongoDb.getDs(newDbName), null);
+        GtfsConfig newDb = gtfs.withDatabase(mongoDb, newDbName, null);
         injector.injectMembers(newDb);
 
         new Thread(() -> {

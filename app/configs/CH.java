@@ -6,13 +6,12 @@ import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
 import models.*;
+import services.MongoDb;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Objects;
 
-public class CH implements GtfsConfig {
+public class CH extends GtfsConfig {
     @Inject
     private StopsModel stopsModel;
 
@@ -40,32 +39,24 @@ public class CH implements GtfsConfig {
     }
 
     @Override
-    public Datastore getDs() {
-        return ds;
-    }
-
-    @Override
-    public MongoDatabase getDatabase() {
-        return db;
-    }
-
-    @Override
     public String getCode() {
         return "ch";
     }
 
     @Override
-    public GtfsConfig withDatabase(MongoDatabase db, Datastore ds, GtfsConfigModel gtfsConfigModel) {
-        if (db == null || ds == null) {
-            return null;
+    public GtfsConfig withDatabase(MongoDb mongoDb, GtfsConfigModel gtfsConfigModel) {
+        List<String> databases = mongoDb.getTimetableDatabases(getCode());
+        if (databases.isEmpty()) {
+            return this;
         }
-        return new CH(db, ds);
+        return withDatabase(mongoDb, databases.get(0), gtfsConfigModel);
     }
 
     @Override
-    public LocalDate getDate() {
-        int i = db.getName().indexOf(getCode());
-        return LocalDate.parse(db.getName().substring(i + getCode().length() + 1));
+    public GtfsConfig withDatabase(MongoDb mongoDb, String dbName, GtfsConfigModel gtfsConfigModel) {
+        MongoDatabase db = mongoDb.get(dbName);
+        Datastore ds = mongoDb.getDs(dbName);
+        return new CH(db, ds);
     }
 
     @Override
@@ -117,9 +108,6 @@ public class CH implements GtfsConfig {
         return edgeSeconds;
     }
 
-    private MongoDatabase db;
-    private Datastore ds;
-
     public CH() {
     }
 
@@ -161,23 +149,5 @@ public class CH implements GtfsConfig {
     @Override
     public EdgesModel getEdgesModel() {
         return edgesModel;
-    }
-
-    @Override
-    public String toString() {
-        return db.getName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CH ch = (CH) o;
-        return Objects.equals(db.getName(), ch.db.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return db.getName().hashCode();
     }
 }

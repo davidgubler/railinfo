@@ -1,5 +1,5 @@
 @(  implicit request: Http.Request,
-    databases: List[String],
+    databases: List[configs.GtfsConfig],
     user: entities.User,
     gtfsConfigs: List[configs.GtfsConfig],
     gtfs: configs.GtfsConfig,
@@ -8,7 +8,22 @@
 @template(request, "Databases", user, gtfsConfigs, gtfs) {
 
 } {
-    @for(database <- databases) {
-        @database<br />
-    }
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-right: 20px;">Name</th>
+                <th style="padding-right: 20px;">First date</th>
+                <th>Last date</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for(database <- databases) {
+            <tr>
+                <td style="padding-right: 20px;">@database</td>
+                <td style="padding-right: 20px;">@database.getStart</td>
+                <td>@database.getEnd</td>
+            </tr>
+        }
+        </tbody>
+    </table>
 }

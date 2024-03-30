@@ -1,6 +1,7 @@
 package models;
 
 import configs.GtfsConfig;
+import entities.LocalDateRange;
 import entities.ServiceCalendarException;
 import entities.Trip;
 
@@ -20,4 +21,6 @@ public interface ServiceCalendarExceptionsModel {
     List<? extends ServiceCalendarException> getByTrip(Trip trip);
 
     Map<String, List<ServiceCalendarException>> getByTripsAndDates(GtfsConfig gtfs, Collection<Trip> trips, Collection<LocalDate> dates);
+
+    LocalDateRange getDateRange(GtfsConfig gtfs);
 }

@@ -1,6 +1,5 @@
 package entities.mongodb;
 
-import com.google.inject.Inject;
 import configs.GtfsConfig;
 import dev.morphia.annotations.*;
 import entities.Edge;

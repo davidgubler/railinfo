@@ -3,13 +3,19 @@ package models.mongodb;
 import com.mongodb.WriteConcern;
 import configs.GtfsConfig;
 import dev.morphia.InsertManyOptions;
+import dev.morphia.aggregation.expressions.AccumulatorExpressions;
+import dev.morphia.aggregation.expressions.impls.ValueExpression;
+import dev.morphia.aggregation.stages.Group;
 import dev.morphia.query.filters.Filters;
+import entities.LocalDateRange;
 import entities.ServiceCalendar;
 import entities.mongodb.MongoDbServiceCalendar;
 import entities.Trip;
+import entities.mongodb.aggregated.MongoDbDateRange;
 import models.ServiceCalendarsModel;
 import dev.morphia.query.Query;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,5 +56,18 @@ public class MongoDbServiceCalendarsModel implements ServiceCalendarsModel {
             serviceCalendarByServiceId.put(serviceCalendar.getServiceId(), serviceCalendar);
         }
         return serviceCalendarByServiceId;
+    }
+
+    @Override
+    public LocalDateRange getDateRange(GtfsConfig gtfs) {
+        try {
+            return gtfs.getDs().aggregate(MongoDbServiceCalendar.class).group(Group.group()
+                    .field("start", AccumulatorExpressions.min(new ValueExpression("$start")))
+                    .field("end", AccumulatorExpressions.max(new ValueExpression("$end")))
+            ).execute(MongoDbDateRange.class).next();
+        } catch (NoSuchElementException e) {
+            // This may happen e.g. if the collection is empty/does not exist
+            return null;
+        }
     }
 }
