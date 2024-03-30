@@ -131,7 +131,7 @@ public class Importer {
     }
 
     private void migrateModifiedStops(GtfsConfig oldDb, GtfsConfig newDb) {
-        if (oldDb == null) {
+        if (oldDb == null || oldDb.getDatabase() == null) {
             return;
         }
         // only add stop if no stop with the same name exists
@@ -142,7 +142,7 @@ public class Importer {
     }
 
     private void migrateModifiedEdges(GtfsConfig oldDb, GtfsConfig newDb) {
-        if (oldDb == null) {
+        if (oldDb == null || oldDb.getDatabase() == null) {
             return;
         }
         // only add edge if it references valid stops

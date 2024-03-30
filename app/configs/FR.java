@@ -109,7 +109,7 @@ public class FR extends GtfsConfig {
     }
 
     public FR() {
-        this.subConfigs = List.of(new FR_IC(), new FR_TER());
+        this.subConfigs = List.of(new FR_TGV(), new FR_IC(), new FR_TER());
     }
 
     public FR(MongoDatabase db, Datastore ds, List<GtfsConfig> subConfigs) {
