@@ -247,7 +247,7 @@ public class TopologyController extends GtfsController {
         } catch (InputValidationException e) {
             return ok(views.html.topology.stops.edit.render(request, null, null, name, lat, lng, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs));
         }
-        return redirect(controllers.routes.TopologyController.stopsList(name, gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.stopsList(gtfs.getCode(), name));
     }
 
     public Result stopsEdit(Http.Request request, String cc, String partialName, String editStopId) {
@@ -273,7 +273,7 @@ public class TopologyController extends GtfsController {
         } catch (InputValidationException e) {
             return ok(views.html.topology.stops.edit.render(request, partialName, stop, name, lat, lng, e.getErrors(), user, gtfsConfigModel.getSelectorChoices(), gtfs));
         }
-        return redirect(controllers.routes.TopologyController.stopsList(partialName, gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.stopsList(gtfs.getCode(), partialName));
     }
 
     public Result stopsDelete(Http.Request request, String cc, String partialName, String stopId) {
@@ -293,6 +293,6 @@ public class TopologyController extends GtfsController {
         Stop stop = gtfs.getStopsModel().get(gtfs, stopId);
         check(user, gtfs, true, stop);
         topology.stopDelete(request, gtfs, stop, user);
-        return redirect(controllers.routes.TopologyController.stopsList(partialName, gtfs.getCode()));
+        return redirect(controllers.routes.TopologyController.stopsList(gtfs.getCode(), partialName));
     }
 }

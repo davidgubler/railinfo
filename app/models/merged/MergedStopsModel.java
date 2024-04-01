@@ -88,7 +88,7 @@ public class MergedStopsModel implements StopsModel {
         for (GtfsConfig subCfg : subConfigs) {
             stopsSet.addAll(subCfg.getStopsModel().getByPartialName(subCfg, name));
         }
-        List<Stop> stops = new LinkedList<>(stopsSet);
+        List<Stop> stops = new ArrayList<>(stopsSet);
         Collections.sort(stops);
         return stops;
     }
@@ -100,7 +100,13 @@ public class MergedStopsModel implements StopsModel {
 
     @Override
     public List<Stop> getAll(GtfsConfig gtfs) {
-        throw new IllegalStateException();
+        Set<Stop> stopsSet = new HashSet<>();
+        for (GtfsConfig subCfg : subConfigs) {
+            stopsSet.addAll(subCfg.getStopsModel().getAll(subCfg));
+        }
+        List<Stop> stops = new ArrayList<>(stopsSet);
+        Collections.sort(stops);
+        return stops;
     }
 
     @Override

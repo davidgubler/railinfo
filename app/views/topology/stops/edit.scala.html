@@ -12,6 +12,8 @@
 
 @template(request, if(editStop==null){"Create Stop"}else{"Edit Stop"}, user, gtfsConfigs, gtfs) {
 } {
+    <script src='@routes.Assets.versioned("javascripts/stopEdit.js")'></script>
+    <script src='https://maps.googleapis.com/maps/api/js?key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap' async></script>
     <div class="row">
         <div class="col-lg-6">
             @form(request, if(editStop==null){routes.TopologyController.stopsCreatePost(gtfs.getCode)}else{routes.TopologyController.stopsEditPost(gtfs.getCode, partialName, editStop.getId)}) {
@@ -24,39 +26,6 @@
         </div>
         <div class="col-lg-6">
             <div id='mapCanvas' style='height: 600px;'></div>
-            <script src='https://maps.googleapis.com/maps/api/js?key=@utils.Config.get(utils.Config.Option.MAPS_KEY)&callback=initMap' async></script>
-            <script>
-                var infowindow;
-                var map;
-                var marker;
-
-                var initMap = function() {
-                    var pos = new google.maps.LatLng(@if(lat==null||lng==null){47,8}else{@lat,@lng});
-                    var mapOptions = {
-                        zoom: @if(lat==null||lng==null){8}else{16},
-                        gestureHandling: 'greedy',
-                        center: pos,
-                        mapId: 'mymapid',
-                    };
-
-                    map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
-
-                    map.addListener("click", event => {
-                        console.log(event);
-                        if(marker) {
-                            marker.setMap(null);
-                        }
-                        marker = new google.maps.Marker({'position': event.latLng});
-                        marker.setMap(map);
-                        $("input[name=latlng]").val(event.latLng.lat() + "," + event.latLng.lng());
-                    });
-
-                    @if(lat != null && lng != null){
-                    marker = new google.maps.Marker({'position': pos});
-                    marker.setMap(map);
-                    }
-                };
-            </script>
         </div>
     </div>
 }
