@@ -84,7 +84,7 @@ public class ApiController extends Controller {
             String start = realizedPass.getTrip().getBegins().getName();
             String end = realizedPass.getTrip().getEnds().getName();
             String shortName = realizedPass.getTrip().getRoute().getShortName();
-            String tripShortName = realizedPass.getTrip().getTripShortName();
+            String tripShortName = realizedPass.getTrip().getTrip().getTrainNr();
             String late = "";
             if (getLateSeconds() >= 300 && getLateSeconds() <= 600) {
                 late = " mit +" + getLateSeconds()/60;

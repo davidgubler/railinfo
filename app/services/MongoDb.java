@@ -1,6 +1,6 @@
 package services;
 
-import akka.actor.ActorSystem;
+import play.inject.ApplicationLifecycle;
 import com.google.inject.Inject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -13,6 +13,7 @@ import dev.morphia.mapping.MapperOptions;
 import entities.mongodb.*;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MongoDb {
@@ -22,22 +23,9 @@ public class MongoDb {
 
     private MongoClient client;
 
-    private final ActorSystem actorSystem;
-
     private MongoClient getClient() {
         if (client == null) {
-            Boolean tls = false;
-            String hostname = "localhost";
-            String username = null;
-            String password = null;
-            String mongoUrl;
-            if (username != null && password != null) {
-                mongoUrl = "mongodb://" + username + ":" + password + "@" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
-            } else {
-                mongoUrl = "mongodb://" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
-            }
-            client = MongoClients.create(mongoUrl);
-            actorSystem.registerOnTermination(() -> client.close());
+
         }
         return client;
     }
@@ -97,8 +85,22 @@ public class MongoDb {
     }
 
     @Inject
-    public MongoDb(ActorSystem actorSystem) {
-        this.actorSystem = actorSystem;
+    public MongoDb(ApplicationLifecycle appLifecycle) {
+        Boolean tls = false;
+        String hostname = "localhost";
+        String username = null;
+        String password = null;
+        String mongoUrl;
+        if (username != null && password != null) {
+            mongoUrl = "mongodb://" + username + ":" + password + "@" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
+        } else {
+            mongoUrl = "mongodb://" + hostname + ":27017/?tls=" + tls.toString().toLowerCase() + "&connecttimeoutms=" + TIMEOUT_CONNECT;
+        }
+        client = MongoClients.create(mongoUrl);
+        appLifecycle.addStopHook(() -> {
+            client.close();
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
     public MongoDatabase get(String databaseName) {
