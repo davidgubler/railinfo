@@ -11,7 +11,7 @@ import services.MongoDb;
 import java.time.ZoneId;
 import java.util.List;
 
-public class CH extends GtfsConfig {
+public class UZ extends GtfsConfig {
     @Inject
     private StopsModel stopsModel;
 
@@ -35,12 +35,12 @@ public class CH extends GtfsConfig {
 
     @Override
     public ZoneId getZoneId() {
-        return ZoneId.of("Europe/Zurich");
+        return ZoneId.of("Asia/Tashkent");
     }
 
     @Override
     public String getCode() {
-        return "ch";
+        return "uz";
     }
 
     @Override
@@ -56,12 +56,12 @@ public class CH extends GtfsConfig {
     public GtfsConfig withDatabase(MongoDb mongoDb, String dbName, GtfsConfigModel gtfsConfigModel) {
         MongoDatabase db = mongoDb.get(dbName);
         Datastore ds = mongoDb.getDs(dbName);
-        return new CH(db, ds);
+        return new UZ(db, ds);
     }
 
     @Override
     public String getDownloadUrl() {
-        return "https://data.opentransportdata.swiss/dataset/timetable-2025-gtfs2020/permalink";
+        return "https://bahnbilder.ch/div/uzbekistan.zip";
     }
 
     @Override
@@ -108,10 +108,10 @@ public class CH extends GtfsConfig {
         return edgeSeconds;
     }
 
-    public CH() {
+    public UZ() {
     }
 
-    public CH(MongoDatabase db, Datastore ds) {
+    public UZ(MongoDatabase db, Datastore ds) {
         this.db = db;
         this.ds = ds;
     }
