@@ -6,18 +6,32 @@ import dev.morphia.Datastore;
 import entities.Route;
 import entities.Trip;
 import models.*;
-import models.merged.*;
 import services.MongoDb;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FR extends GtfsConfig {
-    private final List<GtfsConfig> subConfigs;
+    @Inject
+    private StopsModel stopsModel;
+
+    @Inject
+    private StopTimesModel stopTimesModel;
+
+    @Inject
+    private RoutesModel routesModel;
+
+    @Inject
+    private ServiceCalendarsModel serviceCalendarsModel;
+
+    @Inject
+    private ServiceCalendarExceptionsModel serviceCalendarExceptionsModel;
+
+    @Inject
+    private TripsModel tripsModel;
 
     @Inject
     private EdgesModel edgesModel;
@@ -34,127 +48,128 @@ public class FR extends GtfsConfig {
 
     @Override
     public GtfsConfig withDatabase(MongoDb mongoDb, GtfsConfigModel gtfsConfigModel) {
-        List<GtfsConfig> subConfigsWithDatabase = new LinkedList<>();
-        for (GtfsConfig subConfig : subConfigs) {
-            subConfig = gtfsConfigModel.getConfig(subConfig.getCode());
-            if (subConfig.getDatabase() == null) {
-                return this;
-            }
-            subConfigsWithDatabase.add(subConfig);
+        List<String> databases = mongoDb.getTimetableDatabases(getCode());
+        if (databases.isEmpty()) {
+            return this;
         }
-
-        LocalDate maxDate = Collections.max(subConfigsWithDatabase.stream().map(GtfsConfig::getDate).collect(Collectors.toList()));
-        String dbName = "railinfo-fr-" + maxDate;
-        MongoDatabase db = mongoDb.get(dbName);
-        Datastore ds = mongoDb.getDs(dbName);
-
-        return new FR(db, ds, subConfigsWithDatabase);
+        return withDatabase(mongoDb, databases.get(0), gtfsConfigModel);
     }
 
     @Override
     public GtfsConfig withDatabase(MongoDb mongoDb, String dbName, GtfsConfigModel gtfsConfigModel) {
-        List<GtfsConfig> subConfigsWithDatabase = new LinkedList<>();
-        // FIXME we get the latest subconfigs here instead of the ones that fit the dbName. This is OK for now but will need to be fixed at some point.
-        for (GtfsConfig subConfig : subConfigs) {
-            subConfig = gtfsConfigModel.getConfig(subConfig.getCode());
-            if (subConfig.getDatabase() == null) {
-                return this;
-            }
-            subConfigsWithDatabase.add(subConfig);
-        }
         MongoDatabase db = mongoDb.get(dbName);
         Datastore ds = mongoDb.getDs(dbName);
-        return new FR(db, ds, subConfigsWithDatabase);
+        return new FR(db, ds);
     }
 
     @Override
     public String getDownloadUrl() {
-        return null;
+        return "https://eu.ftp.opendatasoft.com/sncf/plandata/export-opendata-sncf-gtfs.zip";
     }
 
     @Override
     public List<? extends Route> getRailRoutes() {
-        return new MergedRoutesModel(subConfigs).getRailRoutes();
+        return routesModel.getByType(this, 2, 2);
     }
+
+    // group(1) is the train number, group(2) is F for train and R for bus
+    private Pattern tripPattern = Pattern.compile("OCESN([0-9]+)([FR]).*");
 
     @Override
     public List<? extends Trip> getRailTripsByRoute(Route route) {
-        // FIXME this may not make sense
-        return new MergedTripsModel(subConfigs).getRailTripsByRoute(route);
+        // trips can return both trains and buses, therefore we have to remove the "R" trips (rue)
+        List<? extends Trip> trips = tripsModel.getByRoute(route);
+        Iterator<? extends Trip> iter = trips.iterator();
+        while (iter.hasNext()) {
+            Trip trip = iter.next();
+            Matcher m = tripPattern.matcher(trip.getTripId());
+            if (!m.matches()) {
+                continue;
+            }
+            if ("R".equals(m.group(2))) {
+                iter.remove();
+            }
+        }
+        return trips;
     }
 
     @Override
     public String extractBaseId(String stopId) {
-        throw new IllegalStateException();
+        if (stopId.contains("-")) {
+            return stopId.substring(stopId.lastIndexOf("-") + 1);
+        }
+        if (stopId.contains("OCE")) {
+            return stopId.substring(stopId.lastIndexOf("OCE") + 3);
+        }
+        return stopId;
     }
 
     @Override
     public String extractTrainNr(Trip trip) {
-        throw new IllegalStateException();
+        return trip.getTripHeadsign();
     }
 
     @Override
     public String extractProduct(Route route) {
-        throw new IllegalStateException();
+        return "??";
     }
 
     @Override
     public String extractLineName(Route route) {
-        throw new IllegalStateException();
+        return route.getShortName();
     }
 
     @Override
     public int subtractStopTime(int edgeSeconds) {
-        throw new IllegalStateException();
+        // we assume that a stop takes 2 min, thus we subtract this
+        edgeSeconds -= 120;
+        if (edgeSeconds < 30) {
+            // the minimum assumed travel time between stops is 30s
+            edgeSeconds = 30;
+        }
+        return edgeSeconds;
     }
 
     public FR() {
-        this.subConfigs = List.of(new FR_TGV(), new FR_IC(), new FR_TER());
     }
 
-    public FR(MongoDatabase db, Datastore ds, List<GtfsConfig> subConfigs) {
+    public FR(MongoDatabase db, Datastore ds) {
         this.db = db;
         this.ds = ds;
-        this.subConfigs = subConfigs;
     }
 
     @Override
     public StopsModel getStopsModel() {
-        return new MergedStopsModel(subConfigs);
+        return stopsModel;
     }
 
     @Override
     public StopTimesModel getStopTimesModel() {
-        return new MergedStopTimesModel(subConfigs);
+        return stopTimesModel;
     }
 
     @Override
     public RoutesModel getRoutesModel() {
-        return new MergedRoutesModel(subConfigs);
+        return routesModel;
     }
 
     @Override
     public ServiceCalendarsModel getServiceCalendarsModel() {
-        return new MergedServiceCalendarsModel(subConfigs);
+        return serviceCalendarsModel;
     }
 
     @Override
     public ServiceCalendarExceptionsModel getServiceCalendarExceptionsModel() {
-        return new MergedServiceCalendarExceptionsModel(subConfigs);
+        return serviceCalendarExceptionsModel;
     }
 
     @Override
     public TripsModel getTripsModel() {
-        return new MergedTripsModel(subConfigs);
+        return tripsModel;
     }
 
     @Override
     public EdgesModel getEdgesModel() {
         return edgesModel;
-    }
-
-    @Override
-    public boolean isEditable() {
-        return false;
     }
 }

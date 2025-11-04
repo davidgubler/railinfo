@@ -16,7 +16,7 @@ public class GtfsConfigModel {
     @Inject
     private MongoDb mongoDb;
 
-    public static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR(), new FR_TGV(), new FR_IC(), new FR_TER(), new UZ());
+    public static List<GtfsConfig> COUNTRIES = List.of(new CH(), new FR(), new UZ());
 
     public GtfsConfig getConfig(String cc) {
         if (cc == null) {
