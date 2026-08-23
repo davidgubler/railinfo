@@ -16,9 +16,29 @@ $(document).ready( function () {
         }
     );
 
-    if (navigator.geolocation) {
+
+
+    getLocation = function() {
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
         navigator.geolocation.getCurrentPosition(function(position) {
             $('input[name^=coordinates]').val(position.coords.latitude + ", " + position.coords.longitude);
+        }, function (error) {
+            console.log(error);
+        }, options)
+    }
+
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+            const permission = result.state;
+            if ( permission === 'granted' || permission === 'prompt' ) {
+                getLocation();
+            }
         });
+    } else if (navigator.geolocation) {
+        getLocation();
     }
 } );
