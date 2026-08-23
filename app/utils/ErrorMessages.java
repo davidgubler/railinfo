@@ -9,6 +9,7 @@ public class ErrorMessages {
     public static String EMAIL_OR_PASSWORD_INVALID = "Email Address or Password invalid";
     public static String EDGE_NOT_FOUND = "Edge not found";
     public static String STOP_NOT_FOUND = "Stop not found";
+    public static String INVALID_VALUE = "Invalid value";
     public static String MIN_VALUE_IS(String minValue) {
         return "Minimum value is " + minValue;
     }

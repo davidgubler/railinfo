@@ -1,0 +1,16 @@
+@(  implicit request: Http.Request,
+    database: String,
+    errors: Map[String, String],
+    user: entities.User,
+    gtfsConfigs: List[configs.GtfsConfig],
+    gtfs: configs.GtfsConfig,
+)
+
+@template(request, "Databases", user, gtfsConfigs, gtfs) {
+
+} {
+    Delete database @database?
+    @form(request, routes.DatabaseController.deletePost(gtfs.getCode, database), null) {
+        @formButtons("Delete", routes.DataImportController.listDatabases(gtfs.getCode))
+    }
+}

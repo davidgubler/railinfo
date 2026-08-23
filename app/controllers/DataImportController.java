@@ -1,6 +1,6 @@
 package controllers;
 
-import biz.Importer;
+import biz.Databases;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import configs.GtfsConfig;
@@ -22,7 +22,7 @@ public class DataImportController extends GtfsController {
     private UsersModel usersModel;
 
     @Inject
-    private Importer importer;
+    private Databases importer;
 
     @Inject
     private MongoDb mongoDb;

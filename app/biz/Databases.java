@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class Importer {
+public class Databases {
 
     @Inject
     private EdgesModel edgesModel;
@@ -34,6 +34,29 @@ public class Importer {
     private Injector injector;
 
     public static final String UTF8_BOM = "\uFEFF";
+
+    public void delete(Http.RequestHeader request, GtfsConfig gtfsConfig, String databaseName, User user) throws InputValidationException {
+        // ACCESS
+        if (user == null) {
+            throw new NotAllowedException();
+        }
+
+        // INPUT
+        Map<String, String> errors = new HashMap<>();
+        List<String> databases = mongoDb.getTimetableDatabases(gtfsConfig.getCode());
+        if (!databases.contains(databaseName)) {
+            errors.put("database", ErrorMessages.INVALID_VALUE);
+        }
+        if (!errors.isEmpty()) {
+            throw new InputValidationException(errors);
+        }
+
+        // BUSINESS
+        mongoDb.delete(databaseName);
+
+        // LOG
+        RailinfoLogger.info(request, user + " deleted database " + databaseName);
+    }
 
     public void importGtfs(Http.RequestHeader request, GtfsConfig gtfs, String urlStr, String newDbName, User user) throws InputValidationException {
         // ACCESS

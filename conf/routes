@@ -23,6 +23,8 @@ POST    /:cc/admin/users/:uid/edit                      controllers.AdminControl
 GET     /:cc/admin/users/:uid/delete                    controllers.AdminController.usersDelete(request: Request, cc: String, uid: String)
 POST    /:cc/admin/users/:uid/delete                    controllers.AdminController.usersDeletePost(request: Request, cc: String, uid: String)
 GET     /:cc/admin/databases                            controllers.DataImportController.listDatabases(request: Request, cc: String)
+GET     /:cc/admin/databases/:id/_delete                controllers.DatabaseController.delete(request: Request, cc: String, id: String)
+POST    /:cc/admin/databases/:id/_delete                controllers.DatabaseController.deletePost(request: Request, cc: String, id: String)
 GET     /:cc/admin/import                               controllers.DataImportController.index(request: Request, cc: String)
 POST    /:cc/admin/import/gtfs                          controllers.DataImportController.importGtfsPost(request: Request, cc: String)
 

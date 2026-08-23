@@ -113,6 +113,14 @@ public class MongoDb {
         return connections.get(databaseName).getDatabase();
     }
 
+    public void delete(String databaseName) {
+        if (databaseName == null) {
+            return;
+        }
+        client.getDatabase(databaseName).drop();
+        connections.remove(databaseName);
+    }
+
     public Datastore getDs(String databaseName) {
         if (databaseName == null) {
             return null;

@@ -14,6 +14,7 @@
                 <th style="padding-right: 20px;">Name</th>
                 <th style="padding-right: 20px;">First date</th>
                 <th>Last date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -21,7 +22,8 @@
             <tr>
                 <td style="padding-right: 20px;">@database</td>
                 <td style="padding-right: 20px;">@database.getStart</td>
-                <td>@database.getEnd</td>
+                <td style="padding-right: 20px;">@database.getEnd</td>
+                <td><a href="@routes.DatabaseController.delete(gtfs.getCode, database.getDatabase.getName)">delete</a></td>
             </tr>
         }
         </tbody>
