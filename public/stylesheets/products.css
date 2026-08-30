@@ -8,7 +8,7 @@ span.product {
     border: 1px solid black;
 }
 
-span.product.interregio, span.product.ir, span.product.intercity, span.product.ic, span.product.regioexpress, span.product.re, span.product.ec, span.product.eurocity, span.product.intercityexpress, span.product.ice, span.product.railjet, span.product.tgv {
+span.product.interregio, span.product.ir, span.product.intercity, span.product.ic, span.product.icn, span.product.regioexpress, span.product.re, span.product.ec, span.product.eurocity, span.product.intercityexpress, span.product.ice, span.product.railjet, span.product.tgv, span.product.ouigo {
     background-color: red;
     color: #ffffff !important;
     font-style:italic;

@@ -11,6 +11,7 @@ import services.MongoDb;
 import java.time.ZoneId;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,7 +65,7 @@ public class FR extends GtfsConfig {
 
     @Override
     public String getDownloadUrl() {
-        return "https://eu.ftp.opendatasoft.com/sncf/plandata/export-opendata-sncf-gtfs.zip";
+        return "https://eu.ftp.opendatasoft.com/sncf/plandata/Export_OpenData_SNCF_GTFS_NewTripId.zip";
     }
 
     @Override
@@ -111,12 +112,33 @@ public class FR extends GtfsConfig {
 
     @Override
     public String extractProduct(Route route) {
-        return "??";
+        Optional<? extends Trip> trip = tripsModel.getByRoute(route).stream().findFirst();
+        if (trip.isEmpty()) {
+            return "??";
+        }
+        try {
+            int nr = Integer.parseInt(trip.get().getTrainNr());
+            if ((nr >= 3700 && nr < 3800) || (nr >= 3900 && nr < 4000)) {
+                return "ICN";
+            }
+            if (nr >= 3300 && nr < 4800) {
+                return "IC";
+            }
+            if (nr >= 7800 && nr < 7900 || nr == 6258 || nr == 5182 || nr == 6628 ) {
+                return "OUIGO";
+            }
+            if (nr >= 5000 && nr < 15000) {
+                return "TGV";
+            }
+            return "TER";
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
     public String extractLineName(Route route) {
-        return route.getShortName();
+        return extractProduct(route);
     }
 
     @Override
