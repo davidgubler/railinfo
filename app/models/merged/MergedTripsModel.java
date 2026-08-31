@@ -6,6 +6,7 @@ import entities.Trip;
 import models.TripsModel;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class MergedTripsModel implements TripsModel {
 
@@ -42,7 +43,7 @@ public class MergedTripsModel implements TripsModel {
     }
 
     @Override
-    public List<? extends Trip> getByRoute(Route route) {
+    public Stream<? extends Trip> getByRoute(Route route) {
         return route.getSourceGtfs().getTripsModel().getByRoute(route);
     }
 

@@ -13,6 +13,7 @@ import dev.morphia.query.Query;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MongoDbTripsModel implements TripsModel {
 
@@ -48,9 +49,9 @@ public class MongoDbTripsModel implements TripsModel {
     }
 
     @Override
-    public List<? extends Trip> getByRoute(Route route) {
-        List<MongoDbTrip> trips = query(route.getSourceGtfs()).filter(Filters.eq("routeId", route.getRouteId())).iterator().toList();
-        trips.stream().forEach(t -> { t.setGtfs(route.getSourceGtfs()); });
+    public Stream<? extends Trip> getByRoute(Route route) {
+        Stream<MongoDbTrip> trips = query(route.getSourceGtfs()).filter(Filters.eq("routeId", route.getRouteId())).stream();
+        trips = trips.map(t -> { t.setGtfs(route.getSourceGtfs()); return t; });
         return trips;
     }
 

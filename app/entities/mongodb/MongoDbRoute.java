@@ -2,13 +2,14 @@ package entities.mongodb;
 
 import configs.GtfsConfig;
 import dev.morphia.annotations.*;
+import entities.Route;
 import org.bson.types.ObjectId;
 
 import java.util.Map;
 import java.util.Objects;
 
 @Entity(value = "routes", useDiscriminator = false)
-public class MongoDbRoute implements entities.Route {
+public class MongoDbRoute implements Route {
     @Id
     private ObjectId _id;
 
@@ -73,16 +74,6 @@ public class MongoDbRoute implements entities.Route {
     @Override
     public Integer getType() {
         return type;
-    }
-
-    @Override
-    public String getProduct() {
-        return gtfs.extractProduct(this);
-    }
-
-    @Override
-    public String getLineName() {
-        return gtfs.extractLineName(this);
     }
 
     public String toString() {

@@ -32,9 +32,9 @@ public abstract class GtfsConfig implements Comparable<GtfsConfig> {
 
     public abstract String extractTrainNr(Trip trip);
 
-    public abstract String extractProduct(Route route);
+    public abstract String extractProduct(Trip route);
 
-    public abstract String extractLineName(Route route);
+    public abstract String extractLineName(Trip trip);
 
     public abstract int subtractStopTime(int edgeSeconds);
 

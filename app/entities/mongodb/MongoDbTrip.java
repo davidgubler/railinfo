@@ -147,6 +147,11 @@ public class MongoDbTrip implements Trip {
     }
 
     @Override
+    public String getLineName() {
+        return gtfs.extractLineName(this);
+    }
+
+    @Override
     public GtfsConfig getSourceGtfs() {
         return gtfs;
     }

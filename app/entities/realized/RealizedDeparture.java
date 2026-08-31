@@ -81,6 +81,14 @@ public class RealizedDeparture implements Comparable<RealizedDeparture> {
         return trip;
     }
 
+    public String getProduct() {
+        return trip.getProduct();
+    }
+
+    public String getLineName() {
+        return trip.getLineName();
+    }
+
     @Override
     public int compareTo(RealizedDeparture departure) {
         return getDepartureTime().compareTo(departure.getDepartureTime());

@@ -36,7 +36,7 @@
             }
         @for(pass <- passes) {
             <tr>
-                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(gtfs.getCode, pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getRoute.getProduct.toLowerCase">@pass.getTrip.getRoute.getLineName</span> @pass.getTrip.getTrip.getTrainNr @pass.getTrip.getBegins.getName &ndash; @pass.getTrip.getEnds.getName</a></td>
+                <td colspan="@if(pos == null){3}else{5}" style="font-size: 12px;"><a href="@routes.TimetableController.realizedTrip(gtfs.getCode, pass.getTrip.getTrip.getTripId, pass.getTrip.getStartDate.toString)"><span class="product @pass.getTrip.getProduct.toLowerCase">@pass.getTrip.getLineName</span> @pass.getTrip.getTrip.getTrainNr @pass.getTrip.getBegins.getName &ndash; @pass.getTrip.getEnds.getName</a></td>
             </tr>
             <tr>
                 <td style="text-align: center; border-top: 0px;">

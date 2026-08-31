@@ -71,7 +71,7 @@ public class CH extends GtfsConfig {
 
     @Override
     public List<? extends Trip> getRailTripsByRoute(Route route) {
-        return tripsModel.getByRoute(route); // no further filtering necessary as rail routes never contain bus trips
+        return tripsModel.getByRoute(route).toList(); // no further filtering necessary as rail routes never contain bus trips
     }
 
     @Override
@@ -88,13 +88,13 @@ public class CH extends GtfsConfig {
     }
 
     @Override
-    public String extractProduct(Route route) {
-        return route.getDesc();
+    public String extractProduct(Trip trip) {
+        return trip.getRoute().getDesc();
     }
 
     @Override
-    public String extractLineName(Route route) {
-        return route.getShortName();
+    public String extractLineName(Trip trip) {
+        return trip.getRoute().getShortName();
     }
 
     @Override

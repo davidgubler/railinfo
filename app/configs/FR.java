@@ -9,11 +9,10 @@ import models.*;
 import services.MongoDb;
 
 import java.time.ZoneId;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class FR extends GtfsConfig {
     @Inject
@@ -79,19 +78,12 @@ public class FR extends GtfsConfig {
     @Override
     public List<? extends Trip> getRailTripsByRoute(Route route) {
         // trips can return both trains and buses, therefore we have to remove the "R" trips (rue)
-        List<? extends Trip> trips = tripsModel.getByRoute(route);
-        Iterator<? extends Trip> iter = trips.iterator();
-        while (iter.hasNext()) {
-            Trip trip = iter.next();
-            Matcher m = tripPattern.matcher(trip.getTripId());
-            if (!m.matches()) {
-                continue;
-            }
-            if ("R".equals(m.group(2))) {
-                iter.remove();
-            }
-        }
-        return trips;
+        Stream<? extends Trip> trips = tripsModel.getByRoute(route);
+        trips = trips.filter(t -> {
+            Matcher m = tripPattern.matcher(t.getTripId());
+            return (!m.matches() || !"R".equals(m.group(2)));
+        });
+        return trips.toList();
     }
 
     @Override
@@ -111,13 +103,9 @@ public class FR extends GtfsConfig {
     }
 
     @Override
-    public String extractProduct(Route route) {
-        Optional<? extends Trip> trip = tripsModel.getByRoute(route).stream().findFirst();
-        if (trip.isEmpty()) {
-            return "??";
-        }
+    public String extractProduct(Trip trip) {
         try {
-            int nr = Integer.parseInt(trip.get().getTrainNr());
+            int nr = Integer.parseInt(trip.getTrainNr());
             if ((nr >= 3700 && nr < 3800) || (nr >= 3900 && nr < 4000)) {
                 return "ICN";
             }
@@ -132,13 +120,13 @@ public class FR extends GtfsConfig {
             }
             return "TER";
         } catch (Exception e) {
-            return null;
+            return "??";
         }
     }
 
     @Override
-    public String extractLineName(Route route) {
-        return extractProduct(route);
+    public String extractLineName(Trip trip) {
+        return extractProduct(trip);
     }
 
     @Override

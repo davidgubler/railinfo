@@ -15,9 +15,5 @@ public interface Route {
 
     Integer getType();
 
-    String getProduct();
-
-    String getLineName();
-
     GtfsConfig getSourceGtfs();
 }

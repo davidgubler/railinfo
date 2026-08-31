@@ -49,6 +49,14 @@ public class RealizedTrip {
         return new RealizedDeparture(this, getRealizedStopTimes().subList(i, realizedStopTimes.size()));
     }
 
+    public String getProduct() {
+        return gtfs.extractProduct(trip);
+    }
+
+    public String getLineName() {
+        return gtfs.extractLineName(trip);
+    }
+
     public List<RealizedStopTime> getRealizedStopTimes() {
         if (realizedStopTimes == null) {
             this.realizedStopTimes = Collections.unmodifiableList(trip.getStopTimes().stream().map(s -> new RealizedStopTime(s, startDate, gtfs)).collect(Collectors.toList()));

@@ -25,5 +25,7 @@ public interface Trip extends Comparable<Trip> {
 
     MongoDbRoute getRoute();
 
+    String getLineName();
+
     GtfsConfig getSourceGtfs();
 }

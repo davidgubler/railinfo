@@ -6,6 +6,7 @@ import entities.Trip;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public interface TripsModel {
 
@@ -17,7 +18,7 @@ public interface TripsModel {
 
     Trip getByTripId(GtfsConfig gtfs, String id);
 
-    List<? extends Trip> getByRoute(Route route);
+    Stream<? extends Trip> getByRoute(Route route);
 
     List<? extends Trip> getAll(GtfsConfig gtfs);
 }
