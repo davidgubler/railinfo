@@ -83,7 +83,7 @@ public class ApiController extends Controller {
         public String toString() {
             String start = realizedPass.getTrip().getBegins().getName();
             String end = realizedPass.getTrip().getEnds().getName();
-            String shortName = realizedPass.getTrip().getRoute().getShortName();
+            String shortName = realizedPass.getTrip().getProduct();
             String tripShortName = realizedPass.getTrip().getTrip().getTrainNr();
             String late = "";
             if (getLateSeconds() >= 300 && getLateSeconds() <= 600) {
