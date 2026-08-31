@@ -10,8 +10,6 @@ import services.MongoDb;
 
 import java.time.ZoneId;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class FR extends GtfsConfig {
@@ -72,16 +70,12 @@ public class FR extends GtfsConfig {
         return routesModel.getByType(this, 2, 2);
     }
 
-    // group(1) is the train number, group(2) is F for train and R for bus
-    private Pattern tripPattern = Pattern.compile("OCESN([0-9]+)([FR]).*");
-
     @Override
     public List<? extends Trip> getRailTripsByRoute(Route route) {
-        // trips can return both trains and buses, therefore we have to remove the "R" trips (rue)
         Stream<? extends Trip> trips = tripsModel.getByRoute(route);
         trips = trips.filter(t -> {
-            Matcher m = tripPattern.matcher(t.getTripId());
-            return (!m.matches() || !"R".equals(m.group(2)));
+            String[] split = t.getTripId().split(":");
+            return split.length >= 2 && !"CTE".equals(split[1]);
         });
         return trips.toList();
     }
@@ -105,20 +99,14 @@ public class FR extends GtfsConfig {
     @Override
     public String extractProduct(Trip trip) {
         try {
-            int nr = Integer.parseInt(trip.getTrainNr());
-            if ((nr >= 3700 && nr < 3800) || (nr >= 3900 && nr < 4000)) {
-                return "ICN";
-            }
-            if (nr >= 3300 && nr < 4800) {
-                return "IC";
-            }
-            if (nr >= 7800 && nr < 7900 || nr == 6258 || nr == 5182 || nr == 6628 ) {
-                return "OUIGO";
-            }
-            if (nr >= 5000 && nr < 15000) {
+            String[] split = trip.getTripId().split(":");
+            if ("OUI".equals(split[1])) {
                 return "TGV";
             }
-            return "TER";
+            if ("OGO".equals(split[1])) {
+                return "OUIGO";
+            }
+            return split[1];
         } catch (Exception e) {
             return "??";
         }

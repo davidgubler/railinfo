@@ -50,7 +50,7 @@ public class RealizerModel {
 
         Set<Trip> trips = new HashSet<>();
         for (MongoDbRoute route : routes) {
-            trips.addAll(gtfs.getTripsModel().getByRoute(route).toList());
+            trips.addAll(gtfs.getRailTripsByRoute(route));
         }
 
         Set<RealizedTrip> realizedTrips = realizeTrips(gtfs, dateTime.toLocalDate(), trips);
